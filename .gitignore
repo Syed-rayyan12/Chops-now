@@ -1,0 +1,64 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies - IMPORTANT: Use node_modules/ not /node_modules
+node_modules/
+**/node_modules/
+
+# next.js
+.next/
+/.next/
+/out/
+
+# production
+/build
+Backend/dist/
+Backend/build/
+
+# uploads (user-generated files)
+uploads/
+Backend/uploads/
+**/uploads/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# env files - IMPORTANT: All .env files
+.env
+.env*
+!.env.example
+Backend/.env
+Backend/.env*
+!Backend/.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# testing
+coverage/
+.nyc_output/
+
+# Development/testing cleanup scripts
+Backend/scripts/wipe-*.js
+Backend/clear-data.*
+**/test-*.ts
+**/test-*.js
