@@ -3,8 +3,13 @@
 // ============================================
 
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000/api",
+  // Use NEXT_PUBLIC_API_URL from .env.local, fallback to old name, then default
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 
+            process.env.NEXT_PUBLIC_API_BASE || 
+            "http://localhost:4000/api",
   TIMEOUT: 30000,
+  // Optional: API Key for additional security (can be enabled later)
+  API_KEY: process.env.NEXT_PUBLIC_API_KEY,
 } as const;
 
 export const STORAGE_KEYS = {
