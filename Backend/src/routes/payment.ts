@@ -16,8 +16,8 @@ router.post('/create-payment-intent', authenticate(['USER']), async (req: AuthRe
 
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: 'usd',
+      amount: Math.round(amount * 100), // Convert to pence
+      currency: 'gbp',
       metadata: {
         orderId: orderId?.toString() || '',
         userId: req.user?.id?.toString() || '',
@@ -98,7 +98,7 @@ router.get('/payment-status/:paymentIntentId', authenticate(['USER']), async (re
 
     res.json({
       status: paymentIntent.status,
-      amount: paymentIntent.amount / 100, // Convert back to dollars
+      amount: paymentIntent.amount / 100, // Convert back to pounds
       currency: paymentIntent.currency,
     });
   } catch (error: any) {

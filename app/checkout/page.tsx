@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/customer-panel-components/header"
 import { Footer } from "@/components/customer-panel-components/footer"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -163,6 +164,60 @@ export default function CheckoutPage() {
     }
   }
 
+  // Handle successful Stripe payment
+  const handlePaymentSuccess = async () => {
+    try {
+      const restaurantId = items[0]?.restaurantId
+      if (!restaurantId) {
+        throw new Error("Restaurant information missing")
+      }
+
+      // @ts-ignore
+      const orderItems = items.map(item => ({
+        title: item.menuItem?.name || "",
+        quantity: item.quantity,
+        price: item.menuItem?.price || 0,
+      }))
+
+      const orderPayload = {
+        restaurantId,
+        items: orderItems,
+        deliveryAddress: formData.address,
+        deliveryInstructions: formData.instructions || "",
+        paymentMethod: "CARD",
+        customerName: formData.name,
+        customerEmail,
+        customerPhone: formData.phone,
+      }
+
+      await customerOrders.create(orderPayload)
+      clearCart()
+
+      toast({
+        title: "Payment Successful! 🎉",
+        description: "Your order has been placed and paid",
+      })
+
+      router.push("/profile?tab=orders")
+    } catch (error: any) {
+      console.error("Order creation error:", error)
+      toast({
+        title: "Order Failed",
+        description: "Payment succeeded but order creation failed. Please contact support.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Handle Stripe payment error
+  const handlePaymentError = (error: string) => {
+    toast({
+      title: "Payment Failed",
+      description: error || "Payment processing failed. Please try again.",
+      variant: "destructive",
+    })
+  }
+
   const subtotal = getCartTotal()
   const deliveryFee = 2.50
   const grandTotal = subtotal + deliveryFee
@@ -250,26 +305,13 @@ export default function CheckoutPage() {
               <CardHeader className="p-4">
                 <CardTitle className="text-primary">Payment Method</CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <RadioGroup
-                  value={formData.paymentMethod}
-                  onValueChange={(value) => updateForm({ paymentMethod: value })}
-                >
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <RadioGroupItem value="CARD" id="card" />
-                    <Label htmlFor="card" className="cursor-pointer flex-1">
-                      <div className="font-medium">Card Payment (Demo)</div>
-                      <div className="text-sm text-gray-500">No actual payment required for testing</div>
-                    </Label>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center space-x-2 p-3 border rounded-lg bg-gray-50">
+                  <div className="flex-1">
+                    <div className="font-medium">Cash on Delivery</div>
+                    <div className="text-sm text-gray-500">Pay when your order arrives</div>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <RadioGroupItem value="CASH" id="cash" />
-                    <Label htmlFor="cash" className="cursor-pointer flex-1">
-                      <div className="font-medium">Cash on Delivery</div>
-                      <div className="text-sm text-gray-500">Pay when your order arrives</div>
-                    </Label>
-                  </div>
-                </RadioGroup>
+                </div>
               </CardContent>
             </Card>
 
@@ -324,11 +366,11 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
                 <p className="text-sm text-blue-800">
                   <strong>Demo Mode:</strong> This is for testing. No real payment will be processed.
                 </p>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         </div>
