@@ -7,6 +7,7 @@ import userRoutes from "./routes/user";
 import restaurantRoutes from "./routes/restaurant";
 import riderRoutes from "./routes/rider";
 import menuCategoryRoutes from "./routes/menuCategory";
+import paymentRoutes from "./routes/payment";
 
 console.log("🔥 server.ts is running...");
 
@@ -15,6 +16,10 @@ dotenv.config();
 const app = express();
 
 app.use(cors());
+
+// Stripe webhook needs raw body, so add it before express.json()
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 
 // TODO: Temporarily disabled - Will use Cloudflare R2/CDN after deployment
@@ -44,6 +49,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/restaurant", restaurantRoutes);
 app.use("/api/rider", riderRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Menu category and items routes
 app.use("/api", menuCategoryRoutes);
