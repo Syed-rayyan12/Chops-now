@@ -295,7 +295,7 @@ export function MenuManagementSection() {
     }
   }
 
-  const handleSave = async (updatedItem: MenuItem) => {
+  const handleSave = async (updatedItem: any) => {
     const restaurantSlug = localStorage.getItem("restaurantSlug")
     if (!restaurantSlug) return
 
@@ -308,13 +308,18 @@ export function MenuManagementSection() {
         formData.append("categoryId", String(updatedItem.categoryId))
       }
       formData.append("isAvailable", String(updatedItem.isAvailable))
-      formData.append("allergyInfo", updatedItem.allergyInfo || "")
+      formData.append("allergyInfo", updatedItem.allergyInfo || updatedItem.allergy || "")
+
+      // Add image file if uploaded
+      if (updatedItem.imageFile) {
+        formData.append("image", updatedItem.imageFile)
+      }
 
       await menuItemsApi.update(restaurantSlug, updatedItem.id, formData)
       
-      setMenuItems((prev) =>
-        prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-      )
+      // Reload menu items to get fresh data with updated image URL
+      await loadMenuItems(restaurantSlug)
+      
       // Notify other tabs/pages
       try {
         const channel = new BroadcastChannel("chop-restaurant-updates")
@@ -322,6 +327,7 @@ export function MenuManagementSection() {
         channel.close()
       } catch {}
       
+      setIsEditOpen(false)
       toast({
         title: "Success",
         description: "Menu item updated successfully",

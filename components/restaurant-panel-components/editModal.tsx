@@ -32,12 +32,14 @@ export  function EditModal({
 }: EditMenuItemModalProps) {
   const [editItem, setEditItem] = useState<MenuItem | null>(item)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
 
   // Sync item into local state when modal opens
   useEffect(() => {
     if (item) {
       setEditItem(item)
       setImagePreview(item.image || null)
+      setSelectedImageFile(null) // Reset file when opening new item
     }
   }, [item])
 
@@ -45,12 +47,10 @@ export  function EditModal({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setSelectedImageFile(file) // Store the actual file
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-        setEditItem((prev) =>
-          prev ? { ...prev, image: reader.result as string } : null
-        )
+        setImagePreview(reader.result as string) // Show preview
       }
       reader.readAsDataURL(file)
     }
@@ -59,7 +59,12 @@ export  function EditModal({
   // Save handler
   const handleSave = () => {
     if (editItem) {
-      onSave(editItem)
+      // Attach the image file to the item if uploaded
+      const itemToSave = {
+        ...editItem,
+        imageFile: selectedImageFile, // Add file for upload
+      }
+      onSave(itemToSave as any)
       onClose()
     }
   }
@@ -174,9 +179,9 @@ export  function EditModal({
           <div className="flex items-center space-x-2">
             <Switch
               id="available"
-              checked={editItem.available}
+              checked={editItem.isAvailable}
               onCheckedChange={(checked) =>
-                setEditItem({ ...editItem, available: checked })
+                setEditItem({ ...editItem, isAvailable: checked })
               }
             />
             <Label htmlFor="available">Available</Label>
