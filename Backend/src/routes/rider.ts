@@ -145,6 +145,7 @@ router.get("/me", authenticate(["RIDER"]), async (req: any, res: any) => {
         selfie: true,
         insurance: true,
         insuranceExpiryReminder: true,
+        isOnline: true,
         createdAt: true,
       },
     });
@@ -545,6 +546,39 @@ router.get("/activity/recent", authenticate(["RIDER"]), async (req: any, res: an
     res.json({ activities });
   } catch (error: any) {
     console.error("Get recent activity error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// PATCH - Toggle online/offline status
+router.patch("/toggle-online", authenticate(["RIDER"]), async (req: any, res: any) => {
+  try {
+    const riderId = req.user.id;
+    const { isOnline } = req.body;
+
+    // Validate input
+    if (typeof isOnline !== 'boolean') {
+      return res.status(400).json({ message: "isOnline must be a boolean" });
+    }
+
+    const updatedRider = await prisma.rider.update({
+      where: { id: riderId },
+      data: { isOnline },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isOnline: true,
+      }
+    });
+
+    res.json({ 
+      rider: updatedRider,
+      message: isOnline ? "You are now online and available for orders" : "You are now offline"
+    });
+  } catch (error: any) {
+    console.error("Toggle online status error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

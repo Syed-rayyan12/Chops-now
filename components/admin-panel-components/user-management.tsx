@@ -363,12 +363,13 @@ export function UserManagement() {
                                     <MoreHorizontal className="w-4 h-4  hover:text-white" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  <DropdownMenuItem>Send Message</DropdownMenuItem>
-                                  <DropdownMenuItem>View Order History</DropdownMenuItem>
-                                  <DropdownMenuItem>Update Status</DropdownMenuItem>
-                                  <DropdownMenuItem>Reset Password</DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-600">Ban User</DropdownMenuItem>
+                                <DropdownMenuContent className="bg-white border border-gray-200">
+                                  <DropdownMenuItem className="text-gray-700 hover:bg-gray-100 cursor-pointer focus:bg-gray-100">
+                                    Update Status
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-red-600 hover:bg-red-50 cursor-pointer focus:bg-red-50">
+                                    Ban User
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>

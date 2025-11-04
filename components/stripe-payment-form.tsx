@@ -113,6 +113,9 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    // Prevent creating payment intent if already created
+    if (clientSecret) return;
+
     // Create PaymentIntent as soon as the component mounts
     const createPaymentIntent = async () => {
       try {
@@ -149,7 +152,8 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
     };
 
     createPaymentIntent();
-  }, [amount, onError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amount]);
 
   if (loading) {
     return (

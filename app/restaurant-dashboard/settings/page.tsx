@@ -138,19 +138,21 @@ export default function RestaurantSettingsPage() {
         setSuccess("Restaurant settings and images saved successfully!")
 
         if (updated) {
-          const currentData = localStorage.getItem("restaurantData")
-          if (currentData) {
-            const parsed = JSON.parse(currentData)
-            localStorage.setItem("restaurantData", JSON.stringify({ ...parsed, ...updated }))
-          }
+          // Update localStorage immediately
+          localStorage.setItem("restaurantData", JSON.stringify(updated))
           
-          // Trigger event to notify layout to re-check setup status
-          window.dispatchEvent(new Event("restaurant-setup-updated"))
+          // Check if setup is complete
+          const isComplete = isRestaurantSetupComplete(updated)
+          console.log("🔍 Is setup complete?", isComplete)
+          console.log("📋 Updated restaurant data:", updated)
           
           // If setup becomes complete, redirect to dashboard overview
-          if (isRestaurantSetupComplete(updated)) {
+          if (isComplete) {
             console.log("🎉 Setup now complete! Redirecting to dashboard...")
-            setTimeout(() => router.push("/restaurant-dashboard"), 1000)
+            // Use replace to prevent back button issues
+            router.replace("/restaurant-dashboard")
+          } else {
+            console.log("⚠️ Setup still incomplete. Staying on settings page.")
           }
         }
       } else {
@@ -159,18 +161,20 @@ export default function RestaurantSettingsPage() {
         console.log("✅ Update successful! Response:", updated)
         setSuccess("Restaurant settings saved successfully!")
         if (updated) {
-          const currentData = localStorage.getItem("restaurantData")
-          if (currentData) {
-            const parsed = JSON.parse(currentData)
-            localStorage.setItem("restaurantData", JSON.stringify({ ...parsed, ...updated }))
-          }
+          // Update localStorage immediately
+          localStorage.setItem("restaurantData", JSON.stringify(updated))
           
-          // Trigger event to notify layout to re-check setup status
-          window.dispatchEvent(new Event("restaurant-setup-updated"))
+          // Check if setup is complete
+          const isComplete = isRestaurantSetupComplete(updated)
+          console.log("🔍 Is setup complete?", isComplete)
+          console.log("📋 Updated restaurant data:", updated)
           
-          if (isRestaurantSetupComplete(updated)) {
+          if (isComplete) {
             console.log("🎉 Setup now complete! Redirecting to dashboard...")
-            setTimeout(() => router.push("/restaurant-dashboard"), 1000)
+            // Use replace to prevent back button issues
+            router.replace("/restaurant-dashboard")
+          } else {
+            console.log("⚠️ Setup still incomplete. Staying on settings page.")
           }
         }
       }

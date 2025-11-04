@@ -222,11 +222,11 @@ export function OrdersSection() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-white border border-gray-300">
-                            <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, "PREPARING")}>
+                            <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "PREPARING")}>
                               <Check className="mr-2 h-4 w-4 text-green-600" />
                               <span className="text-foreground">Accept Order</span> 
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
+                            <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
                               <X className="mr-2 h-4 w-4 text-red-600" />
                               <span className="text-foreground">Reject Order</span>
                             </DropdownMenuItem>
@@ -299,7 +299,7 @@ export function OrdersSection() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-white border border-gray-300">
                             {order.status === "PREPARING" && (
-                              <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, "READY_FOR_PICKUP")}>
+                              <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "READY_FOR_PICKUP")}>
                                 <Check className="mr-2 h-4 w-4 text-green-600" />
                                 <span className="text-foreground">Mark Ready for Pickup</span>
                               </DropdownMenuItem>
@@ -315,7 +315,7 @@ export function OrdersSection() {
                               </DropdownMenuItem>
                             )}
                             {order.status !== "PICKED_UP" && (
-                              <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
+                              <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
                                 <X className="mr-2 h-4 w-4 text-red-600" />
                                 <span className="text-foreground">Cancel Order</span>
                               </DropdownMenuItem>

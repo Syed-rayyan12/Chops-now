@@ -49,6 +49,8 @@ export async function apiRequest<T>(
 
   // Make request
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  console.log("API Request URL:", url);
+  console.log("API Request Headers:", requestHeaders);
 
   try {
     const response = await fetch(url, {
@@ -56,16 +58,21 @@ export async function apiRequest<T>(
       headers: requestHeaders,
     });
 
+    console.log("API Response Status:", response.status);
+
     // Parse response
     let data = null;
     try {
       data = await response.json();
+      console.log("API Response Data:", data);
     } catch {
       // Response might not be JSON
+      console.log("API Response is not JSON");
     }
 
     // Handle errors
     if (!response.ok) {
+      console.error("API Error Response:", data);
       throw new ApiError(
         data?.message || `Request failed with status ${response.status}`,
         response.status,
@@ -75,6 +82,7 @@ export async function apiRequest<T>(
 
     return data as T;
   } catch (error) {
+    console.error("API Request Error:", error);
     if (error instanceof ApiError) {
       throw error;
     }

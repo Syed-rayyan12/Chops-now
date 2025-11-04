@@ -147,6 +147,24 @@ export const riderActivity = {
 };
 
 // ============================================
+// Rider Status
+// ============================================
+
+export const riderStatus = {
+  toggleOnline: (isOnline: boolean) =>
+    apiRequest<{ message: string; rider: any }>("/rider/toggle-online", {
+      method: "PATCH",
+      body: JSON.stringify({ isOnline }),
+      tokenKey: STORAGE_KEYS.RIDER_TOKEN,
+    }),
+
+  getProfile: () =>
+    apiRequest<{ rider: any }>("/rider/me", {
+      tokenKey: STORAGE_KEYS.RIDER_TOKEN,
+    }),
+};
+
+// ============================================
 // Legacy Function Names (for backward compatibility)
 // ============================================
 

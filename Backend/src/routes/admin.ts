@@ -34,7 +34,9 @@ router.get("/users", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { search, status } = req.query;
 
-    const where: any = {};
+    const where: any = {
+      role: "USER" // Only fetch users with role "USER", not restaurant owners
+    };
 
     // Remove status filter since User model doesn't have status field
     // if (status && typeof status === 'string' && status !== "all") {
@@ -119,6 +121,186 @@ router.get("/users", authenticate(["ADMIN"]), async (req, res) => {
   }
 });
 
+// Get orders for a specific user
+router.get("/users/:userId/orders", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log("Fetching orders for userId:", userId);
+    
+    // Extract numeric ID from USR-XXX format
+    const numericId = parseInt(userId.replace('USR-', ''));
+    console.log("Extracted numericId:", numericId);
+    
+    if (isNaN(numericId)) {
+      console.error("Invalid user ID format:", userId);
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const orders = await prisma.order.findMany({
+      where: {
+        customerId: numericId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        code: true,
+        amount: true,
+        subTotal: true,
+        deliveryFee: true,
+        tip: true,
+        status: true,
+        createdAt: true,
+        deliveryAddress: true,
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            image: true,
+          },
+        },
+        items: {
+          select: {
+            id: true,
+            title: true,
+            qty: true,
+            unitPrice: true,
+            total: true,
+          },
+        },
+      },
+      take: 20, // Limit to last 20 orders
+    });
+
+    const transformedOrders = orders.map((order: any) => ({
+      id: order.code,
+      restaurant: order.restaurant.name,
+      restaurantImage: order.restaurant.image,
+      items: order.items.map((item: any) => item.title),
+      amount: parseFloat(order.amount?.toString() || '0'),
+      status: order.status.toLowerCase(),
+      date: order.createdAt.toISOString().split('T')[0],
+      time: new Date(order.createdAt).toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+    }));
+
+    res.json(transformedOrders);
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ message: "Failed to fetch user orders" });
+  }
+});
+
+// Get orders for a specific restaurant
+router.get("/restaurants/:restaurantId/orders", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    console.log("=== Restaurant Orders Request ===");
+    console.log("Raw restaurantId from URL:", restaurantId);
+    
+    if (!restaurantId || restaurantId === 'undefined' || restaurantId === 'null') {
+      console.error("Restaurant ID is missing or invalid");
+      return res.status(400).json({ message: "Restaurant ID is required" });
+    }
+    
+    // Try multiple parsing strategies
+    let numericId: number;
+    
+    // Strategy 1: Check if it's already a number
+    if (!isNaN(Number(restaurantId))) {
+      numericId = Number(restaurantId);
+      console.log("Strategy 1 (direct number):", numericId);
+    } 
+    // Strategy 2: Remove common prefixes
+    else if (restaurantId.match(/^(REST-|RES-|RESTAURANT-)/i)) {
+      const cleanId = restaurantId.replace(/^(REST-|RES-|RESTAURANT-)/i, '').trim();
+      numericId = parseInt(cleanId, 10);
+      console.log("Strategy 2 (removed prefix):", cleanId, "=>", numericId);
+    }
+    // Strategy 3: Extract any numbers from the string
+    else {
+      const matches = restaurantId.match(/\d+/);
+      if (matches) {
+        numericId = parseInt(matches[0], 10);
+        console.log("Strategy 3 (extracted number):", matches[0], "=>", numericId);
+      } else {
+        console.error("Could not extract number from:", restaurantId);
+        return res.status(400).json({ 
+          message: `Invalid restaurant ID format: ${restaurantId}`,
+        });
+      }
+    }
+    
+    if (isNaN(numericId) || numericId <= 0) {
+      console.error("Final parsed ID is invalid:", numericId);
+      return res.status(400).json({ 
+        message: `Invalid restaurant ID: could not parse ${restaurantId}`,
+      });
+    }
+    
+    console.log("Final numeric ID to query:", numericId);
+
+    const orders = await prisma.order.findMany({
+      where: {
+        restaurantId: numericId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        code: true,
+        amount: true,
+        subTotal: true,
+        deliveryFee: true,
+        tip: true,
+        status: true,
+        createdAt: true,
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        items: {
+          select: {
+            id: true,
+            title: true,
+            qty: true,
+            unitPrice: true,
+            total: true,
+          },
+        },
+      },
+      take: 20, // Limit to last 20 orders
+    });
+
+    const transformedOrders = orders.map((order: any) => ({
+      id: order.code,
+      customerName: `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim() || 'Guest',
+      itemCount: order.items?.length || 0,
+      items: order.items?.map((item: any) => item.title) || [],
+      amount: parseFloat(order.amount?.toString() || '0'),
+      status: order.status.toLowerCase(),
+      date: order.createdAt.toISOString().split('T')[0],
+      time: new Date(order.createdAt).toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+    }));
+
+    res.json(transformedOrders);
+  } catch (error) {
+    console.error("Error fetching restaurant orders:", error);
+    res.status(500).json({ message: "Failed to fetch restaurant orders" });
+  }
+});
+
 router.get("/restaurants", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { search, status } = req.query;
@@ -158,6 +340,12 @@ router.get("/restaurants", authenticate(["ADMIN"]), async (req, res) => {
         image: true,
         minimumOrder: true,
         rating: true,
+        orders: {
+          select: {
+            amount: true,
+            status: true,
+          },
+        },
         _count: {
           select: {
             orders: true,
@@ -170,26 +358,37 @@ router.get("/restaurants", authenticate(["ADMIN"]), async (req, res) => {
     });
 
     // Transform data to match frontend expectations
-    const transformedRestaurants = restaurants.map((restaurant: any) => ({
-      id: `REST-${restaurant.id.toString().padStart(3, '0')}`,
-      name: restaurant.name,
-      slug: restaurant.slug,
-      cuisine: restaurant.cuisineType || "General",
-      address: restaurant.address,
-      phone: restaurant.phone,
-      email: restaurant.ownerEmail,
-      status: "active", // Default status since Restaurant model doesn't have status field
-      rating: parseFloat(restaurant.rating.toString()) || 4.5,
-      totalOrders: restaurant._count.orders,
-      revenue: 0, // Placeholder - can be calculated from orders
-      joinDate: restaurant.createdAt.toISOString().split('T')[0],
-      deliveryTime: restaurant.deliveryTime,
-      commission: 15, // Placeholder
-      image: restaurant.image || "/restaurant-placeholder.png",
-      description: restaurant.description || `Restaurant owned by ${restaurant.ownerFirstName} ${restaurant.ownerLastName}`.trim(),
-      openingHours: "11:00 AM - 10:00 PM", // Placeholder
-      minimumOrder: parseFloat(restaurant.minimumOrder.toString()) || 15.0,
-    }));
+    const transformedRestaurants = restaurants.map((restaurant: any) => {
+      // Calculate total revenue from completed orders
+      const totalRevenue = restaurant.orders.reduce((sum: number, order: any) => {
+        // Only count completed/delivered orders for revenue
+        if (order.status === 'DELIVERED' || order.status === 'COMPLETED') {
+          return sum + (parseFloat(order.amount?.toString() || '0'));
+        }
+        return sum;
+      }, 0);
+
+      return {
+        id: `REST-${restaurant.id.toString().padStart(3, '0')}`,
+        name: restaurant.name,
+        slug: restaurant.slug,
+        cuisine: restaurant.cuisineType || "General",
+        address: restaurant.address,
+        phone: restaurant.phone,
+        email: restaurant.ownerEmail,
+        status: "active", // Default status since Restaurant model doesn't have status field
+        rating: parseFloat(restaurant.rating.toString()) || 4.5,
+        totalOrders: restaurant._count.orders,
+        revenue: parseFloat(totalRevenue.toFixed(2)), // Calculated from completed orders
+        joinDate: restaurant.createdAt.toISOString().split('T')[0],
+        deliveryTime: restaurant.deliveryTime,
+        commission: 15, // Placeholder
+        image: restaurant.image || "/restaurant-placeholder.png",
+        description: restaurant.description || `Restaurant owned by ${restaurant.ownerFirstName} ${restaurant.ownerLastName}`.trim(),
+        openingHours: "11:00 AM - 10:00 PM", // Placeholder
+        minimumOrder: parseFloat(restaurant.minimumOrder.toString()) || 15.0,
+      };
+    });
 
     res.json(transformedRestaurants);
   } catch (error) {
@@ -435,6 +634,98 @@ router.get("/orders", authenticate(["ADMIN"]), async (req, res) => {
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ message: "Failed to fetch orders" });
+  }
+});
+
+// Get all riders for admin panel with optional search and status filtering
+router.get("/riders", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { search, status } = req.query;
+
+    const where: any = {};
+
+    if (search && typeof search === 'string') {
+      const searchNum = parseInt(search);
+      where.OR = [
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search } },
+        ...(isNaN(searchNum) ? [] : [{ id: searchNum }]),
+      ];
+    }
+
+    const riders = await prisma.rider.findMany({
+      where,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        isOnline: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Get order stats for each rider
+    const transformedRiders = await Promise.all(riders.map(async (rider: any) => {
+      // Get all orders for this rider
+      const orders = await prisma.order.findMany({
+        where: { riderId: rider.id },
+        select: {
+          status: true,
+          riderPayout: true,
+          createdAt: true,
+          deliveredAt: true,
+        },
+      });
+
+      // Calculate total earnings from completed deliveries
+      const totalEarnings = orders
+        .filter((order: any) => order.status === "DELIVERED")
+        .reduce((sum: number, order: any) => {
+          return sum + (parseFloat(order.riderPayout?.toString() || '0'));
+        }, 0);
+
+      // Determine rider status based on isOnline and active orders
+      let riderStatus = "offline"; // Default
+      
+      if (rider.isOnline) {
+        // Check if rider has any active orders (PICKED_UP status)
+        const hasActiveOrder = orders.some((o: any) => o.status === "PICKED_UP");
+        riderStatus = hasActiveOrder ? "busy" : "online";
+      }
+
+      // Filter by status if provided
+      if (status && typeof status === 'string' && status !== "all" && riderStatus !== status) {
+        return null;
+      }
+
+      return {
+        id: `RDR-${rider.id.toString().padStart(3, '0')}`,
+        name: `${rider.firstName} ${rider.lastName}`,
+        email: rider.email,
+        phone: rider.phone || "N/A",
+        status: riderStatus,
+        joinDate: rider.createdAt.toISOString().split('T')[0],
+        totalDeliveries: orders.filter((o: any) => o.status === "DELIVERED").length,
+        earnings: totalEarnings,
+        lastDelivery: "N/A",
+        avatar: null,
+      };
+    }));
+
+    // Remove null entries from status filtering
+    const filteredRiders = transformedRiders.filter(Boolean);
+
+    res.json(filteredRiders);
+  } catch (error) {
+    console.error("Error fetching riders:", error);
+    res.status(500).json({ message: "Failed to fetch riders" });
   }
 });
 

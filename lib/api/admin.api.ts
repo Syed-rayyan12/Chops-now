@@ -73,6 +73,49 @@ export const getAdminUsers = (params?: { search?: string; status?: string }) => 
   });
 };
 
+export const getUserOrders = (userId: string) => {
+  return apiRequest<any[]>(`/admin/users/${userId}/orders`, {
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
+  });
+};
+
+export const getRestaurantOrders = (restaurantId: string) => {
+  console.log("=== Frontend API Call ===");
+  console.log("API: Restaurant ID received:", restaurantId);
+  console.log("API: Restaurant ID type:", typeof restaurantId);
+  
+  if (!restaurantId || restaurantId === 'undefined' || restaurantId === 'null') {
+    console.error("API: Invalid restaurant ID provided:", restaurantId);
+    return Promise.reject(new Error("Restaurant ID is required"));
+  }
+  
+  // Don't encode - let it pass through as-is
+  const endpoint = `/admin/restaurants/${restaurantId}/orders`;
+  console.log("API: Calling endpoint:", endpoint);
+  
+  return apiRequest<any[]>(endpoint, {
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
+  });
+};
+
+// ============================================
+// Rider Management
+// ============================================
+
+export const getAdminRiders = (params?: { search?: string; status?: string }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.search) queryParams.append("search", params.search);
+  if (params?.status) queryParams.append("status", params.status);
+  
+  const queryString = queryParams.toString();
+  return apiRequest<any[]>(`/admin/riders${queryString ? `?${queryString}` : ""}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+    },
+  });
+};
+
 // ============================================
 // Dashboard Stats
 // ============================================

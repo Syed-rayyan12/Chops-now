@@ -102,7 +102,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
   const [isChecking, setIsChecking] = useState(true)
   const [locked, setLocked] = useState<boolean>(true)
 
-  // Re-check setup status on navigation or when triggered by custom event
+  // Re-check setup status on navigation
   useEffect(() => {
     async function checkAuthAndSetup() {
       const token = localStorage.getItem("restaurantToken")
@@ -119,25 +119,40 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
       // If we have a slug, check restaurant setup status
       if (slug) {
         try {
-          // Fetch latest restaurant to determine completeness
-          const latest = await getRestaurantBySlug(slug)
+          // First check localStorage for faster initial load
+          const cachedData = localStorage.getItem("restaurantData")
+          let latest = cachedData ? JSON.parse(cachedData) : null
+          
+          // Then fetch fresh data from API
+          const freshData = await getRestaurantBySlug(slug)
+          if (freshData) {
+            latest = freshData
+            localStorage.setItem("restaurantData", JSON.stringify(freshData))
+          }
+          
           console.log("🔍 Layout checking setup status:", latest)
+          
           if (latest) {
-            // Store restaurant data for future use
-            localStorage.setItem("restaurantData", JSON.stringify(latest))
             const complete = isRestaurantSetupComplete(latest)
-            console.log("✅ Setup complete?", complete)
+            console.log("✅ Setup complete?", complete, "| Locked?", !complete)
             setLocked(!complete)
 
-            // If not complete, force settings page
+            // If not complete, force settings page (unless already there)
             if (!complete && pathname !== "/restaurant-dashboard/settings") {
               console.log("⚠️ Setup incomplete, redirecting to settings")
               router.replace("/restaurant-dashboard/settings")
-            } else if (complete) {
-              console.log("🎉 Setup complete! Dashboard unlocked")
+            } 
+            // If complete and trying to access settings, redirect to overview
+            else if (complete && pathname === "/restaurant-dashboard/settings") {
+              console.log("🎉 Setup complete! Redirecting to overview")
+              router.replace("/restaurant-dashboard")
+            }
+            else if (complete) {
+              console.log("🎉 Setup complete! Dashboard unlocked - all pages accessible")
             }
           } else {
             // If API failed to return restaurant, keep it locked
+            console.log("⚠️ No restaurant data, locking dashboard")
             setLocked(true)
             if (pathname !== "/restaurant-dashboard/settings") {
               router.replace("/restaurant-dashboard/settings")
@@ -155,6 +170,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
         }
       } else {
         // No slug yet, allow access but keep locked until slug is available
+        console.log("⚠️ No restaurant slug, locking dashboard")
         setIsAuthenticated(true)
         setLocked(true)
         setIsChecking(false)
@@ -162,18 +178,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
     }
 
     checkAuthAndSetup()
-
-    // Listen for custom event to re-check after settings save
-    const handleSetupUpdate = () => {
-      console.log("🔄 Setup update event received, re-checking...")
-      checkAuthAndSetup()
-    }
-    window.addEventListener("restaurant-setup-updated", handleSetupUpdate)
-
-    return () => {
-      window.removeEventListener("restaurant-setup-updated", handleSetupUpdate)
-    }
-  }, [router, pathname])
+  }, [pathname, router])
 
   const [notifications] = useState<Notification[]>([
     {

@@ -35,40 +35,29 @@ export function OverviewSection() {
       }
     }
 
-    let pollId: any
-    if (restaurantSlug) {
-      // initial load
-      loadDashboardData(restaurantSlug)
-      // lightweight polling to reflect new orders/stats without manual refresh
-      const POLL_MS = 8000
-      pollId = setInterval(() => {
-        if (document.hidden) return
-        loadDashboardData(restaurantSlug)
-      }, POLL_MS)
+    const loadDashboardData = async () => {
+      if (!restaurantSlug) return
+      
+      try {
+        setLoading(true)
+        const [statsData, earningsData, ordersData] = await Promise.all([
+          restaurantOrders.getStats(restaurantSlug),
+          restaurantOrders.getEarnings(restaurantSlug),
+          restaurantOrders.getAll(restaurantSlug),
+        ])
+        setStats(statsData.stats)
+        setEarnings(earningsData.earnings)
+        setOrders(ordersData.orders)
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return () => {
-      if (pollId) clearInterval(pollId)
-    }
-  }, [])
-
-  const loadDashboardData = async (slug: string) => {
-    try {
-      setLoading(true)
-      const [statsData, earningsData, ordersData] = await Promise.all([
-        restaurantOrders.getStats(slug),
-        restaurantOrders.getEarnings(slug),
-        restaurantOrders.getAll(slug),
-      ])
-      setStats(statsData.stats)
-      setEarnings(earningsData.earnings)
-      setOrders(ordersData.orders)
-    } catch (error) {
-      console.error("Failed to load dashboard data:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    // Load data only once on mount
+    loadDashboardData()
+  }, []) // Empty dependency array ensures this runs only once
 
   const orderStatsConfig = [
     {

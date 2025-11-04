@@ -22,12 +22,11 @@ app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 
-// TODO: Temporarily disabled - Will use Cloudflare R2/CDN after deployment
 // Serve uploaded files (make sure uploads directory exists)
-// app.use(
-//   "/uploads",
-//   express.static(path.join(process.cwd(), "uploads"))
-// );
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads"))
+);
 
 // Log all incoming requests
 app.use((req, res, next) => {

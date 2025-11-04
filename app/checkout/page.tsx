@@ -239,7 +239,6 @@ export default function CheckoutPage() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-          <form onSubmit={handlePlaceOrder} className="space-y-6">
             <Card className="bg-white shadow-lg">
               <CardHeader className="p-4">
                 <CardTitle className="text-primary">Delivery Information</CardTitle>
@@ -306,31 +305,64 @@ export default function CheckoutPage() {
                 <CardTitle className="text-primary">Payment Method</CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-                <div className="flex items-center space-x-2 p-3 border rounded-lg bg-gray-50">
-                  <div className="flex-1">
-                    <div className="font-medium">Cash on Delivery</div>
-                    <div className="text-sm text-gray-500">Pay when your order arrives</div>
+                <RadioGroup
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => updateForm({ paymentMethod: value })}
+                >
+                  {/* Cash on Delivery Option */}
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <RadioGroupItem value="CASH" id="cash" />
+                    <Label htmlFor="cash" className="cursor-pointer flex-1">
+                      <div className="font-medium">Cash on Delivery</div>
+                      <div className="text-sm text-gray-500">Pay when your order arrives</div>
+                    </Label>
                   </div>
-                </div>
+
+                  {/* Card Payment Option */}
+                  <div className="border rounded-lg">
+                    <div className="flex items-center space-x-2 p-3 cursor-pointer hover:bg-gray-50">
+                      <RadioGroupItem value="CARD" id="card" />
+                      <Label htmlFor="card" className="cursor-pointer flex-1">
+                        <div className="font-medium">Card Payment</div>
+                        <div className="text-sm text-gray-500">Pay securely with your credit/debit card</div>
+                      </Label>
+                    </div>
+                  </div>
+                </RadioGroup>
               </CardContent>
             </Card>
 
-            <Button
-              type="submit"
-              className="w-full h-12 text-lg bg-secondary hover:bg-secondary/90"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Placing Order...
-                </>
-              ) : (
-                `Place Order - £${grandTotal.toFixed(2)}`
-              )}
-            </Button>
-          </form>
-        </div>
+            {/* Cash on Delivery Form */}
+            {formData.paymentMethod === "CASH" && (
+              <form onSubmit={handlePlaceOrder}>
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-lg bg-secondary hover:bg-secondary/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Placing Order...
+                    </>
+                  ) : (
+                    `Place Order - £${grandTotal.toFixed(2)}`
+                  )}
+                </Button>
+              </form>
+            )}
+
+            {/* Stripe Payment Form - Shows when CARD is selected */}
+            {formData.paymentMethod === "CARD" && (
+              <div className="p-4 border rounded-lg bg-gray-50/50">
+                <StripePaymentForm
+                  amount={grandTotal}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                />
+              </div>
+            )}
+          </div>
 
         <div className="lg:col-span-1">
           <Card className="sticky top-4 bg-white shadow-lg">

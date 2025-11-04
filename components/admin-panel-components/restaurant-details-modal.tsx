@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getRestaurantOrders } from "@/lib/api/admin.api"
+import { Loader } from "@/components/ui/loader"
 import {
   Store,
   MapPin,
@@ -52,6 +54,66 @@ interface RestaurantDetailsModalProps {
 
 export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: RestaurantDetailsModalProps) {
   const [currentStatus, setCurrentStatus] = useState(restaurant.status)
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
+  const [loadingOrders, setLoadingOrders] = useState(false)
+
+  // Fetch restaurant orders when modal opens
+  useEffect(() => {
+    if (isOpen && restaurant?.id) {
+      fetchRestaurantOrders()
+    } else if (isOpen && !restaurant?.id) {
+      console.error("Cannot fetch orders: Restaurant ID is missing")
+      console.log("Restaurant object:", restaurant)
+    }
+  }, [isOpen, restaurant?.id])
+
+  const fetchRestaurantOrders = async () => {
+    if (!restaurant?.id) {
+      console.error("Cannot fetch orders: Restaurant ID is undefined")
+      console.log("Restaurant:", restaurant)
+      setRecentOrders([])
+      setLoadingOrders(false)
+      return
+    }
+
+    try {
+      setLoadingOrders(true)
+      console.log("Restaurant object:", restaurant)
+      console.log("Fetching orders for restaurant ID:", restaurant.id)
+      console.log("Restaurant ID type:", typeof restaurant.id)
+      
+      const orders = await getRestaurantOrders(restaurant.id)
+      console.log("Fetched orders:", orders)
+      setRecentOrders(orders)
+    } catch (error: any) {
+      console.error("Failed to fetch restaurant orders:", error)
+      console.error("Error message:", error?.message || "Unknown error")
+      console.error("Error status:", error?.statusCode)
+      console.error("Error data:", error?.data)
+      setRecentOrders([])
+    } finally {
+      setLoadingOrders(false)
+    }
+  }
+
+  const getOrderStatusBadge = (status: string) => {
+    switch (status) {
+      case "delivered":
+        return <Badge className="bg-green-100 text-green-800">Delivered</Badge>
+      case "cancelled":
+        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+      case "preparing":
+        return <Badge className="bg-blue-100 text-blue-800">Preparing</Badge>
+      case "ready_for_pickup":
+        return <Badge className="bg-purple-100 text-purple-800">Ready</Badge>
+      case "picked_up":
+        return <Badge className="bg-amber-100 text-amber-800">Picked Up</Badge>
+      default:
+        return <Badge variant="secondary">{status}</Badge>
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -94,7 +156,7 @@ export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: Restaura
         </DialogHeader>
 
         <Tabs defaultValue="details" className="my-6 mx-6">
-          <TabsList className="gap-2 grid w-full grid-cols-4 text-white justify-center">
+          <TabsList className="gap-2 grid w-full grid-cols-2 text-white justify-center">
             <TabsTrigger
               value="details"
               className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
@@ -102,18 +164,11 @@ export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: Restaura
               Details
             </TabsTrigger>
             <TabsTrigger
-              value="performance"
-              className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
-            >
-              Performance
-            </TabsTrigger>
-            <TabsTrigger
               value="orders"
               className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
             >
               Recent Orders
             </TabsTrigger>
-           
           </TabsList>
 
           <TabsContent value="details" className="space-y-6">
@@ -215,117 +270,40 @@ export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: Restaura
             </div>
           </TabsContent>
 
-          <TabsContent value="performance" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className=" bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 justify-between">
-                    <div className="flex flex-col gap-4">
-                    <div className=" w-10 h-10 flex justify-center rounded-full items-center">  
-                    <ShoppingBag className="w-5 h-5 text-primary" />
-                    </div>
-                      <p className="text-sm text-secondary">Monthly Orders</p>
-                      <p className="text-2xl font-bold text-foreground">247</p>
-                    </div>
-                  
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className=" bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-4">
-                    <div className=" w-10 h-10 flex justify-center rounded-full items-center">
-                    <DollarSign className="w-5 h-5 text-primary" />
-                    </div>
-                      <p className="text-sm text-secondary">Monthly Revenue</p>
-                      <p className="text-2xl font-bold text-foreground">£3,240</p>
-                    </div>
-                   
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className=" bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-4">
-                    <div className=" w-10 h-10 flex justify-center rounded-full items-center">
-                    <Percent className="w-5 h-5 text-primary" />
-                     </div>
-                      <p className="text-sm text-secondary">Avg Order Value</p>
-                      <p className="text-2xl font-bold text-foreground">£28.50</p>
-                    </div>
-                    
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
           <TabsContent value="orders" className="space-y-6">
             <Card className=" p-4 bg-white">
               <CardHeader>
                 <CardTitle className="text-foreground">Recent Orders</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center justify-between p-4 border-gray-400 border rounded-lg">
+                {loadingOrders ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader size="md" />
+                  </div>
+                ) : recentOrders.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <ShoppingBag className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No orders found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentOrders.map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-4 border-gray-400 border rounded-lg">
                         <div className="bg-secondary w-12 h-12 flex justify-center items-center rounded-full text-white">
-                         <img src="/vec.png" className="w-6 h-6" alt="" />
+                          <img src="/vec.png" className="w-6 h-6" alt="" />
                         </div>
-                        <p className="font-bold text-foreground">#ORD-00{i}</p>
-                        <p className="text-sm text-secondary">Customer Name • 2 items</p>
-                   
-                     
-                        <p className="font-medium text-sm text-gray-400">£{(25 + i * 3).toFixed(2)}</p>
-                        <Badge className="bg-green-100 text-green-800">Delivered</Badge>
-                    
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <Card className=" bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center text-primary">
-                  {getStatusIcon(currentStatus)}
-                  <span className="ml-2">Restaurant Status</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-4">
-                  <Select value={currentStatus} onValueChange={handleStatusUpdate}>
-                    <SelectTrigger className="w-48 ">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white ">
-                      <SelectItem value="active" className="text-foreground">Active</SelectItem>
-                      <SelectItem value="pending" className="text-foreground">Pending</SelectItem>
-                      <SelectItem value="inactive" className="text-foreground">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button className="bg-secondary hover:bg-secondary/80 cursor-pointer text-white">Update Status</Button>
-                </div>
+                        <p className="font-bold text-foreground">{order.id}</p>
+                        <p className="text-sm text-secondary">{order.customerName} • {order.itemCount} items</p>
+                        <p className="font-medium text-sm text-gray-400">£{order.amount.toFixed(2)}</p>
+                        {getOrderStatusBadge(order.status)}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 m-6 border-t border-orange-200">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="border-secondary  text-secondary hover:bg-secondary bg-transparent px-6 py-3 rounded-lg"
-          >
-            Close
-          </Button>
-          <Button className="text-white hover:text-secondary border border-transparent hover:border-secondary rounded-lg px-7 py-3 hover:bg-transparent bg-secondary">Edit Restaurant</Button>
-        </div>
       </DialogContent>
     </Dialog>
   )

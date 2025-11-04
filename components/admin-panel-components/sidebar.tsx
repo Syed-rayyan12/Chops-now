@@ -11,7 +11,8 @@ import {
   Home,
   ShoppingCart,
   Star,
-  HomeIcon
+  HomeIcon,
+  Bike
 } from "lucide-react"
 
 import {
@@ -23,8 +24,8 @@ const navigation = [
   { href: "/admin-dashboard/orders", name: "Orders", icon: ShoppingCart },
   { href: "/admin-dashboard/users", name: "User Management", icon: ChefHat },
   { href: "/admin-dashboard/restaurants", name: "Restaurant Management", icon: CreditCard },
+  { href: "/admin-dashboard/riders", name: "Rider Management", icon: Bike },
   { href: "/admin-dashboard/analytics", name: "Analytics", icon: Star },
-  
 ]
 
 

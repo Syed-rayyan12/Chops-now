@@ -7,7 +7,7 @@ import { MapPin, Clock, Star, TrendingUp, Package, DollarSign, Phone, Navigation
 import { useEffect, useState } from "react"
 import { Switch } from "../ui/switch"
 import { Label } from "../ui/label"
-import { riderStats, riderOrders, riderActivity, type RiderOrder, type Activity } from "@/lib/api/rider.api"
+import { riderStats, riderOrders, riderActivity, riderStatus, type RiderOrder, type Activity } from "@/lib/api/rider.api"
 import { useToast } from "@/hooks/use-toast"
 
 export function DashboardHome() {
@@ -16,6 +16,8 @@ export function DashboardHome() {
   const [activeOrders, setActiveOrders] = useState<RiderOrder[]>([])
   const [recentActivity, setRecentActivity] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
+  const [isOnline, setIsOnline] = useState(false)
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false)
 
   useEffect(() => {
     loadDashboardData()
@@ -27,19 +29,42 @@ export function DashboardHome() {
 
   const loadDashboardData = async () => {
     try {
-      const [statsData, activeOrdersData, activityData] = await Promise.all([
+      const [statsData, activeOrdersData, activityData, profileData] = await Promise.all([
         riderStats.get(),
         riderOrders.getActive(),
-        riderActivity.getRecent()
+        riderActivity.getRecent(),
+        riderStatus.getProfile()
       ])
       
       setStats(statsData)
       setActiveOrders(activeOrdersData.orders)
       setRecentActivity(activityData.activities)
+      setIsOnline(profileData.rider?.isOnline || false)
     } catch (error: any) {
       console.error("Failed to load dashboard data:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleToggleOnline = async (checked: boolean) => {
+    setIsTogglingStatus(true)
+    try {
+      await riderStatus.toggleOnline(checked)
+      setIsOnline(checked)
+      toast({
+        title: "Status Updated",
+        description: checked ? "You are now online and available for orders" : "You are now offline",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update online status",
+        variant: "destructive",
+      })
+      console.error("Failed to toggle online status:", error)
+    } finally {
+      setIsTogglingStatus(false)
     }
   }
 
@@ -87,8 +112,6 @@ export function DashboardHome() {
       })
     }
   }
-
-  const [isOnline, setIsOnline] = useState(true);
 
   // Map stats to display format
   const mappedStats = [
@@ -150,7 +173,8 @@ export function DashboardHome() {
         <div className="flex items-center space-x-4">
           <Switch
             checked={isOnline}
-            onCheckedChange={setIsOnline}
+            onCheckedChange={handleToggleOnline}
+            disabled={isTogglingStatus}
             className={isOnline ? "data-[state=checked]:bg-green-500 " : "data-[state=unchecked]:bg-white/10"}
           />
           <Label className={isOnline ? "text-white font-medium" : "text-green-700 font-medium"}>

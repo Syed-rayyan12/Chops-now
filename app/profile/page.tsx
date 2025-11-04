@@ -398,7 +398,7 @@ export default function ProfilePage() {
 
       {/* Order Details Modal */}
       <Dialog open={showOrderModal} onOpenChange={setShowOrderModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl w-[90%] p-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#2D2D2D] text-xl">Order Details</DialogTitle>
           </DialogHeader>
