@@ -8,21 +8,17 @@ datasource db {
 }
 
 model User {
-  id             Int                  @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   firstName      String
   lastName       String
-  email          String               @unique
+  email          String    @unique
   password       String
-  phone          String?              @unique
+  phone          String?   @unique
   role           Role
-  createdAt      DateTime             @default(now())
+  createdAt      DateTime  @default(now())
   addresses      Address[]
   cartItems      CartItem[]
-  earnings       Earning[]
-  customerOrders Order[]              @relation("CustomerOrders")
-  riderOrders    Order[]              @relation("RiderOrders")
-  ratings        Rating[]
-  riderSessions  RiderOnlineSession[]
+  customerOrders Order[]   @relation("CustomerOrders")
 }
 
 model Restaurant {
@@ -59,10 +55,10 @@ model Restaurant {
 }
 
 model Rider {
-  id                               Int      @id @default(autoincrement())
+  id                               Int                  @id @default(autoincrement())
   firstName                        String
   lastName                         String
-  email                            String   @unique
+  email                            String               @unique
   phone                            String
   password                         String
   personalDetails                  String?
@@ -75,9 +71,13 @@ model Rider {
   insuranceExpiryReminder          String?
   accountNumber                    String?
   sortCode                         String?
-  deliveryPartnerAgreementAccepted Boolean  @default(false)
-  isOnline                         Boolean  @default(false)
-  createdAt                        DateTime @default(now())
+  deliveryPartnerAgreementAccepted Boolean              @default(false)
+  isOnline                         Boolean              @default(false)
+  createdAt                        DateTime             @default(now())
+  orders                           Order[]
+  earnings                         Earning[]
+  ratings                          Rating[]
+  onlineSessions                   RiderOnlineSession[]
 }
 
 model Order {
@@ -104,7 +104,7 @@ model Order {
   address         Address?    @relation(fields: [addressId], references: [id])
   customer        User        @relation("CustomerOrders", fields: [customerId], references: [id])
   restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
-  rider           User?       @relation("RiderOrders", fields: [riderId], references: [id])
+  rider           Rider?      @relation(fields: [riderId], references: [id])
   items           OrderItem[]
   ratings         Rating?
 
@@ -131,7 +131,7 @@ model RiderOnlineSession {
   riderId   Int
   startedAt DateTime  @default(now())
   endedAt   DateTime?
-  rider     User      @relation(fields: [riderId], references: [id])
+  rider     Rider     @relation(fields: [riderId], references: [id])
 
   @@index([riderId, startedAt])
 }
@@ -144,7 +144,7 @@ model Rating {
   comment   String?
   createdAt DateTime @default(now())
   order     Order    @relation(fields: [orderId], references: [id])
-  rider     User     @relation(fields: [riderId], references: [id])
+  rider     Rider    @relation(fields: [riderId], references: [id])
 
   @@index([riderId])
 }
@@ -156,7 +156,7 @@ model Earning {
   amount  Decimal  @db.Decimal(10, 2)
   date    DateTime @default(now())
   order   Order    @relation(fields: [orderId], references: [id])
-  rider   User     @relation(fields: [riderId], references: [id])
+  rider   Rider    @relation(fields: [riderId], references: [id])
 
   @@index([riderId])
   @@index([orderId])
