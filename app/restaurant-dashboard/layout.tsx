@@ -142,11 +142,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
               console.log("⚠️ Setup incomplete, redirecting to settings")
               router.replace("/restaurant-dashboard/settings")
             } 
-            // If complete and trying to access settings, redirect to overview
-            else if (complete && pathname === "/restaurant-dashboard/settings") {
-              console.log("🎉 Setup complete! Redirecting to overview")
-              router.replace("/restaurant-dashboard")
-            }
+            // Allow access to settings page even when complete (owners can update anytime)
             else if (complete) {
               console.log("🎉 Setup complete! Dashboard unlocked - all pages accessible")
             }
