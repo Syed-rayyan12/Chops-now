@@ -2,13 +2,16 @@
 // API Configuration - Single Source of Truth
 // ============================================
 
+const getBaseUrl = () => {
+  if (!process.env.NEXT_PUBLIC_API_URL) {
+    throw new Error('NEXT_PUBLIC_API_URL must be set in .env.local or deployment platform!');
+  }
+  return process.env.NEXT_PUBLIC_API_URL;
+};
+
 export const API_CONFIG = {
-  // Use NEXT_PUBLIC_API_URL from .env.local, fallback to old name, then default
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 
-            process.env.NEXT_PUBLIC_API_BASE || 
-            "http://localhost:4000/api",
+  BASE_URL: getBaseUrl(),
   TIMEOUT: 30000,
-  // Optional: API Key for additional security (can be enabled later)
   API_KEY: process.env.NEXT_PUBLIC_API_KEY,
 } as const;
 
