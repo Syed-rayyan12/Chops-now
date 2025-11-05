@@ -13,12 +13,12 @@
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "target": "ES6",
+    "target": "es2020",
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "commonjs",
     
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -30,8 +30,10 @@
         "name": "next"
       }
     ],
-   
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "lib/authSerivce.js", "components/restaurant-panel-components/menu/deleteModal/deleteModal", "components/restaurant-panel-components/menu/deleteModal"],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "lib/authSerivce.js", "components/restaurant-panel-components/menu/deleteModal/deleteModal", "components/restaurant-panel-components/menu/deleteModal", "src"],
+  "exclude": ["node_modules", "dist", "prisma"]
 }
