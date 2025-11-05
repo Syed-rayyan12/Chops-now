@@ -34,7 +34,16 @@ export default function RiderSignup() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    
+    // Format phone number for UK format
+    if (name === "phone") {
+      // Only allow numbers, +, and spaces
+      const cleaned = value.replace(/[^\d+\s]/g, '')
+      setFormData((prev) => ({ ...prev, [name]: cleaned }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
+    
     // Clear field-level error as user types
     if (fieldErrors[name as keyof typeof fieldErrors]) {
       setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
@@ -43,40 +52,92 @@ export default function RiderSignup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    let hasError = false
+    const nextErrors: { firstName?: string; lastName?: string; email?: string; phone?: string; password?: string } = {}
+
+    // Step 1: Check for empty fields
+    if (!formData.firstName.trim()) {
+      nextErrors.firstName = "First name is required"
+      hasError = true
+    }
+    if (!formData.lastName.trim()) {
+      nextErrors.lastName = "Last name is required"
+      hasError = true
+    }
+    if (!formData.email.trim()) {
+      nextErrors.email = "Email is required"
+      hasError = true
+    }
+    if (!formData.phone.trim()) {
+      nextErrors.phone = "Phone number is required"
+      hasError = true
+    }
+    if (!formData.password.trim()) {
+      nextErrors.password = "Password is required"
+      hasError = true
+    }
+
+    // If any field is empty, show errors and stop
+    if (hasError) {
+      setFieldErrors(nextErrors)
+      return
+    }
+
+    // Step 2: Format validations
+    const nameRegex = /^[a-zA-Z\s]{2,}$/
+    if (!nameRegex.test(formData.firstName)) {
+      nextErrors.firstName = "First name must contain only letters and be at least 2 characters"
+      hasError = true
+    }
+    if (!nameRegex.test(formData.lastName)) {
+      nextErrors.lastName = "Last name must contain only letters and be at least 2 characters"
+      hasError = true
+    }
+
+    // Email validation - must contain @ and .
+    if (!formData.email.includes("@")) {
+      nextErrors.email = "Email must contain @ symbol"
+      hasError = true
+    } else if (!formData.email.includes(".")) {
+      nextErrors.email = "Email must contain a domain (e.g., .com, .co.uk)"
+      hasError = true
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) {
+        nextErrors.email = "Please enter a valid email address (e.g., user@example.com)"
+        hasError = true
+      }
+    }
+
+    // Phone validation - UK format
+    const ukPhoneRegex = /^(?:(?:\+44\s?|0)(?:\d\s?){10})$/
+    if (!ukPhoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      nextErrors.phone = "Please enter a valid phone number (e.g., +44 7123 456789)"
+      hasError = true
+    }
+
+    // Password validation
+    if (formData.password.length < 8) {
+      nextErrors.password = "Password must be at least 8 characters"
+      hasError = true
+    } else {
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)/
+      if (!passwordRegex.test(formData.password)) {
+        nextErrors.password = "Password must contain at least one letter and one number"
+        hasError = true
+      }
+    }
+
+    // If validation fails, show errors
+    if (hasError) {
+      setFieldErrors(nextErrors)
+      return
+    }
+
     setLoading(true)
     setError(null)
     setFieldErrors({})
-
-    // Required checks
-    let hasError = false
-    const nextErrors: { firstName?: string; lastName?: string; email?: string; phone?: string; password?: string } = {}
-    if (!formData.firstName.trim()) { nextErrors.firstName = "First name is required"; hasError = true }
-    if (!formData.lastName.trim()) { nextErrors.lastName = "Last name is required"; hasError = true }
-    if (!formData.email.trim()) { nextErrors.email = "Email is required"; hasError = true }
-    if (!formData.phone.trim()) { nextErrors.phone = "Phone number is required"; hasError = true }
-    if (!formData.password.trim()) { nextErrors.password = "Password is required"; hasError = true }
-    if (hasError) {
-      setFieldErrors(nextErrors)
-      setLoading(false)
-      return
-    }
-
-    // Format validations
-    const nameRegex = /^[a-zA-Z]{2,}$/
-    if (!nameRegex.test(formData.firstName)) { nextErrors.firstName = "First name must contain only letters and be at least 2 characters"; hasError = true }
-    if (!nameRegex.test(formData.lastName)) { nextErrors.lastName = "Last name must contain only letters and be at least 2 characters"; hasError = true }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) { nextErrors.email = "Please provide a valid email address (e.g., user@example.com)"; hasError = true }
-    if (formData.password.length < 8) { nextErrors.password = "Password must be at least 8 characters"; hasError = true }
-    else {
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)/
-      if (!passwordRegex.test(formData.password)) { nextErrors.password = "Password must contain at least one letter and one number"; hasError = true }
-    }
-    if (hasError) {
-      setFieldErrors(nextErrors)
-      setLoading(false)
-      return
-    }
 
     try {
       const res = await fetch("http://localhost:4000/api/user/signup", {
@@ -131,18 +192,18 @@ export default function RiderSignup() {
         
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate={true} className="space-y-4">
             {/* First Name */}
             <div className="space-y-2 relative">
               <label className="text-sm font-medium text-gray-700">First Name</label>
-              <User className="absolute top-6 inset-y-0 left-3 my-auto h-4 w-4 text-gray-400" />
+             
               <Input
                 type="text"
                 name="firstName"
                 placeholder="First Name"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="pl-10 border h-10 text-foreground focus:border-secondary border-gray-400"
+                className=" border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
                 required
               />
               {fieldErrors.firstName && (
@@ -153,14 +214,14 @@ export default function RiderSignup() {
             {/* Last Name */}
             <div className="space-y-2 relative">
               <label className="text-sm font-medium text-gray-700">Last Name</label>
-              <User className="absolute top-6 inset-y-0 left-3 my-auto h-4 w-4 text-gray-400" />
+             
               <Input
                 type="text"
                 name="lastName"
                 placeholder="Last Name"
                 value={formData.lastName}
                 onChange={handleChange}
-                className="pl-10 border h-10 text-foreground focus:border-secondary border-gray-400"
+                className=" border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
                 required
               />
               {fieldErrors.lastName && (
@@ -171,14 +232,14 @@ export default function RiderSignup() {
             {/* Email */}
             <div className="space-y-2 relative">
               <label className="text-sm font-medium text-gray-700">Email</label>
-              <User className="absolute top-6 inset-y-0 left-3 my-auto h-4 w-4 text-gray-400" />
+              
               <Input
                 type="text"
                 name="email"
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
-                className="pl-10 border h-10 text-foreground focus:border-secondary border-gray-400"
+                className=" border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
                 required
               />
               {fieldErrors.email && (
@@ -189,14 +250,14 @@ export default function RiderSignup() {
             {/* Phone Number */}
             <div className="space-y-2 relative">
               <label className="text-sm font-medium text-gray-700">Phone Number</label>
-              <Phone className="absolute top-6 inset-y-0 left-3 my-auto h-4 w-4 text-gray-400" />
+            
               <Input
                 type="tel"
                 name="phone"
                 placeholder="+44 7123 456789"
                 value={formData.phone}
                 onChange={handleChange}
-                className="pl-10 border h-10 text-foreground focus:border-secondary border-gray-400"
+                className=" border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
                 required
               />
               {fieldErrors.phone && (
@@ -213,7 +274,7 @@ export default function RiderSignup() {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
-                className="pr-10 border h-10 text-foreground focus:border-secondary border-gray-400"
+                className="pr-10 border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
                 required
               />
               <button

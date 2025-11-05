@@ -42,6 +42,25 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Validate sort code if provided (UK format: 6 digits, optional dashes)
+    if (sortCode) {
+      // Remove any dashes or spaces
+      const cleanedSortCode = sortCode.replace(/[-\s]/g, '')
+      
+      // Check if it's exactly 6 digits
+      if (!/^\d{6}$/.test(cleanedSortCode)) {
+        return res.status(400).json({ 
+          message: "Sort code must be exactly 6 digits (format: XX-XX-XX)" 
+        });
+      }
+      
+      // Format as XX-XX-XX for storage
+      const formattedSortCode = cleanedSortCode.replace(/(\d{2})(\d{2})(\d{2})/, '$1-$2-$3')
+      
+      // Update the sortCode value to formatted version
+      req.body.sortCode = formattedSortCode
+    }
+
     // Check if email is already used
     const existingRider = await prisma.rider.findFirst({
       where: {
@@ -54,6 +73,10 @@ router.post("/signup", async (req, res) => {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Use formatted sort code from validation
+    const finalSortCode = req.body.sortCode || sortCode
+    
     // Create rider with only firstName/lastName (no legacy name field)
     const rider = await prisma.rider.create({
       data: {
@@ -71,7 +94,7 @@ router.post("/signup", async (req, res) => {
         insurance,
         insuranceExpiryReminder,
         accountNumber,
-        sortCode,
+        sortCode: finalSortCode,
         deliveryPartnerAgreementAccepted: !!deliveryPartnerAgreementAccepted,
       },
     });
