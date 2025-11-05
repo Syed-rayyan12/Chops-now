@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { API_CONFIG } from "@/lib/api/config"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +41,7 @@ export function Header() {
         return
       }
 
-      const response = await fetch("http://localhost:4000/api/restaurant/profile", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/restaurant/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

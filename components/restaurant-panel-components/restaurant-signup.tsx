@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { API_CONFIG } from "@/lib/api/config"
 
 export default function RestaurantSignup() {
     const router = useRouter()
@@ -158,7 +159,7 @@ export default function RestaurantSignup() {
         setLoading(true)
 
         try {
-            const res = await fetch("http://localhost:4000/api/restaurant/signup", {
+            const res = await fetch(`${API_CONFIG.BASE_URL}/restaurant/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

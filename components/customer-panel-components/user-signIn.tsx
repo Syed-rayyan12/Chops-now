@@ -8,6 +8,7 @@ import { Eye, EyeOff, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
+import { API_CONFIG } from "@/lib/api/config"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -64,7 +65,7 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
     }
 
     try {
-      const res = await fetch("http://localhost:4000/api/user/login", {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

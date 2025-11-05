@@ -10,6 +10,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
+import { API_CONFIG } from "@/lib/api/config";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
@@ -125,7 +126,7 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"}/payment/create-payment-intent`,
+          `${API_CONFIG.BASE_URL}/payment/create-payment-intent`,
           {
             method: "POST",
             headers: {

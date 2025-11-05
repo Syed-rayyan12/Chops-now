@@ -212,6 +212,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { API_CONFIG } from "@/lib/api/config"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -284,7 +285,7 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
       }
 
       // Fetch profile from API
-      const response = await fetch("http://localhost:4000/api/restaurant/profile", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/restaurant/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

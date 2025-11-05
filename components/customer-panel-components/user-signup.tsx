@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { API_CONFIG } from "@/lib/api/config"
 
 export default function RiderSignup() {
   const router = useRouter()
@@ -140,7 +141,7 @@ export default function RiderSignup() {
     setFieldErrors({})
 
     try {
-      const res = await fetch("http://localhost:4000/api/user/signup", {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/user/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
