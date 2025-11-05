@@ -15,12 +15,9 @@ console.log("🔥 server.ts is running...");
 dotenv.config();
 const app = express();
 
-// CORS configuration - allow both local and production frontends
+// CORS configuration - allow production frontend
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://chops-now-production.up.railway.app'
-  ],
+  origin: 'https://chops-now-production.up.railway.app',
   credentials: true
 }));
 
