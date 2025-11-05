@@ -39,11 +39,16 @@ export function Header() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) return
       const profile = await getUserProfile()
+      console.log('User Profile:', profile)
       setUser(profile)
       // keep localStorage email in sync
       if (profile?.email) localStorage.setItem('userEmail', profile.email)
     } catch (e) {
-      // ignore silently
+      console.error('Error loading profile:', e)
+      // If token is invalid, clear it
+      localStorage.removeItem('token')
+      localStorage.removeItem('userEmail')
+      setUser(null)
     }
   }
 
