@@ -1,38 +1,64 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DollarSign, TrendingUp, Calendar, Clock, Target, Award } from "lucide-react"
+import { API_CONFIG } from "@/lib/api/config"
 
+interface Earnings {
+  today: number
+  thisWeek: number
+}
 
 const statsData = [
   {
     title: "Today's Total",
-    value: "£52.50",
+    value: "£0.00",
     icon: DollarSign,
     gradient: "from-green-500 to-emerald-500",
+    key: 'today'
   },
   {
     title: "This Week",
-    value: "£615.25",
+    value: "£0.00",
     icon: TrendingUp,
     gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Weekly Goal",
-    value: "82%",
-    icon: Target,
-    gradient: "from-purple-500 to-pink-500",
-  },
-  {
-    title: "Avg/Hour",
-    value: "£12.50",
-    icon: Award,
-    gradient: "from-orange-500 to-red-500",
+    key: 'thisWeek'
   },
 ];
 
 export function EarningsSection() {
+  const [earnings, setEarnings] = useState<Earnings>({ today: 0, thisWeek: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchEarnings()
+  }, [])
+
+  const fetchEarnings = async () => {
+    try {
+      const riderToken = localStorage.getItem('riderToken')
+      
+      if (!riderToken) return
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/rider/earnings`, {
+        headers: {
+          'Authorization': `Bearer ${riderToken}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setEarnings(data.earnings)
+      }
+    } catch (error) {
+      console.error('Error fetching earnings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const todayEarnings = [
     { time: "09:00 - 10:00", orders: 2, earnings: "£12.50" },
     { time: "10:00 - 11:00", orders: 3, earnings: "£18.75" },
@@ -50,6 +76,13 @@ export function EarningsSection() {
     { day: "Sunday", orders: 8, earnings: "£45.50" },
   ]
 
+  const getStatValue = (key: string) => {
+    if (loading) return "£0.00"
+    if (key === 'today') return `£${earnings.today.toFixed(2)}`
+    if (key === 'thisWeek') return `£${earnings.thisWeek.toFixed(2)}`
+    return "£0.00"
+  }
+
   return (
     <div className=" space-y-6">
       <div className="mb-6 bg-secondary rounded-lg p-4">
@@ -57,7 +90,7 @@ export function EarningsSection() {
         <p className="text-white text-sm">Track your income and performance</p>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Only Today and This Week */}
       <div className="grid grid-cols-2 gap-4">
         {statsData.map((stat, idx) => {
           const Icon = stat.icon;
@@ -75,7 +108,7 @@ export function EarningsSection() {
                         <Icon className="h-5 w-5 text-primary" />
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground">{getStatValue(stat.key)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -98,7 +131,7 @@ export function EarningsSection() {
                
                 <div className="flex flex-col gap-2">
                 <span className="text-foreground font-bold">Hourly Breakdown</span>
-                <p className="text-primary text-sm font-normal">View detailed sales and order trends by the hour.ers</p>
+                <p className="text-primary text-sm font-normal">View detailed sales and order trends by the hour.</p>
                 </div>
               </CardTitle>
             </CardHeader>

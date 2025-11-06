@@ -1103,7 +1103,7 @@ router.get(
   }
 );
 
-// GET - Earnings (today and weekly)
+// GET - Earnings (today, weekly, and monthly)
 router.get(
   "/:slug/earnings",
   authenticate(["RESTAURANT"]),
@@ -1127,6 +1127,7 @@ router.get(
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
       // Today's earnings (DELIVERED orders only)
       const todayOrders = await prisma.order.findMany({
@@ -1152,14 +1153,99 @@ router.get(
 
       const weeklyEarnings = weekOrders.reduce((sum, order) => sum + Number(order.amount), 0);
 
+      // Monthly earnings (DELIVERED orders only)
+      const monthOrders = await prisma.order.findMany({
+        where: {
+          restaurantId: restaurant.id,
+          status: 'DELIVERED',
+          createdAt: { gte: monthStart }
+        },
+        select: { amount: true }
+      });
+
+      const monthlyEarnings = monthOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+
       res.json({
         earnings: {
           today: todayEarnings,
           weekly: weeklyEarnings,
+          monthly: monthlyEarnings,
         }
       });
     } catch (error: any) {
       console.error("Get earnings error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+// GET - Transaction History
+router.get(
+  "/:slug/transactions",
+  authenticate(["RESTAURANT"]),
+  async (req: any, res: any) => {
+    try {
+      const { slug } = req.params;
+      const { page = 1, limit = 20 } = req.query;
+
+      const restaurant = await prisma.restaurant.findFirst({
+        where: { slug, deletedAt: null }
+      });
+
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      // Check authorization
+      if (req.user?.id !== restaurant.id) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      const skip = (Number(page) - 1) * Number(limit);
+
+      // Get delivered orders as transactions
+      const orders = await prisma.order.findMany({
+        where: {
+          restaurantId: restaurant.id,
+          status: 'DELIVERED'
+        },
+        select: {
+          id: true,
+          code: true,
+          amount: true,
+          createdAt: true,
+          deliveredAt: true
+        },
+        orderBy: { deliveredAt: 'desc' },
+        skip,
+        take: Number(limit)
+      });
+
+      const total = await prisma.order.count({
+        where: {
+          restaurantId: restaurant.id,
+          status: 'DELIVERED'
+        }
+      });
+
+      const transactions = orders.map(order => ({
+        orderId: order.code,
+        date: order.deliveredAt || order.createdAt,
+        amount: Number(order.amount),
+        status: 'COMPLETED'
+      }));
+
+      res.json({
+        transactions,
+        pagination: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / Number(limit))
+        }
+      });
+    } catch (error: any) {
+      console.error("Get transactions error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }

@@ -263,6 +263,45 @@ router.get("/stats", authenticate(["RIDER"]), async (req: any, res: any) => {
   }
 });
 
+// GET - Rider earnings (today and this week)
+router.get("/earnings", authenticate(["RIDER"]), async (req: any, res: any) => {
+  try {
+    const riderId = req.user.id;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Today's earnings
+    const todayEarnings = await prisma.earning.aggregate({
+      where: {
+        riderId,
+        date: { gte: todayStart }
+      },
+      _sum: { amount: true }
+    });
+
+    // This week's earnings
+    const weeklyEarnings = await prisma.earning.aggregate({
+      where: {
+        riderId,
+        date: { gte: weekStart }
+      },
+      _sum: { amount: true }
+    });
+
+    res.json({
+      earnings: {
+        today: Number(todayEarnings._sum.amount || 0),
+        thisWeek: Number(weeklyEarnings._sum.amount || 0)
+      }
+    });
+  } catch (error: any) {
+    console.error("Get rider earnings error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // GET - Available orders (READY_FOR_PICKUP)
 router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: any) => {
   try {
