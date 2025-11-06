@@ -176,7 +176,7 @@ export function EarningsSection() {
                   </tr>
                 ) : (
                   transactions.map((transaction, index) => (
-                    <tr key={index} className="border-b border-primary/50">
+                    <tr key={index} className="">
                       <td className="px-4 py-3 text-left font-medium text-[16px] text-foreground">#{transaction.orderId}</td>
                       <td className="px-4 py-3 text-left text-[16px] text-gray-400">{formatDate(transaction.date)}</td>
                       <td className="px-4 py-3 text-left font-medium text-sm text-secondary">£{transaction.amount.toFixed(2)}</td>
