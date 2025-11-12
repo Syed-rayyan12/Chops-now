@@ -88,7 +88,7 @@ export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
       {/* ✅ Render Toaster */}
       <Toaster />
 
-      <Card className="w-full max-w-[25%] bg-white p-4">
+      <Card className="w-full max-w-md lg:max-w-sm bg-white p-4">
         <CardHeader className="text-center py-6 px-6">
           <Link href="/">
         <img

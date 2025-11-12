@@ -74,13 +74,22 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || "Something went wrong")
 
+      console.log('✅ Login response:', data)
+
       // ✅ Store only token and email (backend now returns { email, token })
       if (data.token) {
         localStorage.setItem("token", data.token)
+        console.log('✅ Token stored:', data.token.substring(0, 20) + '...')
+      } else {
+        console.error('❌ No token in response!')
       }
+      
       const emailFromResp = data.email || data.user?.email
       if (emailFromResp) {
         localStorage.setItem("userEmail", emailFromResp)
+        console.log('✅ Email stored:', emailFromResp)
+      } else {
+        console.error('❌ No email in response!')
       }
 
       // Small success toast (non-blocking)
@@ -114,8 +123,8 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
 
   // Show login form
   return (
-    <div className="flex justify-center  bg-[#e9e9e9] items-center min-h-screen">
-      <Card className="w-full max-w-[25%] bg-card p-7 max-sm:mx-4">
+    <div className="flex justify-center bg-[#e9e9e9] items-center min-h-screen px-4">
+      <Card className="w-full max-w-md lg:max-w-md bg-card p-7">
         <CardHeader className="text-center space-y-4 py-4">
           <Link href="/">
             <img

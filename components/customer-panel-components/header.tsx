@@ -43,12 +43,21 @@ export function Header() {
       setUser(profile)
       // keep localStorage email in sync
       if (profile?.email) localStorage.setItem('userEmail', profile.email)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error loading profile:', e)
-      // If token is invalid, clear it
-      localStorage.removeItem('token')
-      localStorage.removeItem('userEmail')
-      setUser(null)
+      // Only clear token if it's a 401/403 (unauthorized) error
+      if (e?.statusCode === 401 || e?.statusCode === 403) {
+        console.log('🔒 Token is invalid, clearing auth data')
+        localStorage.removeItem('token')
+        localStorage.removeItem('userEmail')
+        setUser(null)
+      } else {
+        // For other errors (network, 500, etc.), keep the token
+        console.log('⚠️ API error but keeping token:', e?.statusCode)
+        // Still try to use the email from localStorage
+        const email = localStorage.getItem('userEmail')
+        if (email) setUser({ email })
+      }
     }
   }
 

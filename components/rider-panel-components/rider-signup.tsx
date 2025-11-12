@@ -279,23 +279,23 @@ export default function RiderSignup() {
               {/* Name, Email, Phone, Password (all in one row) */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 col-span-2">
                 {/* First & Last Name */}
-                <div className="col-span-2 space-y-2">
+                <div className="col-span-2 max-sm:col-span-4 space-y-2">
                   <label className="text-sm font-medium text-gray-700">First Name</label>
                   <Input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} className="pl-3 border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400 w-full" />
                   {fieldErrors.firstName && <p className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</p>}
                 </div>
-                <div className="col-span-2 space-y-2">
+                <div className="col-span-2 max-sm:col-span-4 space-y-2">
                   <label className="text-sm font-medium text-gray-700">Last Name</label>
                   <Input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} className="pl-3 border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400 w-full" />
                   {fieldErrors.lastName && <p className="text-red-500 text-xs mt-1">{fieldErrors.lastName}</p>}
                 </div>
                 {/* Email & Phone (one line, two columns) */}
-                <div className="col-span-2 space-y-2">
+                <div className="col-span-2 max-sm:col-span-4 space-y-2">
                   <label className="text-sm font-medium text-gray-700">Email</label>
                   <Input type="text" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="pl-3 border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400 w-full" />
                   {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
                 </div>
-                <div className="col-span-2 space-y-2">
+                <div className="col-span-2 max-sm:col-span-4 space-y-2">
                   <label className="text-sm font-medium text-gray-700">Phone</label>
                   <Input type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} className="pl-3 border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400 w-full" />
                   {fieldErrors.phone && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}

@@ -94,7 +94,7 @@ export function RiderLogin() {
       {/* ✅ Toaster */}
       <Toaster />
 
-      <Card className="w-full max-w-[25%] bg-white px-6 py-6">
+      <Card className="w-full max-w-md lg:max-w-sm bg-white px-6 py-6">
         <CardHeader className="text-center py-4">
         <Link href="/">
           <img

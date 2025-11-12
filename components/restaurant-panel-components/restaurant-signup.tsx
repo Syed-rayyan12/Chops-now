@@ -196,7 +196,7 @@ export default function RestaurantSignup() {
             {/* ✅ Render Toaster */}
             <Toaster />
 
-            <Card className="w-full max-w-md bg-white max-sm:mx-4 p-4 ">
+            <Card className="w-full max-w-md lg:max-w-sm bg-white max-sm:mx-4 p-4 ">
                 <CardHeader className="text-center space-y-4">
                     <Link href="/">
                     <img
