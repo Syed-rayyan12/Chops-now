@@ -130,11 +130,11 @@ export function HeroSection() {
               </motion.div>
 
               {/* Buttons */}
-              <motion.div variants={leftVariant} className="flex items-center max-sm:justify-between gap-2">
+              <motion.div variants={leftVariant} className="flex max-400:flex-col items-center max-sm:justify-between gap-2">
                 <Button
                   variant="new"
                   size="sm"
-                  className=" py-5  rounded-lg  text-foreground  shadow-none"
+                  className=" py-5 rounded-lg text-foreground  shadow-none"
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   <span className="text-[16px] font-ubuntu font-medium">Current Location

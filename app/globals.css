@@ -4,6 +4,8 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant max-400 (width <= 400px);
+
 
 :root {
   /* Chop Now food delivery theme colors */
@@ -294,5 +296,18 @@
 
 .float-shape {
   animation: float 3s ease-in-out infinite;
+}
+
+@media (max-width: 400px) {
+  .max-400\:flex-col {
+    flex-direction: column;
+  }
+
+  .max-gap\:gap-36 {
+    gap: 9rem; /* Example for gap change */
+  }
+
+  /* Example for text size change */
+ 
 }
 
