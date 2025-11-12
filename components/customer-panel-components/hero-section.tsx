@@ -108,7 +108,7 @@ export function HeroSection() {
             </Button>
           </motion.div>
           {/* Animated Search Bar */}
-          <div className="max-w-4xl max-sm:w-5xl mx-auto mb-8">
+          <div className="max-w-4xl max-sm:w-1xl mx-auto mb-8">
             <motion.div
               className="flex flex-col sm:flex-row gap-4 py-3 px-5 bg-white rounded-lg shadow-lg text-primary"
               variants={boxVariant}
