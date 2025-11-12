@@ -136,10 +136,10 @@ export default function RestaurantsPage() {
       {/* Banner Section */}
       <div className="relative w-full flex items-center justify-center h-[89vh] bg-gradient-to-r from-orange-100 to-orange-200 py-22">
         <img src="/boo.png" alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
+        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full max-sm:px-4">
           <img src="/lines.svg" alt="Lines" className="mx-auto mb-2 w-80 h-auto" />
           <h1 className="text-[48px] font-bold mb-4 text-white text-center font-fredoka-one drop-shadow-lg">Restaurant</h1>
-          <p className="font-ubuntu text-white mb-6 text-[18px]">Connect. Grow. It’s time to bring your dishes to more tables</p>
+          <p className="font-ubuntu text-white text-center mb-6 text-[18px]">Connect. Grow. It’s time to bring your dishes to more tables</p>
           <div className="w-full max-w-2xl mx-auto">
             <SearchBar
               value={searchQuery}
