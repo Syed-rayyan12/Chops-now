@@ -18,14 +18,14 @@ export function Newsletter() {
         <div className="bg-secondary w-18 h-18 mx-auto flex justify-center items-center rounded-full mb-5">
           <Send className="text-white" />
         </div>
-        <h2 className="font-fredoka-one text-5xl max-sm:text-2xl font-extrabold mb-4 leading-15">
+        <h2 className="font-fredoka-one text-5xl max-sm:text-2xl font-extrabold mb-4 leading-15 max-sm:leading-12">
           Get Afro-Caribbean Stories in Your Inbox
         </h2>
         <div className="bg-secondary h-1 w-24 mx-auto mt-6 mb-6"></div>
         <p className="text-[16px] font-ubuntu mb-8 px-44 max-sm:px-0">
           Join our food lovers’ circle and never miss a taste of home.
         </p>
-        <div className="flex">
+        <div className="flex max-sm:flex-col gap-4">
           <input
             type="email"
             placeholder="Enter your email"

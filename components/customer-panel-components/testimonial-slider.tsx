@@ -66,7 +66,7 @@ const TestimonialSlider = () => {
         <h2 className="font-fredoka-one text-5xl max-sm:text-2xl  font-extrabold text-center mb-6">
           What Our Customers Say
         </h2>
-        <p className='text-[16px] font-ubuntu text-center mb-8 max-sm:px-32'>Real voices, real experiences — hear what our community loves about ChopNow.</p>
+        <p className='text-[16px] font-ubuntu text-center mb-8 max-sm:px-12'>Real voices, real experiences — hear what our community loves about ChopNow.</p>
          
         {/* Slider for screens 768px and above */}
         <div className="hidden md:block space-y-8">
@@ -141,7 +141,7 @@ const TestimonialSlider = () => {
         </div>
 
         {/* Cards for screens below 768px */}
-        <div className="block md:hidden grid grid-cols-1 gap-6 max-sm:px-18 max-md:px-14">
+        <div className="block md:hidden grid grid-cols-1 gap-6 max-sm:px-10 max-md:px-14">
           {testimonials.map((testimonial, index) => (
             <div
               key={`mobile-${index}`}

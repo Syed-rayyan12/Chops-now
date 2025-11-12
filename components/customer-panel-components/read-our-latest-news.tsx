@@ -36,7 +36,7 @@ const ReadOurLatestNews = () => {
         </h2>
         <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
         <p className='text-[16px] font-ubuntu text-center mb-8'>Fresh flavours, fresh stories — straight from ChopNow.</p>
-      <div className='mx-auto px-36 max-2xl:px-6 max-sm:px-18 max-lg:px-36 '>
+      <div className='mx-auto px-36 max-2xl:px-6 max-sm:px-10 max-lg:px-36 '>
         <div className="grid grid-cols-3 max-sm:gap-36  max-lg:grid-cols-1 max-lg:gap-28  gap-6">
           {latestNews.map((news, index) => (
             <motion.div

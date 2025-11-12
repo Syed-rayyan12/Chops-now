@@ -25,7 +25,7 @@ const WhoWeAre = () => {
                                 className="relative bg-white flex items-center px-5 gap-6 font-space-grotesk font-bold w-82 h-22 max-lg:w-full max-xl:w-full rounded-[40px]"
                             >
                                 {/* Custom border */}
-                                <span className="absolute inset-0 translate-x-1 translate-y-1 -z-10 rounded-[40px] border-t-[2px] border-r-[333px] max-sm:border-r-[303px] border-b-[50px] border-l-0 border-orange-500">
+                                <span className="absolute inset-0 translate-x-1 translate-y-1 -z-10 rounded-[40px] border-t-[2px] border-r-[333px] max-sm:border-r-[281px] border-b-[50px] border-l-0 border-orange-500">
                                 </span>
 
                                 <img src="/vector.svg" className="w-12 h-12 absolute -right-6 top-6 text-foreground" alt="" />
