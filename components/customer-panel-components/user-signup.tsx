@@ -32,6 +32,7 @@ export default function RiderSignup() {
     email?: string
     phone?: string
     password?: string
+    address?: string
   }>({})
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +57,7 @@ export default function RiderSignup() {
     e.preventDefault()
 
     let hasError = false
-    const nextErrors: { firstName?: string; lastName?: string; email?: string; phone?: string; password?: string } = {}
+    const nextErrors: { firstName?: string; lastName?: string; email?: string; phone?: string; password?: string; address?: string } = {}
 
     // Step 1: Check for empty fields
     if (!formData.firstName.trim()) {
@@ -77,6 +78,10 @@ export default function RiderSignup() {
     }
     if (!formData.password.trim()) {
       nextErrors.password = "Password is required"
+      hasError = true
+    }
+    if (!formData.address.trim()) {
+      nextErrors.address = "Address is required"
       hasError = true
     }
 
@@ -293,7 +298,7 @@ export default function RiderSignup() {
 
             {/* Address */}
             <div className="space-y-2 relative">
-              <label className="text-sm font-medium text-gray-700">Address (Optional)</label>
+              <label className="text-sm font-medium text-gray-700">Address</label>
               <Input
                 type="text"
                 name="address"
@@ -301,7 +306,11 @@ export default function RiderSignup() {
                 value={formData.address}
                 onChange={handleChange}
                 className="border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
+                required
               />
+              {fieldErrors.address && (
+                <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full bg-primary text-white rounded-lg px-2 py-4 cursor-pointer">

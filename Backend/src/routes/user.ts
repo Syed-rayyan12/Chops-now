@@ -20,8 +20,8 @@ router.post("/signup", async (req, res) => {
     const { firstName, lastName, email, password, phone, address } = req.body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!firstName || !lastName || !email || !password || !address) {
+      return res.status(400).json({ message: "All fields including address are required" });
     }
 
     // Validate first name and last name (only letters, min 2 chars)
