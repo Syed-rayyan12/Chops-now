@@ -15,6 +15,8 @@ model User {
   password       String
   phone          String?   @unique
   role           Role
+  latitude       Float?
+  longitude      Float?
   createdAt      DateTime  @default(now())
   addresses      Address[]
   cartItems      CartItem[]
@@ -27,6 +29,8 @@ model Restaurant {
   slug           String                   @unique
   phone          String
   address        String
+  latitude       Float?
+  longitude      Float?
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
   deletedAt      DateTime?
@@ -74,6 +78,9 @@ model Rider {
   sortCode                         String?
   deliveryPartnerAgreementAccepted Boolean              @default(false)
   isOnline                         Boolean              @default(false)
+  latitude                         Float?
+  longitude                        Float?
+  lastLocationUpdate               DateTime?
   createdAt                        DateTime             @default(now())
   orders                           Order[]
   earnings                         Earning[]
@@ -82,32 +89,34 @@ model Rider {
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
-  code            String      @unique
-  customerId      Int
-  restaurantId    Int
-  riderId         Int?
-  status          OrderStatus @default(PENDING)
-  subTotal        Decimal     @db.Decimal(10, 2)
-  deliveryFee     Decimal     @db.Decimal(10, 2)
-  tip             Decimal     @db.Decimal(10, 2)
-  riderPayout     Decimal     @db.Decimal(10, 2)
-  distanceKm      Decimal?    @db.Decimal(6, 2)
-  assignedAt      DateTime?
-  pickedUpAt      DateTime?
-  deliveredAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  amount          Decimal     @db.Decimal(10, 2)
-  addressId       Int?
-  deliveryAddress String?
-  earnings        Earning[]
-  address         Address?    @relation(fields: [addressId], references: [id])
-  customer        User        @relation("CustomerOrders", fields: [customerId], references: [id])
-  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
-  rider           Rider?      @relation(fields: [riderId], references: [id])
-  items           OrderItem[]
-  ratings         Rating?
+  id                Int         @id @default(autoincrement())
+  code              String      @unique
+  customerId        Int
+  restaurantId      Int
+  riderId           Int?
+  status            OrderStatus @default(PENDING)
+  subTotal          Decimal     @db.Decimal(10, 2)
+  deliveryFee       Decimal     @db.Decimal(10, 2)
+  tip               Decimal     @db.Decimal(10, 2)
+  riderPayout       Decimal     @db.Decimal(10, 2)
+  distanceKm        Decimal?    @db.Decimal(6, 2)
+  customerLatitude  Float?
+  customerLongitude Float?
+  assignedAt        DateTime?
+  pickedUpAt        DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  amount            Decimal     @db.Decimal(10, 2)
+  addressId         Int?
+  deliveryAddress   String?
+  earnings          Earning[]
+  address           Address?    @relation(fields: [addressId], references: [id])
+  customer          User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  restaurant        Restaurant  @relation(fields: [restaurantId], references: [id])
+  rider             Rider?      @relation(fields: [riderId], references: [id])
+  items             OrderItem[]
+  ratings           Rating?
 
   @@index([riderId])
   @@index([restaurantId])

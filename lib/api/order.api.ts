@@ -18,6 +18,8 @@ export interface CreateOrderPayload {
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
+  customerLatitude?: number;
+  customerLongitude?: number;
 }
 
 export interface Order {

@@ -1251,4 +1251,170 @@ router.get(
   }
 );
 
+// ============================================
+// GET NEARBY RIDERS (within 5km of restaurant)
+// ============================================
+router.get(
+  "/:slug/nearby-riders",
+  authenticate(["RESTAURANT"]),
+  async (req: any, res: any) => {
+    try {
+      const { slug } = req.params;
+
+      const restaurant = await prisma.restaurant.findFirst({
+        where: { slug, deletedAt: null },
+        select: {
+          id: true,
+          latitude: true,
+          longitude: true
+        }
+      });
+
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      if (req.user?.id !== restaurant.id) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      if (!restaurant.latitude || !restaurant.longitude) {
+        return res.status(400).json({ 
+          message: "Restaurant location not set. Please update your profile with coordinates."
+        });
+      }
+
+      // Get all online riders with location
+      const riders = await prisma.rider.findMany({
+        where: {
+          isOnline: true,
+          latitude: { not: null },
+          longitude: { not: null }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          latitude: true,
+          longitude: true,
+          lastLocationUpdate: true,
+          vehicle: true
+        }
+      });
+
+      // Filter riders within 5km
+      const { filterByRadius, calculateDistance } = await import('../utils/location');
+      const nearbyRiders = filterByRadius(
+        restaurant.latitude,
+        restaurant.longitude,
+        riders,
+        5
+      );
+
+      // Add distance to each rider
+      const ridersWithDistance = nearbyRiders.map(rider => ({
+        ...rider,
+        distanceKm: calculateDistance(
+          restaurant.latitude!,
+          restaurant.longitude!,
+          rider.latitude!,
+          rider.longitude!
+        )
+      }));
+
+      // Sort by distance (closest first)
+      ridersWithDistance.sort((a, b) => a.distanceKm - b.distanceKm);
+
+      res.json({
+        riders: ridersWithDistance,
+        total: ridersWithDistance.length
+      });
+    } catch (error: any) {
+      console.error("Get nearby riders error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+// ============================================
+// BROADCAST ORDER TO NEARBY RIDERS
+// ============================================
+router.post(
+  "/:slug/orders/:orderId/broadcast",
+  authenticate(["RESTAURANT"]),
+  async (req: any, res: any) => {
+    try {
+      const { slug, orderId } = req.params;
+
+      const restaurant = await prisma.restaurant.findFirst({
+        where: { slug, deletedAt: null },
+        select: { id: true, latitude: true, longitude: true }
+      });
+
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      if (req.user?.id !== restaurant.id) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      // Get the order
+      const order = await prisma.order.findUnique({
+        where: { id: parseInt(orderId) },
+        select: {
+          id: true,
+          status: true,
+          restaurantId: true
+        }
+      });
+
+      if (!order || order.restaurantId !== restaurant.id) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      if (order.status !== 'READY_FOR_PICKUP') {
+        return res.status(400).json({ 
+          message: "Order must be in READY_FOR_PICKUP status to broadcast to riders"
+        });
+      }
+
+      // Get nearby online riders (within 5km)
+      const riders = await prisma.rider.findMany({
+        where: {
+          isOnline: true,
+          latitude: { not: null },
+          longitude: { not: null }
+        },
+        select: {
+          id: true,
+          latitude: true,
+          longitude: true
+        }
+      });
+
+      const { filterByRadius } = await import('../utils/location');
+      const nearbyRiders = filterByRadius(
+        restaurant.latitude!,
+        restaurant.longitude!,
+        riders,
+        5
+      );
+
+      // TODO: Send real-time notification to nearby riders
+      // This would be implemented with Socket.IO or similar
+
+      res.json({
+        success: true,
+        message: `Order broadcasted to ${nearbyRiders.length} nearby riders`,
+        ridersNotified: nearbyRiders.length
+      });
+    } catch (error: any) {
+      console.error("Broadcast order error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 export default router;

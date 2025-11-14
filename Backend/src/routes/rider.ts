@@ -645,4 +645,141 @@ router.patch("/toggle-online", authenticate(["RIDER"]), async (req: any, res: an
   }
 });
 
+// ============================================
+// UPDATE RIDER LOCATION
+// ============================================
+router.put("/location", authenticate(["RIDER"]), async (req: any, res: any) => {
+  try {
+    const riderId = req.user?.id;
+    const { latitude, longitude } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ message: "Latitude and longitude are required" });
+    }
+
+    // Validate coordinates
+    const { validateCoordinates } = await import('../utils/location');
+    if (!validateCoordinates(latitude, longitude)) {
+      return res.status(400).json({ message: "Invalid coordinates" });
+    }
+
+    const updatedRider = await prisma.rider.update({
+      where: { id: riderId },
+      data: {
+        latitude,
+        longitude,
+        lastLocationUpdate: new Date()
+      },
+      select: {
+        id: true,
+        latitude: true,
+        longitude: true,
+        lastLocationUpdate: true,
+      }
+    });
+
+    res.json({ 
+      success: true,
+      location: updatedRider
+    });
+  } catch (error: any) {
+    console.error("Update location error:", error);
+    res.status(500).json({ message: "Failed to update location" });
+  }
+});
+
+// ============================================
+// GET NEARBY ORDERS (within 5km of rider)
+// ============================================
+router.get("/nearby-orders", authenticate(["RIDER"]), async (req: any, res: any) => {
+  try {
+    const riderId = req.user?.id;
+
+    // Get rider's current location
+    const rider = await prisma.rider.findUnique({
+      where: { id: riderId },
+      select: { latitude: true, longitude: true, isOnline: true }
+    });
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found" });
+    }
+
+    if (!rider.latitude || !rider.longitude) {
+      return res.status(400).json({ 
+        message: "Please enable location services to see nearby orders"
+      });
+    }
+
+    // Get all available orders (READY_FOR_PICKUP status)
+    const orders = await prisma.order.findMany({
+      where: {
+        status: 'READY_FOR_PICKUP',
+        riderId: null // Not yet assigned
+      },
+      include: {
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            address: true,
+            latitude: true,
+            longitude: true,
+            phone: true,
+          }
+        },
+        items: true,
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          }
+        }
+      }
+    });
+
+    // Filter orders within 5km of rider
+    const { filterByRadius } = await import('../utils/location');
+    const nearbyOrders = filterByRadius(
+      rider.latitude,
+      rider.longitude,
+      orders.map(order => ({
+        ...order,
+        latitude: order.restaurant.latitude,
+        longitude: order.restaurant.longitude,
+      })),
+      5 // 5km radius
+    );
+
+    // Calculate distance for each order
+    const { calculateDistance } = await import('../utils/location');
+    const ordersWithDistance = nearbyOrders.map(order => ({
+      ...order,
+      distanceFromRider: calculateDistance(
+        rider.latitude!,
+        rider.longitude!,
+        order.restaurant.latitude!,
+        order.restaurant.longitude!
+      )
+    }));
+
+    // Sort by distance (closest first)
+    ordersWithDistance.sort((a, b) => a.distanceFromRider - b.distanceFromRider);
+
+    res.json({ 
+      orders: ordersWithDistance,
+      riderLocation: {
+        latitude: rider.latitude,
+        longitude: rider.longitude
+      }
+    });
+  } catch (error: any) {
+    console.error("Get nearby orders error:", error);
+    res.status(500).json({ message: "Failed to fetch nearby orders" });
+  }
+});
+
 export default router;

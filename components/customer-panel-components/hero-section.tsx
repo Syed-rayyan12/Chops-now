@@ -1,16 +1,41 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MapPin } from "lucide-react"
+import { Search, MapPin, Loader2 } from "lucide-react"
 import { motion, easeOut } from "framer-motion"
+import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 
 export function HeroSection() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [locationText, setLocationText] = useState("Current Location")
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const saved = localStorage.getItem("user_location_text")
+    if (saved) setLocationText(saved)
+  }, [])
+
+  const handleGetLocation = async () => {
+    setIsGettingLocation(true)
+    try {
+      const coords = await getCurrentPosition()
+      const address = await getAddressFromCoords(coords.latitude, coords.longitude)
+      const shortAddr = address.length > 25 ? address.substring(0, 25) + "..." : address
+      setLocationText(shortAddr)
+      localStorage.setItem("user_location_text", shortAddr)
+      localStorage.setItem("user_coords", JSON.stringify(coords))
+    } catch (err: any) {
+      console.error("Location error:", err)
+      setLocationText("Location unavailable")
+    } finally {
+      setIsGettingLocation(false)
+    }
+  }
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -134,11 +159,19 @@ export function HeroSection() {
                 <Button
                   variant="new"
                   size="sm"
-                  className=" py-5 rounded-lg text-foreground  shadow-none"
+                  className="py-5 rounded-lg text-foreground shadow-none"
+                  onClick={handleGetLocation}
+                  disabled={isGettingLocation}
                 >
-                  <MapPin className="w-4 h-4 mr-2" />
-                  <span className="text-[16px] font-ubuntu font-medium">Current Location
-                  </span>                </Button>
+                  {isGettingLocation ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <MapPin className="w-4 h-4 mr-2" />
+                  )}
+                  <span className="text-[16px] font-ubuntu font-medium max-w-[140px] truncate">
+                    {locationText}
+                  </span>
+                </Button>
                 <Button
                   size="sm"
                   variant="new2"

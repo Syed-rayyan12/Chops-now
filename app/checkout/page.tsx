@@ -131,6 +131,19 @@ export default function CheckoutPage() {
         price: item.menuItem?.price || 0,
       }))
 
+      // Get saved GPS coordinates
+      let customerLatitude, customerLongitude
+      try {
+        const coords = localStorage.getItem("user_coords")
+        if (coords) {
+          const parsed = JSON.parse(coords)
+          customerLatitude = parsed.latitude
+          customerLongitude = parsed.longitude
+        }
+      } catch (err) {
+        console.warn("No GPS coordinates available")
+      }
+
       const orderPayload = {
         restaurantId,
         items: orderItems,
@@ -140,6 +153,8 @@ export default function CheckoutPage() {
         customerName: formData.name,
         customerEmail,
         customerPhone: formData.phone,
+        customerLatitude,
+        customerLongitude,
       }
 
       await customerOrders.create(orderPayload)
@@ -179,6 +194,19 @@ export default function CheckoutPage() {
         price: item.menuItem?.price || 0,
       }))
 
+      // Get saved GPS coordinates
+      let customerLatitude, customerLongitude
+      try {
+        const coords = localStorage.getItem("user_coords")
+        if (coords) {
+          const parsed = JSON.parse(coords)
+          customerLatitude = parsed.latitude
+          customerLongitude = parsed.longitude
+        }
+      } catch (err) {
+        console.warn("No GPS coordinates available")
+      }
+
       const orderPayload = {
         restaurantId,
         items: orderItems,
@@ -188,6 +216,8 @@ export default function CheckoutPage() {
         customerName: formData.name,
         customerEmail,
         customerPhone: formData.phone,
+        customerLatitude,
+        customerLongitude,
       }
 
       await customerOrders.create(orderPayload)

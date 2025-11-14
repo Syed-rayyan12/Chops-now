@@ -312,6 +312,8 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
       customerName,
       customerEmail,
       customerPhone,
+      customerLatitude,
+      customerLongitude,
     } = req.body;
 
     // Validate required fields
@@ -322,10 +324,14 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
     // Calculate totals
     const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
     
-    // Get restaurant delivery fee
+    // Get restaurant delivery fee and location
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
-      select: { deliveryFee: true }
+      select: { 
+        deliveryFee: true,
+        latitude: true,
+        longitude: true
+      }
     });
 
     if (!restaurant) {
@@ -340,7 +346,19 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
     // Generate unique order code
     const code = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // Create order with items
+    // Calculate distance if both customer and restaurant have locations
+    let distanceKm = null;
+    if (customerLatitude && customerLongitude && restaurant.latitude && restaurant.longitude) {
+      const { calculateDistance } = await import('../utils/location');
+      distanceKm = calculateDistance(
+        customerLatitude,
+        customerLongitude,
+        restaurant.latitude,
+        restaurant.longitude
+      );
+    }
+
+    // Create order with items and location
     const order = await prisma.order.create({
       
       data: {
@@ -355,6 +373,9 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
         amount,
         addressId: null,
         deliveryAddress: deliveryAddress,
+        customerLatitude: customerLatitude || null,
+        customerLongitude: customerLongitude || null,
+        distanceKm: distanceKm,
         items: {
           create: items.map((item: any) => ({
             title: item.title || item.name,
