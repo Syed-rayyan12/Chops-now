@@ -4,12 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Phone, EyeOff, Eye, User } from "lucide-react"
+import { Phone, EyeOff, Eye, User, MapPin, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
+import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 
 export default function RiderSignup() {
   const router = useRouter()
@@ -24,6 +25,8 @@ export default function RiderSignup() {
     password: "",
     address: "",
   })
+  const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{
@@ -34,6 +37,36 @@ export default function RiderSignup() {
     password?: string
     address?: string
   }>({})
+
+  const handleAddressClick = async () => {
+    if (isGettingLocation) return
+    
+    setIsGettingLocation(true)
+    try {
+      const coords = await getCurrentPosition()
+      const address = await getAddressFromCoords(coords.latitude, coords.longitude)
+      
+      setGpsCoords(coords)
+      setFormData((prev) => ({ ...prev, address }))
+      
+      // Save to localStorage for hero section
+      localStorage.setItem("user_coords", JSON.stringify(coords))
+      localStorage.setItem("user_location_text", address.length > 25 ? address.substring(0, 25) + "..." : address)
+      
+      toast({
+        title: "Location Detected ✓",
+        description: "Address auto-filled from your location",
+      })
+    } catch (err: any) {
+      toast({
+        title: "Location Error",
+        description: err.message || "Please enter address manually",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGettingLocation(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -299,15 +332,30 @@ export default function RiderSignup() {
             {/* Address */}
             <div className="space-y-2 relative">
               <label className="text-sm font-medium text-gray-700">Address</label>
-              <Input
-                type="text"
-                name="address"
-                placeholder="Enter your address"
-                value={formData.address}
-                onChange={handleChange}
-                className="border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
-                required
-              />
+              <div className="relative">
+                <Input
+                  type="text"
+                  name="address"
+                  placeholder="Click icon to detect location or type address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  onFocus={handleAddressClick}
+                  className="border h-10 pr-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleAddressClick}
+                  disabled={isGettingLocation}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-secondary transition-colors"
+                >
+                  {isGettingLocation ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <MapPin className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {fieldErrors.address && (
                 <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
               )}
