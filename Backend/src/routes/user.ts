@@ -73,7 +73,7 @@ router.post("/signup", async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with address
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -82,6 +82,16 @@ router.post("/signup", async (req, res) => {
         password: hashedPassword,
         phone: phone || null,
         role: "USER",
+        addresses: {
+          create: {
+            street: address,
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "United Kingdom",
+            isDefault: true,
+          }
+        }
       },
     });
 
@@ -254,29 +264,29 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
   }
 });
 
-// Minimal addresses mock to keep profile Addresses tab working
+// Get user addresses
 router.get("/addresses", authenticate(["USER"]), async (req: any, res) => {
   try {
-    const mockAddresses = [
-      {
-        id: 1,
-        label: "Home",
-        address: "123 Main Street, Apt 4B, Downtown",
-        details: "Ring doorbell twice",
-        isDefault: true,
-        createdAt: new Date(),
-      },
-      {
-        id: 2,
-        label: "Work",
-        address: "456 Business Ave, Suite 200, Business District",
-        details: "Leave with reception",
-        isDefault: false,
-        createdAt: new Date(),
-      },
-    ];
-    res.json({ addresses: mockAddresses });
+    const userId = req.user.id;
+
+    const addresses = await prisma.address.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Format addresses for frontend
+    const formattedAddresses = addresses.map(addr => ({
+      id: addr.id,
+      label: addr.isDefault ? "Home" : "Other",
+      address: `${addr.street}${addr.city ? ', ' + addr.city : ''}${addr.state ? ', ' + addr.state : ''}${addr.zipCode ? ', ' + addr.zipCode : ''}`,
+      details: addr.country,
+      isDefault: addr.isDefault,
+      createdAt: addr.createdAt,
+    }));
+
+    res.json({ addresses: formattedAddresses });
   } catch (error: any) {
+    console.error("Error fetching addresses:", error);
     res.status(500).json({ message: "Failed to fetch addresses", error: error.message });
   }
 });
