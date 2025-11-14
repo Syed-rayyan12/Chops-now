@@ -306,9 +306,9 @@ export default function ProfilePage() {
                                 )}
                               </div>
                               <p className="text-sm text-gray-600">{address.address}</p>
-                              {address.details && (
+                              {/* {address.details && (
                                 <p className="text-xs text-gray-500 mt-1">{address.details}</p>
-                              )}
+                              )} */}
                             </div>
                           </div>
                         </div>
