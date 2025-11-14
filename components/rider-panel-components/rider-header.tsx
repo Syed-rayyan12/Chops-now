@@ -21,9 +21,10 @@ import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { STORAGE_KEYS, API_CONFIG } from "@/lib/api/config"
+import { MobileBottomMenu } from "./rider-menu"
 
 // ✅ NEW IMPORT
-import { MobileBottomMenu } from "./MobileBottomMenu"
+
 
 const MenuNav = [
   { href: "/rider-dashboard", name: "Dashboard", icon: Home },
