@@ -175,6 +175,8 @@ export function OrdersSection() {
                 <TableRow className="border border-gray-400 rounded-lg p-4">
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
@@ -185,14 +187,14 @@ export function OrdersSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={9} className="text-center py-12">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                       <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
                     </TableCell>
                   </TableRow>
                 ) : getOrdersByStatus("pending").length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       No pending orders
                     </TableCell>
                   </TableRow>
@@ -202,6 +204,12 @@ export function OrdersSection() {
                       <TableCell className="font-medium text-foreground">{order.code}</TableCell>
                       <TableCell className="text-gray-400">
                         {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400 max-w-[200px] truncate">
+                        {order.deliveryAddress || order.address?.address || "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.items.slice(0, 2).map((item, idx) => (
@@ -251,6 +259,8 @@ export function OrdersSection() {
                 <TableRow className="border border-gray-400 rounded-lg p-4">
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
@@ -261,14 +271,14 @@ export function OrdersSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={9} className="text-center py-12">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                       <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
                     </TableCell>
                   </TableRow>
                 ) : getOrdersByStatus("in-progress").length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       No orders in progress
                     </TableCell>
                   </TableRow>
@@ -278,6 +288,12 @@ export function OrdersSection() {
                       <TableCell className="font-medium text-foreground">{order.code}</TableCell>
                       <TableCell className="text-gray-400">
                         {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400 max-w-[200px] truncate">
+                        {order.deliveryAddress || order.address?.address || "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.items.slice(0, 2).map((item, idx) => (
@@ -341,6 +357,8 @@ export function OrdersSection() {
                 <TableRow className="border border-gray-400 rounded-lg p-4">
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
@@ -351,14 +369,14 @@ export function OrdersSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={9} className="text-center py-12">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                       <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
                     </TableCell>
                   </TableRow>
                 ) : getOrdersByStatus("completed").length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       No completed orders
                     </TableCell>
                   </TableRow>
@@ -368,6 +386,12 @@ export function OrdersSection() {
                       <TableCell className="font-medium text-foreground">{order.code}</TableCell>
                       <TableCell className="text-gray-400">
                         {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400 max-w-[200px] truncate">
+                        {order.deliveryAddress || order.address?.address || "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.items.slice(0, 2).map((item, idx) => (
@@ -401,6 +425,8 @@ export function OrdersSection() {
                 <TableRow className="border border-gray-400 rounded-lg p-4">
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
@@ -411,14 +437,14 @@ export function OrdersSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={9} className="text-center py-12">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                       <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
                     </TableCell>
                   </TableRow>
                 ) : getOrdersByStatus("cancelled").length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       No cancelled orders
                     </TableCell>
                   </TableRow>
@@ -428,6 +454,12 @@ export function OrdersSection() {
                       <TableCell className="font-medium text-foreground">{order.code}</TableCell>
                       <TableCell className="text-gray-400">
                         {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400 max-w-[200px] truncate">
+                        {order.deliveryAddress || order.address?.address || "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.items.slice(0, 2).map((item, idx) => (

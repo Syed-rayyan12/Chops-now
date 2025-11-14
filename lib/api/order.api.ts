@@ -35,6 +35,9 @@ export interface Order {
   riderPayout: number;
   amount: number;
   distanceKm?: number | null;
+  customerLatitude?: number | null;
+  customerLongitude?: number | null;
+  deliveryAddress?: string;
   assignedAt?: string | null;
   pickedUpAt?: string | null;
   deliveredAt?: string | null;

@@ -77,6 +77,8 @@ router.post("/signup", async (req, res) => {
       businessAddress,
       password,
       agreeToTerms,
+      latitude,
+      longitude,
       // Optional fields for display
       description,
       image,
@@ -142,6 +144,8 @@ router.post("/signup", async (req, res) => {
         slug, // ✅ Add generated slug
         phone: businessPhone,
         address: businessAddress,
+        latitude: latitude || null,
+        longitude: longitude || null,
         ownerFirstName: firstName,
         ownerLastName: lastName,
         ownerEmail: businessEmail,

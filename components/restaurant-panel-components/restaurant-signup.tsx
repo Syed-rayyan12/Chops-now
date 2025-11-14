@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Phone, Eye, EyeOff } from "lucide-react"
+import { Phone, Eye, EyeOff, MapPin, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -12,6 +12,7 @@ import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
+import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 
 export default function RestaurantSignup() {
     const router = useRouter()
@@ -26,8 +27,11 @@ export default function RestaurantSignup() {
         businessAddress: "",
         password: "",
         agreeToTerms: false,
+        latitude: null as number | null,
+        longitude: null as number | null,
     })
     const [showPassword, setShowPassword] = useState(false)
+    const [locationLoading, setLocationLoading] = useState(false)
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -57,6 +61,35 @@ export default function RestaurantSignup() {
                 ...fieldErrors,
                 [name]: "",
             })
+        }
+    }
+
+    const handleAddressClick = async () => {
+        if (locationLoading) return
+        
+        try {
+            setLocationLoading(true)
+            const coords = await getCurrentPosition()
+            const address = await getAddressFromCoords(coords.latitude, coords.longitude)
+            
+            setFormData({
+                ...formData,
+                businessAddress: address,
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+            })
+            
+            toast({
+                title: "Location detected successfully!",
+                duration: 3000,
+            })
+        } catch (error: any) {
+            toast({
+                title: error.message || "Failed to get location",
+                duration: 3000,
+            })
+        } finally {
+            setLocationLoading(false)
         }
     }
 
@@ -159,12 +192,18 @@ export default function RestaurantSignup() {
         setLoading(true)
 
         try {
+            const payload = {
+                ...formData,
+                latitude: formData.latitude,
+                longitude: formData.longitude,
+            }
+            
             const res = await fetch(`${API_CONFIG.BASE_URL}/restaurant/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             })
 
             const data = await res.json()
@@ -283,14 +322,25 @@ export default function RestaurantSignup() {
                         {/* Business Address */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Business Address</label>
-                            <Input
-                                type="text"
-                                name="businessAddress"
-                                placeholder="123 High Street, London"
-                                value={formData.businessAddress}
-                                onChange={handleChange}
-                                className="border text-foreground placeholder:text-gray-400/60 border-primary/40"
-                            />
+                            <div className="relative">
+                                <Input
+                                    type="text"
+                                    name="businessAddress"
+                                    placeholder="123 High Street, London"
+                                    value={formData.businessAddress}
+                                    onChange={handleChange}
+                                    onFocus={handleAddressClick}
+                                    onClick={handleAddressClick}
+                                    className="border text-foreground placeholder:text-gray-400/60 border-primary/40 pr-10"
+                                />
+                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                    {locationLoading ? (
+                                        <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                                    ) : (
+                                        <MapPin className="h-4 w-4 text-primary" />
+                                    )}
+                                </div>
+                            </div>
                             {fieldErrors.businessAddress && <p className="text-red-500 text-sm">{fieldErrors.businessAddress}</p>}
                         </div>
 
