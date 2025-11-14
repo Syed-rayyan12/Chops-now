@@ -17,7 +17,7 @@ router.get("/ping", (req, res) => {
 // Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
+    const { firstName, lastName, email, password, phone, address } = req.body;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !password) {

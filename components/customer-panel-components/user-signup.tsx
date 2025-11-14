@@ -22,6 +22,7 @@ export default function RiderSignup() {
     email: "",
     phone: "",
     password: "",
+    address: "",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -288,6 +289,19 @@ export default function RiderSignup() {
               {fieldErrors.password && (
                 <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
               )}
+            </div>
+
+            {/* Address */}
+            <div className="space-y-2 relative">
+              <label className="text-sm font-medium text-gray-700">Address (Optional)</label>
+              <Input
+                type="text"
+                name="address"
+                placeholder="Enter your address"
+                value={formData.address}
+                onChange={handleChange}
+                className="border h-10 text-foreground placeholder:text-gray-400/60 focus:border-secondary border-gray-400"
+              />
             </div>
 
             <Button type="submit" className="w-full bg-primary text-white rounded-lg px-2 py-4 cursor-pointer">
