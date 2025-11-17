@@ -161,6 +161,42 @@ export const getAdminOrders = (params?: { search?: string; status?: string; sort
 };
 
 // ============================================
+// Analytics
+// ============================================
+
+export interface AnalyticsStats {
+  totalRevenue: number;
+  revenueChange: string;
+  totalOrders: number;
+  ordersChange: string;
+  activeUsers: number;
+  usersChange: string;
+  totalRestaurantEarnings: number;
+  totalRiderEarnings: number;
+}
+
+export interface MonthlyRevenueData {
+  name: string;
+  revenue: number;
+  orders: number;
+  users: number;
+}
+
+export interface AnalyticsResponse {
+  stats: AnalyticsStats;
+  revenueData: MonthlyRevenueData[];
+}
+
+export const getAdminAnalytics = () => {
+  return apiRequest<AnalyticsResponse>("/admin/analytics", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+    },
+  });
+};
+
+// ============================================
 // Legacy Function Names (for backward compatibility)
 // ============================================
 

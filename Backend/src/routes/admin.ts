@@ -729,4 +729,154 @@ router.get("/riders", authenticate(["ADMIN"]), async (req, res) => {
   }
 });
 
+// GET - Comprehensive analytics for admin dashboard
+router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // ==========================================
+    // TOTAL REVENUE (All delivered order amounts)
+    // ==========================================
+    const allDeliveredOrders = await prisma.order.findMany({
+      where: { status: 'DELIVERED' },
+      select: { amount: true }
+    });
+    const totalRevenue = allDeliveredOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+
+    // Last month's revenue for comparison
+    const lastMonthOrders = await prisma.order.findMany({
+      where: {
+        status: 'DELIVERED',
+        createdAt: {
+          gte: lastMonthStart,
+          lt: lastMonthEnd
+        }
+      },
+      select: { amount: true }
+    });
+    const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+    const revenueChange = lastMonthRevenue > 0 
+      ? ((totalRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1)
+      : "0.0";
+
+    // ==========================================
+    // TOTAL ORDERS
+    // ==========================================
+    const totalOrders = await prisma.order.count();
+    const lastMonthOrdersCount = await prisma.order.count({
+      where: {
+        createdAt: {
+          gte: lastMonthStart,
+          lt: lastMonthEnd
+        }
+      }
+    });
+    const ordersChange = lastMonthOrdersCount > 0
+      ? ((totalOrders - lastMonthOrdersCount) / lastMonthOrdersCount * 100).toFixed(1)
+      : "0.0";
+
+    // ==========================================
+    // ACTIVE USERS (Users who have placed at least one order)
+    // ==========================================
+    const activeUsers = await prisma.order.groupBy({
+      by: ['customerId']
+    });
+    const activeUsersCount = activeUsers.length;
+
+    const lastMonthActiveUsers = await prisma.order.groupBy({
+      by: ['customerId'],
+      where: {
+        createdAt: {
+          gte: lastMonthStart,
+          lt: lastMonthEnd
+        }
+      }
+    });
+    const usersChange = lastMonthActiveUsers.length > 0
+      ? ((activeUsersCount - lastMonthActiveUsers.length) / lastMonthActiveUsers.length * 100).toFixed(1)
+      : "0.0";
+
+    // ==========================================
+    // RESTAURANT & RIDER EARNINGS (for internal tracking)
+    // ==========================================
+    
+    // Restaurant earnings calculation (order amount - delivery fee)
+    const restaurantOrders = await prisma.order.findMany({
+      where: { status: 'DELIVERED' },
+      select: { amount: true, deliveryFee: true }
+    });
+    const totalRestaurantEarnings = restaurantOrders.reduce((sum, order) => {
+      const restaurantPortion = Number(order.amount) - Number(order.deliveryFee);
+      return sum + restaurantPortion;
+    }, 0);
+
+    // Rider earnings from earnings table
+    const riderEarningsResult = await prisma.earning.aggregate({
+      _sum: { amount: true }
+    });
+    const totalRiderEarnings = Number(riderEarningsResult._sum.amount || 0);
+
+    // ==========================================
+    // MONTHLY REVENUE TREND (Last 12 months)
+    // ==========================================
+    const monthlyRevenue = [];
+    for (let i = 11; i >= 0; i--) {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+      
+      const monthOrders = await prisma.order.findMany({
+        where: {
+          status: 'DELIVERED',
+          createdAt: {
+            gte: monthDate,
+            lt: nextMonth
+          }
+        },
+        select: { amount: true }
+      });
+
+      const revenue = monthOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+      const ordersCount = monthOrders.length;
+      
+      // Get active users for this month
+      const monthActiveUsers = await prisma.order.groupBy({
+        by: ['customerId'],
+        where: {
+          createdAt: {
+            gte: monthDate,
+            lt: nextMonth
+          }
+        }
+      });
+
+      monthlyRevenue.push({
+        name: monthDate.toLocaleString('en-US', { month: 'short' }),
+        revenue: Number(revenue.toFixed(2)),
+        orders: ordersCount,
+        users: monthActiveUsers.length
+      });
+    }
+
+    res.json({
+      stats: {
+        totalRevenue: Number(totalRevenue.toFixed(2)),
+        revenueChange: `${Number(revenueChange) >= 0 ? '+' : ''}${revenueChange}% from last month`,
+        totalOrders,
+        ordersChange: `${Number(ordersChange) >= 0 ? '+' : ''}${ordersChange}% from last month`,
+        activeUsers: activeUsersCount,
+        usersChange: `${Number(usersChange) >= 0 ? '+' : ''}${usersChange}% from last month`,
+        totalRestaurantEarnings: Number(totalRestaurantEarnings.toFixed(2)),
+        totalRiderEarnings: Number(totalRiderEarnings.toFixed(2))
+      },
+      revenueData: monthlyRevenue
+    });
+  } catch (error: any) {
+    console.error("Get analytics error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 export default router;
