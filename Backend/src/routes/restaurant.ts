@@ -1449,7 +1449,12 @@ router.post(
       }
 
       // Create notification for admin
-      await prisma.notification.create({
+      console.log("📧 Creating support notification for admin...");
+      console.log("Restaurant:", restaurant);
+      console.log("Subject:", subject);
+      console.log("Message:", message);
+      
+      const notification = await (prisma as any).notification.create({
         data: {
           type: "SUPPORT_MESSAGE",
           title: `Support Request: ${subject}`,
@@ -1465,10 +1470,16 @@ router.post(
         },
       });
 
+      console.log("✅ Notification created:", notification);
       res.json({ message: "Support message sent successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error submitting support message:", error);
-      res.status(500).json({ message: "Failed to send support message" });
+      console.error("❌ Error details:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      res.status(500).json({ 
+        message: "Failed to send support message",
+        error: error.message 
+      });
     }
   }
 );

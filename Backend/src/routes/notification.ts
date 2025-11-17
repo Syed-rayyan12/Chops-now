@@ -13,7 +13,7 @@ router.get("/", authenticate(), async (req: AuthRequest, res) => {
     }
 
     // Get notifications based on role and user ID
-    const notifications = await prisma.notification.findMany({
+    const notifications = await (prisma as any).notification.findMany({
       where: {
         recipientRole: user.role,
         OR: [
@@ -28,7 +28,7 @@ router.get("/", authenticate(), async (req: AuthRequest, res) => {
     });
 
     // Count unread notifications
-    const unreadCount = await prisma.notification.count({
+    const unreadCount = await (prisma as any).notification.count({
       where: {
         recipientRole: user.role,
         OR: [
@@ -55,7 +55,7 @@ router.post("/", authenticate(["ADMIN"]), async (req: AuthRequest, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const notification = await prisma.notification.create({
+    const notification = await (prisma as any).notification.create({
       data: {
         type,
         title,
@@ -85,7 +85,7 @@ router.put("/:id/read", authenticate(), async (req: AuthRequest, res) => {
     const notificationId = parseInt(id);
 
     // Verify notification belongs to user
-    const notification = await prisma.notification.findFirst({
+    const notification = await (prisma as any).notification.findFirst({
       where: {
         id: notificationId,
         recipientRole: user.role,
@@ -100,7 +100,7 @@ router.put("/:id/read", authenticate(), async (req: AuthRequest, res) => {
       return res.status(404).json({ message: "Notification not found" });
     }
 
-    const updated = await prisma.notification.update({
+    const updated = await (prisma as any).notification.update({
       where: { id: notificationId },
       data: { isRead: true },
     });
@@ -120,7 +120,7 @@ router.put("/read-all", authenticate(), async (req: AuthRequest, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    await prisma.notification.updateMany({
+    await (prisma as any).notification.updateMany({
       where: {
         recipientRole: user.role,
         OR: [
@@ -151,7 +151,7 @@ router.delete("/:id", authenticate(), async (req: AuthRequest, res) => {
     const notificationId = parseInt(id);
 
     // Verify notification belongs to user
-    const notification = await prisma.notification.findFirst({
+    const notification = await (prisma as any).notification.findFirst({
       where: {
         id: notificationId,
         recipientRole: user.role,
@@ -166,7 +166,7 @@ router.delete("/:id", authenticate(), async (req: AuthRequest, res) => {
       return res.status(404).json({ message: "Notification not found" });
     }
 
-    await prisma.notification.delete({
+    await (prisma as any).notification.delete({
       where: { id: notificationId },
     });
 
