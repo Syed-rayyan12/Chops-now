@@ -1421,4 +1421,56 @@ router.post(
   }
 );
 
+// ✅ POST /api/restaurant/support - Submit support message to admin
+router.post(
+  "/support",
+  authenticate(["RESTAURANT"]),
+  async (req: AuthRequest, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { subject, message } = req.body;
+
+      if (!subject || !message) {
+        return res.status(400).json({ message: "Subject and message are required" });
+      }
+
+      // Get restaurant details
+      const restaurant = await prisma.restaurant.findUnique({
+        where: { ownerEmail: user.email },
+        select: { id: true, name: true },
+      });
+
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      // Create notification for admin
+      await prisma.notification.create({
+        data: {
+          type: "SUPPORT_MESSAGE",
+          title: `Support Request: ${subject}`,
+          message: `From ${restaurant.name}: ${message}`,
+          recipientRole: "ADMIN",
+          recipientId: null, // All admins
+          metadata: JSON.stringify({
+            restaurantId: restaurant.id,
+            restaurantName: restaurant.name,
+            subject,
+            originalMessage: message,
+          }),
+        },
+      });
+
+      res.json({ message: "Support message sent successfully" });
+    } catch (error) {
+      console.error("❌ Error submitting support message:", error);
+      res.status(500).json({ message: "Failed to send support message" });
+    }
+  }
+);
+
 export default router;

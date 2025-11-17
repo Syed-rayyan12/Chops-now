@@ -277,3 +277,26 @@ enum TransactionStatus {
   FAILED
   REFUNDED
 }
+
+model Notification {
+  id            Int              @id @default(autoincrement())
+  type          NotificationType
+  title         String
+  message       String
+  recipientRole Role
+  recipientId   Int?
+  isRead        Boolean          @default(false)
+  metadata      String?
+  createdAt     DateTime         @default(now())
+
+  @@index([recipientRole, recipientId])
+  @@index([isRead, createdAt])
+}
+
+enum NotificationType {
+  ORDER_STATUS
+  SUPPORT_MESSAGE
+  SYSTEM_ALERT
+  PAYMENT
+  DELIVERY
+}

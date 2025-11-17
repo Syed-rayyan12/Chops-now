@@ -36,6 +36,8 @@ import { Separator } from "../ui/separator"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
+import { getNotifications, markNotificationAsRead, type Notification as ApiNotification } from "@/lib/api/notification.api"
+import { formatDistanceToNow } from "date-fns"
 
 interface Notification {
   id: string
@@ -63,6 +65,8 @@ export function Header({ collapsed, setCollapsed, notifications }: DashboardHead
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [adminUser, setAdminUser] = useState<any>(null)
+  const [realNotifications, setRealNotifications] = useState<ApiNotification[]>([])
+  const [notificationCount, setNotificationCount] = useState(0)
   const unreadCount = notifications.filter((n) => n.status === "unread").length
 
   useEffect(() => {
@@ -70,7 +74,31 @@ export function Header({ collapsed, setCollapsed, notifications }: DashboardHead
     if (user) {
       setAdminUser(JSON.parse(user))
     }
+    loadNotifications()
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000)
+    return () => clearInterval(interval)
   }, [])
+
+  const loadNotifications = async () => {
+    try {
+      const data = await getNotifications()
+      setRealNotifications(data.notifications)
+      setNotificationCount(data.unreadCount)
+    } catch (error) {
+      console.error('Failed to load notifications:', error)
+    }
+  }
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markNotificationAsRead(id)
+      loadNotifications()
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error)
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken')
@@ -174,27 +202,31 @@ export function Header({ collapsed, setCollapsed, notifications }: DashboardHead
             <DropdownMenuTrigger asChild>
               <Button className="relative text-foreground/60 bg-white rounded-full w-10 h-10  cursor-pointer hover:bg-white">
                 <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
+                {notificationCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount}
+                    {notificationCount}
                   </span>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80  bg-white border-none border">
+            <DropdownMenuContent align="end" className="w-80 bg-white border-none border max-h-[400px] overflow-y-auto">
               <DropdownMenuLabel className="text-primary text-lg font-bold p-3">Notifications</DropdownMenuLabel>
 
-              {notifications.length <= 1 ? (
+              {realNotifications.length === 0 ? (
                 <DropdownMenuItem className="text-sm text-gray-500">
                   No new notifications
                 </DropdownMenuItem>
               ) : (
-                notifications.slice(0, 3).map((notification, index) => (
-                  <DropdownMenuItem key={notification.id} className={`text-foreground border-b border-gray-400 rounded-none ${index < 2 ? 'bg-[#DCFCE7]' : 'bg-white'}`}>
-                    <div className="py-3 px-2">
-
+                realNotifications.slice(0, 10).map((notification) => (
+                  <DropdownMenuItem 
+                    key={notification.id} 
+                    className={`text-foreground border-b border-gray-400 rounded-none cursor-pointer ${!notification.isRead ? 'bg-[#DCFCE7]' : 'bg-white'}`}
+                    onClick={() => handleMarkAsRead(notification.id)}
+                  >
+                    <div className="py-3 px-2 w-full">
+                      <p className="text-sm font-bold text-primary">{notification.title}</p>
                       <p className="text-sm font-medium">{notification.message}</p>
-                      <p className="text-xs">{notification.time}</p>
+                      <p className="text-xs text-gray-500 mt-1">{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}</p>
                     </div>
                   </DropdownMenuItem>
                 ))

@@ -8,6 +8,7 @@ import restaurantRoutes from "./routes/restaurant";
 import riderRoutes from "./routes/rider";
 import menuCategoryRoutes from "./routes/menuCategory";
 import paymentRoutes from "./routes/payment";
+import notificationRoutes from "./routes/notification";
 
 console.log("🔥 server.ts is running...");
 
@@ -53,6 +54,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/restaurant", restaurantRoutes);
 app.use("/api/rider", riderRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/notification", notificationRoutes);
 
 // Menu category and items routes
 app.use("/api", menuCategoryRoutes);

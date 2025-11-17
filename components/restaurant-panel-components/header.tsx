@@ -14,14 +14,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut } from "lucide-react"
+import { User, LogOut, Bell } from "lucide-react"
+import { getNotifications, markNotificationAsRead, type Notification } from "@/lib/api/notification.api"
+import { formatDistanceToNow } from "date-fns"
 
 export function Header() {
   const router = useRouter()
   const [restaurant, setRestaurant] = useState<any>(null)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notificationCount, setNotificationCount] = useState(0)
 
   useEffect(() => {
     loadRestaurantProfile()
+    loadNotifications()
     
     // Listen for profile updates
     const handleProfileUpdate = () => {
@@ -29,10 +34,33 @@ export function Header() {
     }
     window.addEventListener('restaurant-profile-updated', handleProfileUpdate)
     
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000)
+    
     return () => {
       window.removeEventListener('restaurant-profile-updated', handleProfileUpdate)
+      clearInterval(interval)
     }
   }, [])
+
+  const loadNotifications = async () => {
+    try {
+      const data = await getNotifications()
+      setNotifications(data.notifications)
+      setNotificationCount(data.unreadCount)
+    } catch (error) {
+      console.error('Failed to load notifications:', error)
+    }
+  }
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markNotificationAsRead(id)
+      loadNotifications()
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error)
+    }
+  }
 
   const loadRestaurantProfile = async () => {
     try {
@@ -80,8 +108,45 @@ export function Header() {
             />
           </Link>
 
-          {/* Right side - Profile Dropdown */}
+          {/* Right side - Notifications & Profile */}
           <div className="flex items-center gap-4">
+            {/* Notifications */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-gray-100">
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#FF6B35] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {notificationCount}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 bg-white border-gray-200 max-h-[400px] overflow-y-auto">
+                <DropdownMenuLabel className="text-[#FF6B35] text-lg font-bold p-3">Notifications</DropdownMenuLabel>
+                {notifications.length === 0 ? (
+                  <DropdownMenuItem className="text-sm text-gray-500">
+                    No new notifications
+                  </DropdownMenuItem>
+                ) : (
+                  notifications.slice(0, 10).map((notification) => (
+                    <DropdownMenuItem 
+                      key={notification.id} 
+                      className={`text-[#2D2D2D] border-b border-gray-200 rounded-none cursor-pointer ${!notification.isRead ? 'bg-orange-50' : 'bg-white'}`}
+                      onClick={() => handleMarkAsRead(notification.id)}
+                    >
+                      <div className="py-3 px-2 w-full">
+                        <p className="text-sm font-bold text-[#FF6B35]">{notification.title}</p>
+                        <p className="text-sm font-medium">{notification.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}</p>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Profile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
