@@ -148,7 +148,6 @@ export function AnalyticsDashboard() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList ref={tabsListRef} className="gap-2 flex w-full text-white">
             <TabsTrigger value="overview" className="w-full text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary min-w-[120px]">Overview</TabsTrigger>
-            <TabsTrigger value="revenue" className="w-full text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary min-w-[120px]">Revenue</TabsTrigger>
             <TabsTrigger value="orders" className="w-full text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary min-w-[120px]">Orders</TabsTrigger>
             <TabsTrigger value="users" className="w-full text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary min-w-[120px]">Users</TabsTrigger>
           </TabsList>
@@ -303,64 +302,6 @@ export function AnalyticsDashboard() {
 
            
             </div>
-          </TabsContent>
-
-          <TabsContent value="revenue" className="space-y-4">
-            <Card className=" bg-white p-4">
-              <CardHeader>
-                <CardTitle className="text-foreground font-bold font-ubuntu">Revenue Analytics</CardTitle>
-                <CardDescription className="text-primary">Detailed revenue breakdown and trends</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <ChartContainer
-                  config={{
-                    revenue: {
-                      label: "Revenue (£)",
-                      color: "#F47A20",
-                    },
-                  }}
-                  className="h-[400px] w-[100%]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={analytics.revenueData}
-                      onMouseMove={(e) => setActiveLabel(e.activeLabel || null)}
-                      onMouseLeave={() => setActiveLabel(null)}
-                      margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#6b7280"
-                        fontSize={12}
-                        tickLine={false}
-                      />
-                      <YAxis 
-                        stroke="#6b7280"
-                        fontSize={12}
-                        tickLine={false}
-                        tickFormatter={(value) => `£${value.toLocaleString()}`}
-                      />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />} 
-                        cursor={{ stroke: '#F47A20', strokeWidth: 2, strokeDasharray: '5 5' }} 
-                      />
-                      {activeLabel !== null && (
-                        <ReferenceLine x={activeLabel} stroke="#0F3D2E" strokeDasharray="3 3" strokeWidth={2} />
-                      )}
-                      <Line
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#F47A20"
-                        strokeWidth={3}
-                        dot={{ fill: '#F47A20', r: 4 }}
-                        activeDot={{ r: 6, fill: '#F47A20', stroke: '#fff', strokeWidth: 2 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-4">
