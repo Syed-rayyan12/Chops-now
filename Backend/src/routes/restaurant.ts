@@ -170,8 +170,8 @@ router.post("/signup", async (req, res) => {
 
     console.log("✅ Restaurant created successfully:", restaurant.id);
 
-    // Generate token using restaurant id and role
-    const token = generateToken({ id: restaurant.id, role: "RESTAURANT" });
+    // Generate token using restaurant id, email, and role
+    const token = generateToken({ id: restaurant.id, email: restaurant.ownerEmail, role: "RESTAURANT" });
 
     // Return only form-matching fields in restaurant response
     const restaurantResponse = {
@@ -214,8 +214,8 @@ router.post("/login", async (req, res) => {
   const restaurant = await prisma.restaurant.findFirst({ where: { ownerEmail: email, deletedAt: null } });
   if (!restaurant) return res.status(404).json({ message: "Restaurant profile not found" });
 
-  // Keep token payload using restaurant.id to match existing authorization expectations
-  const token = generateToken({ id: restaurant.id, role: "RESTAURANT" });
+  // Keep token payload using restaurant.id and email to match existing authorization expectations
+  const token = generateToken({ id: restaurant.id, email: restaurant.ownerEmail, role: "RESTAURANT" });
 
   // Return only email and token for login
   res.json({
@@ -1438,10 +1438,17 @@ router.post(
         return res.status(400).json({ message: "Subject and message are required" });
       }
 
-      // Get restaurant details
-      const restaurant = await prisma.restaurant.findUnique({
-        where: { ownerEmail: user.email },
-        select: { id: true, name: true },
+      console.log("👤 User from token:", user);
+
+      // Get restaurant details using the user ID from token
+      const restaurant = await prisma.restaurant.findFirst({
+        where: { 
+          OR: [
+            { id: user.id },
+            { ownerEmail: user.email }
+          ]
+        },
+        select: { id: true, name: true, ownerEmail: true },
       });
 
       if (!restaurant) {
