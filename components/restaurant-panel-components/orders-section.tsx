@@ -17,7 +17,7 @@ function calculateRiderDistance(restaurantLat: number, restaurantLon: number, ri
   const R = 6371 // Earth's radius in km
   const dLat = (riderLat - restaurantLat) * Math.PI / 180
   const dLon = (riderLon - restaurantLon) * Math.PI / 180
-  const a = 
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(restaurantLat * Math.PI / 180) * Math.cos(riderLat * Math.PI / 180) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2)
@@ -81,7 +81,7 @@ export function OrdersSection() {
     try {
       ordersLoadingRef.current = true
       setLoading(true)
-      
+
       // Show orange loader for 2s on initial load
       if (isInitial) {
         await new Promise(resolve => setTimeout(resolve, 2000))
@@ -111,15 +111,15 @@ export function OrdersSection() {
       } else if (newStatus === "CANCELLED") {
         await restaurantOrders.cancelOrder(restaurantSlug, orderId)
       }
-      
+
       await loadOrders(restaurantSlug)
-      
+
       // Notify other tabs/pages
       try {
         const channel = new BroadcastChannel("chop-restaurant-updates")
         channel.postMessage({ type: "orderUpdated", slug: restaurantSlug })
         channel.close()
-      } catch {}
+      } catch { }
     } catch (error) {
       console.error("Failed to update order status:", error)
     }
@@ -161,9 +161,9 @@ export function OrdersSection() {
     if (status === "pending") {
       return orders.filter((order) => order.status === "PENDING")
     } else if (status === "in-progress") {
-      return orders.filter((order) => 
-        order.status === "PREPARING" || 
-        order.status === "READY_FOR_PICKUP" || 
+      return orders.filter((order) =>
+        order.status === "PREPARING" ||
+        order.status === "READY_FOR_PICKUP" ||
         order.status === "PICKED_UP"
       )
     } else if (status === "completed") {
@@ -176,8 +176,8 @@ export function OrdersSection() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleString('en-GB', { 
-      hour: '2-digit', 
+    return date.toLocaleString('en-GB', {
+      hour: '2-digit',
       minute: '2-digit',
       day: '2-digit',
       month: 'short'
@@ -186,436 +186,436 @@ export function OrdersSection() {
 
   return (
     <>
-    {initialLoad ? (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-secondary"></div>
-          <p className="mt-4 text-lg font-medium text-secondary">Loading orders...</p>
+      {initialLoad ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-secondary"></div>
+            <p className="mt-4 text-lg font-medium text-secondary">Loading orders...</p>
+          </div>
         </div>
-      </div>
-    ) : (
-      <>
-    <div className="flex items-center justify-between mb-6">
-      <div className="bg-secondary rounded-lg p-6 text-white flex-1">
-        <h2 className="text-2xl font-bold font-ubuntu mb-2">ORDERS</h2>
-        <p className="text-white font-ubuntu text-sm">View, Manage, and Update Orders Easily</p>
-      </div>
-      <Button 
-        onClick={() => setShowRidersCard(!showRidersCard)}
-        className="ml-4 bg-primary text-white hover:bg-primary/90"
-      >
-        <Navigation className="mr-2 h-4 w-4" />
-        {showRidersCard ? "Hide" : "View"} Available Riders
-      </Button>
-    </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <div className="bg-secondary rounded-lg p-6 text-white flex-1">
+              <h2 className="text-2xl font-bold font-ubuntu mb-2">ORDERS</h2>
+              <p className="text-white font-ubuntu text-sm">View, Manage, and Update Orders Easily</p>
+            </div>
 
-    {/* Available Riders Card */}
-    {showRidersCard && (
-      <Card className="mb-6 border-primary/50 bg-white">
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-primary font-ubuntu flex items-center">
-            <MapPin className="mr-2 h-5 w-5" />
-            Available Riders Near You
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {!restaurantLocation ? (
-            <div className="text-center py-8 text-gray-500">
-              <MapPin className="mx-auto h-12 w-12 mb-2 text-gray-400" />
-              <p>Restaurant location not available</p>
-              <p className="text-sm">Please update your restaurant location in settings</p>
-            </div>
-          ) : riders.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No riders available at the moment</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {riders
-                .filter(rider => rider.latitude && rider.longitude)
-                .map(rider => ({
-                  ...rider,
-                  distance: parseFloat(calculateRiderDistance(
-                    restaurantLocation.latitude,
-                    restaurantLocation.longitude,
-                    rider.latitude!,
-                    rider.longitude!
-                  ))
-                }))
-                .sort((a, b) => a.distance - b.distance)
-                .map(rider => (
-                  <div key={rider.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-semibold text-foreground">{rider.firstName} {rider.lastName}</h4>
-                        <Badge className={rider.isOnline ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                          {rider.isOnline ? "Online" : "Offline"}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-2xl font-bold text-primary">{rider.distance.toFixed(2)}</span>
-                        <span className="text-xs text-gray-500">km away</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600 mt-2">
-                      <Navigation className="h-4 w-4 mr-1 text-secondary" />
-                      <span>Distance from your restaurant</span>
-                    </div>
+          </div>
+          <Button
+            onClick={() => setShowRidersCard(!showRidersCard)}
+            className="ml-4 bg-primary text-white hover:bg-primary/90"
+          >
+            <Navigation className="mr-2 h-4 w-4" />
+            {showRidersCard ? "Hide" : "View"} Available Riders
+          </Button>
+          {/* Available Riders Card */}
+          {showRidersCard && (
+            <Card className="mb-6 border-primary/50 bg-white">
+              <CardHeader className="bg-primary/10">
+                <CardTitle className="text-primary font-ubuntu flex items-center">
+                  <MapPin className="mr-2 h-5 w-5" />
+                  Available Riders Near You
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {!restaurantLocation ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <MapPin className="mx-auto h-12 w-12 mb-2 text-gray-400" />
+                    <p>Restaurant location not available</p>
+                    <p className="text-sm">Please update your restaurant location in settings</p>
                   </div>
-                ))}
-            </div>
+                ) : riders.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No riders available at the moment</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {riders
+                      .filter(rider => rider.latitude && rider.longitude)
+                      .map(rider => ({
+                        ...rider,
+                        distance: parseFloat(calculateRiderDistance(
+                          restaurantLocation.latitude,
+                          restaurantLocation.longitude,
+                          rider.latitude!,
+                          rider.longitude!
+                        ))
+                      }))
+                      .sort((a, b) => a.distance - b.distance)
+                      .map(rider => (
+                        <div key={rider.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold text-foreground">{rider.firstName} {rider.lastName}</h4>
+                              <Badge className={rider.isOnline ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                                {rider.isOnline ? "Online" : "Offline"}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <span className="text-2xl font-bold text-primary">{rider.distance.toFixed(2)}</span>
+                              <span className="text-xs text-gray-500">km away</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600 mt-2">
+                            <Navigation className="h-4 w-4 mr-1 text-secondary" />
+                            <span>Distance from your restaurant</span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-    )}
 
-    <Tabs value={activeOrderTab} onValueChange={setActiveOrderTab} className="">
-      <TabsList className="gap-2 hidden overflow-x-auto lg:flex lg:justify-between w-full text-white">
-        <TabsTrigger
-          value="new"
-          className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
-        >
-          New Orders
-        </TabsTrigger>
-        <TabsTrigger
-          value="progress"
-          className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
-        >
-          In Progress
-        </TabsTrigger>
-        <TabsTrigger
-          value="completed"
-          className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
-        >
-          Completed
-        </TabsTrigger>
-        <TabsTrigger
-          value="cancelled"
-          className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
-        >
-          Cancelled
-        </TabsTrigger>
-      </TabsList>
+          <Tabs value={activeOrderTab} onValueChange={setActiveOrderTab} className="">
+            <TabsList className="gap-2 hidden overflow-x-auto lg:flex lg:justify-between w-full text-white">
+              <TabsTrigger
+                value="new"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+              >
+                New Orders
+              </TabsTrigger>
+              <TabsTrigger
+                value="progress"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+              >
+                In Progress
+              </TabsTrigger>
+              <TabsTrigger
+                value="completed"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+              >
+                Completed
+              </TabsTrigger>
+              <TabsTrigger
+                value="cancelled"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+              >
+                Cancelled
+              </TabsTrigger>
+            </TabsList>
 
-      <TabsContent value="new">
-        <Card className="border-primary/50 p-4 bg-white">
-         
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border border-gray-400 rounded-lg p-4">
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
-                      <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : getOrdersByStatus("pending").length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                      No pending orders
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  getOrdersByStatus("pending").map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium text-foreground">{order.code}</TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400 max-w-[200px] truncate">
-                        {order.deliveryAddress || order.address?.address || "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.items.slice(0, 2).map((item, idx) => (
-                          <div key={idx}>{item.title} x{item.qty}</div>
-                        ))}
-                        {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
-                      </TableCell>
-                      <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
-                      <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-amber-100 text-amber-700">{order.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-white border border-gray-300">
-                            <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "PREPARING")}>
-                              <Check className="mr-2 h-4 w-4 text-green-600" />
-                              <span className="text-foreground">Accept Order</span> 
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
-                              <X className="mr-2 h-4 w-4 text-red-600" />
-                              <span className="text-foreground">Reject Order</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
+            <TabsContent value="new">
+              <Card className="border-primary/50 p-4 bg-white">
 
-      <TabsContent value="progress">
-        <Card className="border-primary/50 p-4 bg-white">
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border border-gray-400 rounded-lg p-4">
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+                            <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : getOrdersByStatus("pending").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                            No pending orders
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        getOrdersByStatus("pending").map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400 max-w-[200px] truncate">
+                              {order.deliveryAddress || order.address?.address || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.items.slice(0, 2).map((item, idx) => (
+                                <div key={idx}>{item.title} x{item.qty}</div>
+                              ))}
+                              {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
+                            </TableCell>
+                            <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-amber-100 text-amber-700">{order.status}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-white border border-gray-300">
+                                  <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "PREPARING")}>
+                                    <Check className="mr-2 h-4 w-4 text-green-600" />
+                                    <span className="text-foreground">Accept Order</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
+                                    <X className="mr-2 h-4 w-4 text-red-600" />
+                                    <span className="text-foreground">Reject Order</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border border-gray-400 rounded-lg p-4">
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
-                      <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : getOrdersByStatus("in-progress").length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                      No orders in progress
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  getOrdersByStatus("in-progress").map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium text-foreground">{order.code}</TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400 max-w-[200px] truncate">
-                        {order.deliveryAddress || order.address?.address || "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.items.slice(0, 2).map((item, idx) => (
-                          <div key={idx}>{item.title} x{item.qty}</div>
-                        ))}
-                        {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
-                      </TableCell>
-                      <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
-                      <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-blue-100 text-blue-800">{order.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-white border border-gray-300">
-                            {order.status === "PREPARING" && (
-                              <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "READY_FOR_PICKUP")}>
-                                <Check className="mr-2 h-4 w-4 text-green-600" />
-                                <span className="text-foreground">Mark Ready for Pickup</span>
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === "READY_FOR_PICKUP" && (
-                              <DropdownMenuItem disabled>
-                                <span className="text-gray-400">Waiting for Rider</span>
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === "PICKED_UP" && (
-                              <DropdownMenuItem disabled>
-                                <span className="text-gray-400">Out for Delivery</span>
-                              </DropdownMenuItem>
-                            )}
-                            {order.status !== "PICKED_UP" && (
-                              <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
-                                <X className="mr-2 h-4 w-4 text-red-600" />
-                                <span className="text-foreground">Cancel Order</span>
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
+            <TabsContent value="progress">
+              <Card className="border-primary/50 p-4 bg-white">
 
-      <TabsContent value="completed">
-        <Card className="border-primary/50 p-4 bg-white">
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border border-gray-400 rounded-lg p-4">
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+                            <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : getOrdersByStatus("in-progress").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                            No orders in progress
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        getOrdersByStatus("in-progress").map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400 max-w-[200px] truncate">
+                              {order.deliveryAddress || order.address?.address || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.items.slice(0, 2).map((item, idx) => (
+                                <div key={idx}>{item.title} x{item.qty}</div>
+                              ))}
+                              {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
+                            </TableCell>
+                            <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-blue-100 text-blue-800">{order.status}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-white border border-gray-300">
+                                  {order.status === "PREPARING" && (
+                                    <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "READY_FOR_PICKUP")}>
+                                      <Check className="mr-2 h-4 w-4 text-green-600" />
+                                      <span className="text-foreground">Mark Ready for Pickup</span>
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status === "READY_FOR_PICKUP" && (
+                                    <DropdownMenuItem disabled>
+                                      <span className="text-gray-400">Waiting for Rider</span>
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status === "PICKED_UP" && (
+                                    <DropdownMenuItem disabled>
+                                      <span className="text-gray-400">Out for Delivery</span>
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status !== "PICKED_UP" && (
+                                    <DropdownMenuItem className="hover:bg-gray-100 p-2" onClick={() => handleStatusUpdate(order.id, "CANCELLED")}>
+                                      <X className="mr-2 h-4 w-4 text-red-600" />
+                                      <span className="text-foreground">Cancel Order</span>
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border border-gray-400 rounded-lg p-4">
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
-                      <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : getOrdersByStatus("completed").length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                      No completed orders
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  getOrdersByStatus("completed").map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium text-foreground">{order.code}</TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400 max-w-[200px] truncate">
-                        {order.deliveryAddress || order.address?.address || "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.items.slice(0, 2).map((item, idx) => (
-                          <div key={idx}>{item.title} x{item.qty}</div>
-                        ))}
-                        {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
-                      </TableCell>
-                      <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
-                      <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800">{order.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-gray-400 text-sm">Completed</span>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
+            <TabsContent value="completed">
+              <Card className="border-primary/50 p-4 bg-white">
 
-      <TabsContent value="cancelled">
-        <Card className="border-primary/50 p-4 bg-white">
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border border-gray-400 rounded-lg p-4">
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+                            <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : getOrdersByStatus("completed").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                            No completed orders
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        getOrdersByStatus("completed").map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400 max-w-[200px] truncate">
+                              {order.deliveryAddress || order.address?.address || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.items.slice(0, 2).map((item, idx) => (
+                                <div key={idx}>{item.title} x{item.qty}</div>
+                              ))}
+                              {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
+                            </TableCell>
+                            <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-green-100 text-green-800">{order.status}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-400 text-sm">Completed</span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border border-gray-400 rounded-lg p-4">
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
-                      <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : getOrdersByStatus("cancelled").length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                      No cancelled orders
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  getOrdersByStatus("cancelled").map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium text-foreground">{order.code}</TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400 max-w-[200px] truncate">
-                        {order.deliveryAddress || order.address?.address || "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.items.slice(0, 2).map((item, idx) => (
-                          <div key={idx}>{item.title} x{item.qty}</div>
-                        ))}
-                        {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
-                      </TableCell>
-                      <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
-                      <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-red-100 text-red-800">{order.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-gray-400 text-sm">Cancelled</span>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
-    </>
-    )}
+            <TabsContent value="cancelled">
+              <Card className="border-primary/50 p-4 bg-white">
+
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border border-gray-400 rounded-lg p-4">
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
+                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+                            <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : getOrdersByStatus("cancelled").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                            No cancelled orders
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        getOrdersByStatus("cancelled").map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400 max-w-[200px] truncate">
+                              {order.deliveryAddress || order.address?.address || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-400">
+                              {order.items.slice(0, 2).map((item, idx) => (
+                                <div key={idx}>{item.title} x{item.qty}</div>
+                              ))}
+                              {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
+                            </TableCell>
+                            <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-red-100 text-red-800">{order.status}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-400 text-sm">Cancelled</span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </>
   )
 }
