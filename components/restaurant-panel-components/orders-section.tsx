@@ -202,7 +202,7 @@ export function OrdersSection() {
             </div>
 
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end mb-3">
           <Button
             onClick={() => setShowRidersCard(!showRidersCard)}
             className="ml-4 bg-primary text-white rounded-lg hover:bg-primary/90"
