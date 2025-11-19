@@ -226,15 +226,7 @@ export default function CheckoutPage() {
       await customerOrders.create(orderPayload)
       clearCart()
 
-      toast({
-        title: "Payment Successful! 🎉",
-        description: "Your order has been placed and paid successfully. Redirecting...",
-      })
-
-      // Delay redirect to show success message
-      setTimeout(() => {
-        router.push("/profile?tab=orders")
-      }, 3000)
+      router.push("/profile?tab=orders")
     } catch (error: any) {
       console.error("Order creation error:", error)
       toast({

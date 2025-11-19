@@ -53,7 +53,8 @@ function CheckoutForm({ clientSecret, amount, onSuccess, onError }: CheckoutForm
         onError(error.message || "Payment failed");
         setIsProcessing(false);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        setMessage("Payment successful!");
+        setIsProcessing(false);
+        setMessage("success");
         // Delay success callback to show message
         setTimeout(() => {
           onSuccess();
@@ -78,16 +79,16 @@ function CheckoutForm({ clientSecret, amount, onSuccess, onError }: CheckoutForm
 
       {message && (
         <div className={`p-4 rounded-lg ${
-          message.includes("successful") 
+          message === "success"
             ? "bg-green-100 border-2 border-green-500" 
             : "bg-red-50 text-red-800 border border-red-200"
         }`}>
-          {message.includes("successful") ? (
+          {message === "success" ? (
             <div className="text-center space-y-2">
               <div className="text-2xl">✅</div>
               <p className="text-lg font-bold text-green-800">Payment Successful!</p>
               <p className="text-sm text-green-700">Your order has been placed successfully</p>
-              <p className="text-xs text-green-600">Redirecting to your restaurant...</p>
+              <p className="text-xs text-green-600">Redirecting to your orders...</p>
             </div>
           ) : (
             <p className="text-sm">{message}</p>
