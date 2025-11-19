@@ -26,6 +26,8 @@ router.post("/signup", async (req, res) => {
       password,
       personalDetails,
       address,
+      latitude,
+      longitude,
       idDocument,
       proofOfAddress,
       selfie,
@@ -87,6 +89,8 @@ router.post("/signup", async (req, res) => {
         password: hashedPassword,
         personalDetails,
         address,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         idDocument,
         proofOfAddress,
         selfie,
@@ -144,6 +148,29 @@ router.post("/login", async (req, res) => {
   } catch (err: any) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Login failed", error: err.message });
+  }
+});
+
+// GET - All riders (for restaurant to see available riders)
+router.get("/all", async (_req: any, res: any) => {
+  try {
+    const riders = await prisma.rider.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        latitude: true,
+        longitude: true,
+        isOnline: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ riders });
+  } catch (err: any) {
+    console.error("Get all riders error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

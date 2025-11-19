@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Check, X, MoreHorizontal } from "lucide-react"
+import { Check, X, MoreHorizontal, MapPin, Navigation } from "lucide-react"
 import { restaurantOrders } from "@/lib/api/order.api"
 import type { Order as ApiOrder } from "@/lib/api/order.api"
+import { API_CONFIG } from "@/lib/api/config"
 
 // Helper function to calculate distance between rider and restaurant
 function calculateRiderDistance(restaurantLat: number, restaurantLon: number, riderLat: number, riderLon: number): string {
@@ -25,11 +26,23 @@ function calculateRiderDistance(restaurantLat: number, restaurantLon: number, ri
   return distance.toFixed(1)
 }
 
+interface Rider {
+  id: number
+  firstName: string
+  lastName: string
+  latitude: number | null
+  longitude: number | null
+  isOnline: boolean
+}
+
 export function OrdersSection() {
   const [activeOrderTab, setActiveOrderTab] = useState("new")
   const [orders, setOrders] = useState<ApiOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [initialLoad, setInitialLoad] = useState(true)
+  const [riders, setRiders] = useState<Rider[]>([])
+  const [restaurantLocation, setRestaurantLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [showRidersCard, setShowRidersCard] = useState(false)
 
   // Prevent duplicate/rapid fetches
   const ordersLoadingRef = useRef(false)
@@ -41,6 +54,8 @@ export function OrdersSection() {
 
     // Initial load with 2s delay
     loadOrders(restaurantSlug, true)
+    loadRestaurantLocation(restaurantSlug)
+    loadAvailableRiders()
 
     // Cross-tab updates via BroadcastChannel only
     const channel = new BroadcastChannel("chop-restaurant-updates")
@@ -110,6 +125,38 @@ export function OrdersSection() {
     }
   }
 
+  const loadRestaurantLocation = async (slug: string) => {
+    try {
+      const token = localStorage.getItem("restaurantToken")
+      const response = await fetch(`${API_CONFIG.BASE_URL}/restaurant/${slug}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (data.latitude && data.longitude) {
+          setRestaurantLocation({ latitude: data.latitude, longitude: data.longitude })
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load restaurant location:", error)
+    }
+  }
+
+  const loadAvailableRiders = async () => {
+    try {
+      const token = localStorage.getItem("restaurantToken")
+      const response = await fetch(`${API_CONFIG.BASE_URL}/rider/all`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setRiders(data.riders || [])
+      }
+    } catch (error) {
+      console.error("Failed to load riders:", error)
+    }
+  }
+
   const getOrdersByStatus = (status: "pending" | "in-progress" | "completed" | "cancelled") => {
     if (status === "pending") {
       return orders.filter((order) => order.status === "PENDING")
@@ -148,10 +195,80 @@ export function OrdersSection() {
       </div>
     ) : (
       <>
-    <div className="bg-secondary rounded-lg p-6 text-white mb-6">
-    <h2 className="text-2xl font-bold font-ubuntu mb-2">ORDERS</h2>
-    <p className="text-white font-ubuntu text-sm">View, Manage, and Update Orders Easily</p>
-  </div>
+    <div className="flex items-center justify-between mb-6">
+      <div className="bg-secondary rounded-lg p-6 text-white flex-1">
+        <h2 className="text-2xl font-bold font-ubuntu mb-2">ORDERS</h2>
+        <p className="text-white font-ubuntu text-sm">View, Manage, and Update Orders Easily</p>
+      </div>
+      <Button 
+        onClick={() => setShowRidersCard(!showRidersCard)}
+        className="ml-4 bg-primary text-white hover:bg-primary/90"
+      >
+        <Navigation className="mr-2 h-4 w-4" />
+        {showRidersCard ? "Hide" : "View"} Available Riders
+      </Button>
+    </div>
+
+    {/* Available Riders Card */}
+    {showRidersCard && (
+      <Card className="mb-6 border-primary/50 bg-white">
+        <CardHeader className="bg-primary/10">
+          <CardTitle className="text-primary font-ubuntu flex items-center">
+            <MapPin className="mr-2 h-5 w-5" />
+            Available Riders Near You
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {!restaurantLocation ? (
+            <div className="text-center py-8 text-gray-500">
+              <MapPin className="mx-auto h-12 w-12 mb-2 text-gray-400" />
+              <p>Restaurant location not available</p>
+              <p className="text-sm">Please update your restaurant location in settings</p>
+            </div>
+          ) : riders.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No riders available at the moment</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {riders
+                .filter(rider => rider.latitude && rider.longitude)
+                .map(rider => ({
+                  ...rider,
+                  distance: parseFloat(calculateRiderDistance(
+                    restaurantLocation.latitude,
+                    restaurantLocation.longitude,
+                    rider.latitude!,
+                    rider.longitude!
+                  ))
+                }))
+                .sort((a, b) => a.distance - b.distance)
+                .map(rider => (
+                  <div key={rider.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h4 className="font-semibold text-foreground">{rider.firstName} {rider.lastName}</h4>
+                        <Badge className={rider.isOnline ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                          {rider.isOnline ? "Online" : "Offline"}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-2xl font-bold text-primary">{rider.distance.toFixed(2)}</span>
+                        <span className="text-xs text-gray-500">km away</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 mt-2">
+                      <Navigation className="h-4 w-4 mr-1 text-secondary" />
+                      <span>Distance from your restaurant</span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    )}
+
     <Tabs value={activeOrderTab} onValueChange={setActiveOrderTab} className="">
       <TabsList className="gap-2 hidden overflow-x-auto lg:flex lg:justify-between w-full text-white">
         <TabsTrigger
@@ -192,7 +309,6 @@ export function OrdersSection() {
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                  <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
                   <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
@@ -201,14 +317,14 @@ export function OrdersSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-12">
+                    <TableCell colSpan={9} className="text-center py-12">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                       <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
                     </TableCell>
                   </TableRow>
                 ) : getOrdersByStatus("pending").length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       No pending orders
                     </TableCell>
                   </TableRow>
@@ -224,27 +340,6 @@ export function OrdersSection() {
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {order.rider ? (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-medium text-secondary">{order.rider.firstName} {order.rider.lastName}</span>
-                            {order.rider.latitude && order.rider.longitude && order.restaurant?.latitude && order.restaurant?.longitude ? (
-                              <span className="text-xs text-primary font-semibold">
-                                📍 {calculateRiderDistance(
-                                  order.restaurant.latitude,
-                                  order.restaurant.longitude,
-                                  order.rider.latitude,
-                                  order.rider.longitude
-                                )} km away
-                              </span>
-                            ) : (
-                              <span className="text-xs text-gray-400">Location not available</span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-500 italic">No rider assigned</span>
-                        )}
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.items.slice(0, 2).map((item, idx) => (
