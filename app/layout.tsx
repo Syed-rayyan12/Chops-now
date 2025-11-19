@@ -20,8 +20,8 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: "Chop Now - Food Delivery Made Easy",
-  description: "Order your favorite food from the best restaurants near you. Fast delivery, great taste!",
+  title: "Authentic African Meals in UK | ChopNow",
+  description: "Order Caribbean dishes in UK with ChopNow. Enjoy jerk chicken, jollof rice, and fresh plantains delivered fast. Taste island flavors at home today!",
   generator: "v0.app",
 }
 

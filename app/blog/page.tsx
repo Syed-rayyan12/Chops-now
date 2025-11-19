@@ -25,7 +25,7 @@ export default function BlogPage() {
             <span className='text-secondary font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl mb-5 max-sm:text-3xl max-sm:mb-2'>Our</span> Blogs
           </h1>
           <p className='text-white max-w-3xl mx-auto font-ubuntu leading-relaxed'>
-           Discover the flavors and stories behind Afro-Caribbean culture.
+Explore culture, cuisine, and stories through our vibrant blogs.
           </p>
         </div>
       </div>

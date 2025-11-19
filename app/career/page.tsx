@@ -14,26 +14,30 @@ export default function CareerPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
-      <PageBanner 
-        title="Hungry to make an impact?"
+
+      <PageBanner
+        title="Ready to Reshape the Future of Flavour?"
         highlightedWord="Hungry"
-        description="Join Chop Now, where food, culture, and community come together. Help  us bring Afro-Caribbean flavors to every doorstep — and build a future full of opportunity."
+        description="From perfecting the nation's favourite jollof rice in UK to serving authentic jerk chicken in UK, your
+career here feeds a movement. Join us!"
       />
 
       <ContentWithImage
-        heading="There's always room at our table."
-        paragraph="At Chop Now, we're not just delivering food — we're delivering culture. We connect people with the authentic taste of Africa and the Caribbean, while empowering local chefs, couriers, and communities to grow."
-        paragraph2="We're blending technology with tradition, making soulful, flavorful dishes easier to enjoy, and ensuring every meal tells a story." 
-       imageSrc="/blog-0.png"
+        heading="We’re Always Searching for Passionate Afro-Caribbean Chefs"
+        paragraph="The appetite for authentic, professionally-made Afro-Caribbean cuisine has never been greater. With
+more people searching for how to order African food online in UK and seeking the best Caribbean food
+delivery in UK, your talent is the missing ingredient"
+        paragraph2="We connect chefs specialising in traditional Nigerian dishes in UK with a community eager to order
+African food online in UK and experience true culinary heritage. Join us and meet the demand."
+        imageSrc="/blog-0.png"
         imageAlt="Career at Chop Now"
       />
 
       <Performance />
-      <OurPeople  />
+      <OurPeople />
       <BeYourselfSection />
-        <ReadOurLatestNews/>
-        <Newsletter/>
+      <ReadOurLatestNews />
+      <Newsletter />
       <Footer />
     </div>
   );

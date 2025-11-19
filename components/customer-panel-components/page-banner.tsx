@@ -41,14 +41,14 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                 {/* Heading row: highlightedWord + title + highlightedWord2 + optional image */}
                 <div className="mb-8">
                     <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl max-sm:text-3xl text-white flex items-center justify-center gap-3 md:flex-nowrap flex-wrap">
-                         <span className="whitespace-nowrap">{title}</span>
-                         {highlightedWord2 && (
-                             <span className="text-secondary whitespace-nowrap">{highlightedWord2}</span>
-                         )}
+                        <span className="whitespace-nowrap">{title}</span>
+                        {highlightedWord2 && (
+                            <span className="text-secondary whitespace-nowrap">{highlightedWord2}</span>
+                        )}
                         {highlightedWord && (
                             <span className="text-white whitespace-nowrap">{highlightedWord}</span>
                         )}
-                        
+
                         {!imageOnTop && inlineImageSrc && (
                             <img
                                 src={inlineImageSrc}
@@ -62,18 +62,22 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                 <p className="text-white max-w-3xl mx-auto font-ubuntu leading-relaxed text-center px-4">
                     {description}
                 </p>
+                <div className="flex items-center gap-4">
+
                 <div className="flex gap-4">
 
                     <div className="pt-8">
-                        <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Partner With Us</Button>
+                        <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Become Part of Our Partner Chefs</Button>
                     </div>
-                    <div className="pt-8">
 
-                        <Button variant="part2" className="text-secondary bg-white flex gap-2 rounded-lg px-7 py-5 text-[15px]">
-                            <Bike className=" inline-block" />
-                            Deliver With Us
-                            </Button>
+                </div>
+                <div className="flex gap-4">
+
+                    <div className="pt-8">
+                        <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Courier</Button>
                     </div>
+
+                </div>
                 </div>
             </div>
         </div>

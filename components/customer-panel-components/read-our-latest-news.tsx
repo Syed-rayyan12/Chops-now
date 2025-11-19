@@ -31,11 +31,12 @@ const ReadOurLatestNews = () => {
     <div className="pt-20 pb-40 relative  bg-[url('/featured-bg.jpeg')] bg-cover bg-center">
       <img src="/patte.png" className='absolute w-80 bottom-0 left-0 opacity-15' alt="" />
       <div>
-        <h2 className="font-fredoka-one text-5xl max-sm:text-2xl font-extrabold text-center mb-6">
-          Read Our Latest News
+        <h2 className="font-fredoka-one text-5xl max-sm:text-2xl font-extrabold text-center mb-6 px-44 max-sm:px-4">
+       Stories That Celebrate Culture, Food, and Community
         </h2>
         <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
-        <p className='text-[16px] font-ubuntu text-center mb-8'>Fresh flavours, fresh stories — straight from ChopNow.</p>
+        <p className='text-[16px] font-ubuntu text-center mb-8'>Discover chef journeys, cultural events, festive flavours, and inspiring traditions.
+</p>
       <div className='mx-auto px-36 max-2xl:px-6 max-sm:px-10 max-lg:px-36 '>
         <div className="grid grid-cols-3 max-sm:gap-366 max-lg:grid-cols-1 max-lg:gap-28  gap-6">
           {latestNews.map((news, index) => (

@@ -2,8 +2,8 @@
 
 export function OurPeople() {
   const data = {
-    title: "From Our People, For Our People",
-    description: "Every meal we deliver starts with passion from the chefs in local kitchens to the couriers on the move. At Chop Now, we are proud to represent Afro-Caribbean culture through hard work, unity, and real flavor. This is more than a job it is a movement powered by people and purpose.",
+    title: "Serving Authentic Culture on Every Plate",
+    description: "We know the comfort found in a bowl of rich African soups in UK or the simple joy of perfectly ripe plantain dishes in UK. Whether you're searching for 'Ghanaian food near me delivery' or a taste of home, we bring the heart of our heritage directly to you",
     image: {
       src: "/people.png",
       alt: "Chop Now team collaboration",

@@ -2,28 +2,33 @@ import React from 'react'
 import { Heart, Users, Award, Sparkles } from 'lucide-react'
 
 const ourValues = () => {
-  const values = [
-    {
-      icon: Heart,
-      title: "Authenticity",
-      description: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. "
-    },
-    {
-      icon: Users,
-      title: "Community",
-      description: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. "
-    },
-    {
-      icon: Award,
-      title: "Quality",
-      description: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. "
-    },
-    {
-      icon: Sparkles,
-      title: "Innovation",
-      description: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. "
-    }
-  ]
+ const values = [
+  {
+    icon: Heart,
+    title: "Authenticity",
+    description:
+      "We honour real flavours, real stories, and real roots. Every dish reflects heritage, tradition, and the cooks who pour heart."
+  },
+  {
+    icon: Users,
+    title: "Community",
+    description:
+      "We support responsible cooking, mindful sourcing, and conscious habits. By uplifting local chefs and reducing waste, we strengthen our community."
+  },
+  {
+    icon: Award,
+    title: "Quality",
+    description:
+      "People come first. We create space for connection, celebration, and opportunity. Every order supports a cook, a family, and a future."
+  },
+  {
+    icon: Sparkles,
+    title: "Innovation",
+    description:
+      "Taste drives us. Bold spices, comforting stews, rich textures; the kind of flavours that feel like home and inspire new possibilities."
+  }
+];
+
 
   return (
     <div className="py-16 bg-white">

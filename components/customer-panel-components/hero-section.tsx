@@ -95,7 +95,8 @@ export function HeroSection() {
               transition={{ duration: 0.8, ease: easeOut }}
               className="font-fredoka-one font font-bold max-lg:text-4xl max-md:text-5xl  lg:text-5xl mb-10 max-sm:text-3xl max-sm:mb-2  text-white"
             >
-              Craving African
+              
+              Craving Bold African 
             </motion.h1>
 
             {/* Animated Paragraph */}
@@ -105,7 +106,7 @@ export function HeroSection() {
               transition={{ duration: 0.8, ease: easeOut, delay: 0.3 }}
               className="font-fredoka-one font-bold  max-lg:text-4xl max-md:text-5xl  lg:text-5xl mb-10 max-sm:text-2xl  max-sm:mb-2  text-secondary"
             >
-              &
+              and
             </motion.h1>
 
             <motion.h1
@@ -114,7 +115,7 @@ export function HeroSection() {
               transition={{ duration: 0.8, ease: easeOut, delay: 0.3 }}
               className="font-fredoka-one font-bold   max-lg:text-4xl max-md:text-5xl  lg:text-5xl mb-10 max-sm:text-2xl  max-sm:mb-2  text-white"
             >
-              Caribbean Flavours?
+              Caribbean Goodness?
             </motion.h1>
           </div>
 

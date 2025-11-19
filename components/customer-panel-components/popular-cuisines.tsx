@@ -58,14 +58,16 @@ export function PopularCuisines() {
             className="font-fredoka-one font-extrabold text-5xl max-sm:text-2xl text-foreground mb-4"
 
           >
-            Popular Cuisines
+          Explore Authentic West African Cuisine in UK
           </h2>
           <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
           <p
             className="text-[16px] font-ubuntu text-foreground max-w-2xl max-2xl:mb-4 mx-auto"
 
           >
-            Explore a world of flavors from your favorite cuisines, all available for delivery.
+           Experience authentic flavours with trusted African food delivery, UK customers rely on.
+Bringing Authentic Taste to Your Home
+
           </p>
         </div>
 

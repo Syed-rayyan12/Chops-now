@@ -45,11 +45,11 @@ export function ContactFormSection() {
           {/* Left Side - Get In Touch */}
           <div className="pt-14">
             <h2 className="font-fredoka-one text-4xl font-extrabold text-foreground mb-4">
-              Get In Touch
+             Let's Start a Conversation
             </h2>
             <div className="bg-secondary h-1 w-24 mb-6"></div>
             <p className="text-lg text-foreground font-ubuntu leading-relaxed mb-8">
-              Have questions or need assistance? Reach out to us, and we will be happy to help you with anything you need.
+              Reach out using the form, and our team will get back to you as soon as humanly possible
             </p>
 
             {/* Contact Info */}
@@ -122,7 +122,8 @@ export function ContactFormSection() {
             </h2>
             <div className="bg-secondary h-1 w-24 mb-6"></div>
             <p className="text-base text-foreground font-ubuntu leading-relaxed mb-6">
-              Fill out the form below and our team will get back to you as soon as possible.
+             For all general questions and feedback, please contact us at [add email]. We're here to help!
+
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">

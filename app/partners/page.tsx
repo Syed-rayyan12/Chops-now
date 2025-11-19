@@ -17,13 +17,14 @@ export default function PartnersPage() {
       <Header />
 
       <PageBanner
-        title="Become a"
-        highlightedWord=" Partner"
-        highlightedWord2="Chop Now"
+        title="Powering the Future"
+        highlightedWord="Afro-Caribbean Food"
+        highlightedWord2="Of"
         inlineImageSrc="/lines.svg"
         inlineImageAlt="Decorative lines"
         imageOnTop={true}
-        description="Grow your restaurant with Chop Now. Reach new customers, boost orders, and join a community celebrating Afro-Caribbean flavors."
+        description="Join our growing network of restaurants and couriers bringing authentic Afro-Caribbean flavours to
+homes across the UK with pride."
       />
 
 

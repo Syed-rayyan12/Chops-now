@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import { useCart } from "@/contexts/cart-context"
 import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft, Tag } from "lucide-react"
 import { Footer } from "@/components/customer-panel-components/footer"
 import { Header } from "@/components/customer-panel-components/header"
+import SignupRequired from "@/components/customer-panel-components/signup-required"
+
 
 export default function CartPage() {
   const router = useRouter()
@@ -30,6 +32,15 @@ export default function CartPage() {
 
   const [promoInput, setPromoInput] = useState("")
   const [promoError, setPromoError] = useState("")
+  const [openModal, setOpenModal] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem("token")
+    setIsLoggedIn(!!token)
+  }, [])
+
 
   const handleApplyPromo = () => {
     if (!promoInput.trim()) return
@@ -44,8 +55,14 @@ export default function CartPage() {
   }
 
   const handleProceedToCheckout = () => {
-    router.push("/checkout")
-  }
+    if (isLoggedIn) {
+      // User is logged in → allow checkout
+      router.push("/checkout");
+    } else {
+      // No user → show signup modal
+      setOpenModal(true);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -262,6 +279,9 @@ export default function CartPage() {
       </main>
 
       <Footer />
+      
+      {/* Signup Required Modal */}
+      <SignupRequired onClose={() => setOpenModal(false)} open={openModal} onOpenChange={setOpenModal} />
     </div>
   )
 }

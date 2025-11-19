@@ -9,25 +9,25 @@ export default function CenteredValuesSection() {
       icon: Sheet,
       title: 'Apply Online',
       description:
-        'Fill a short sign-up form.',
+        'Submit your details through our online form.',
     },
     {
       icon: CheckCircle,
-      title: 'Get Approved',
+      title: 'Connect',
       description:
-        'We\'ll verify your info and guide you.',
+        'Have a quick chat with our friendly team.',
     },
     {
       icon: GraduationCap,
-      title: 'Onboard & Train',
+      title: 'Onboard',
       description:
-        'We\'ll help you with tools, operations, and safety.',
+        'Get set up with your personalised partner portal',
     },
     {
       icon: Zap,
-      title: 'Start Serving',
+      title: 'Earn',
       description:
-        'Go live on the Chop Now platform and start earning.',
+        'Start receiving orders and growing your business immediately.',
     },
   ]
 
@@ -37,11 +37,11 @@ export default function CenteredValuesSection() {
         {/* Heading */}
         <div className="text-center mb-12">
           <h2 className="font-fredoka-one font-extrabold text-5xl max-sm:text-2xl max-lg:text-4xl text-foreground mb-4">
-        Getting Started is Easy
+       Your Path to Partnership is Simple
           </h2>
           <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
           <p className="text-xl text-foreground max-w-3xl mx-auto font-ubuntu leading-relaxed">
-         Join Chop Now in just a few quick steps.
+     Get started in just four quick and easy steps
           </p>
         </div>
 

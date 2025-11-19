@@ -7,22 +7,22 @@ export function BeYourselfSection() {
     {
       icon: Users,
       title: "Authenticity",
-      desc: "Stay true to our roots.",
+      desc: "Recipes passed down through generations.",
     },
     {
       icon: Lightbulb,
-      title: "Innovation",
-      desc: "Build the future of food delivery.",
+      title: "Quality",
+      desc: "Only the freshest ingredients used.",
     },
     {
-    icon: HeartHandshake,
+      icon: HeartHandshake,
       title: "Community",
-      desc: "We rise by lifting others.",
+      desc: "Connecting cultures & tastes with passion",
     },
     {
       icon: Sparkles,
-      title: "Growth",
-      desc: "Empowering people to thrive.",
+      title: "Convenience",
+      desc: "Your favourite flavours, effortlessly delivered.",
     },
   ]
 
@@ -32,11 +32,12 @@ export function BeYourselfSection() {
         {/* Heading */}
         <div className="text-center max-w-4xl mx-auto mb-12">
           <h2 className="font-fredoka-one text-4xl lg:text-5xl font-extrabold text-foreground mb-6">
-            You can be yourself here.
+            Our Commitment to You
           </h2>
           <div className="bg-primary h-1 w-24 mx-auto mb-5"></div>
           <p className="text-lg text-foreground font-ubuntu">
-            Our roots are diverse, our flavors even more so. At Chop Now, individuality is celebrated — because every person brings a new spice to the mix.
+            We promise more than a delivery; we promise an authentic experience, unwavering quality, and a
+            vibrant community where food, culture, and experience blend together
           </p>
         </div>
 

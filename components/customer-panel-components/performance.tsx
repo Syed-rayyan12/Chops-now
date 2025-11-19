@@ -5,23 +5,23 @@ const Performance = () => {
     const performanceData = [
         {
             icon: Users,
-            number: "300+",
-            description: "300+ Restaurant partners"
+            number: "500+",
+            description: "Authentic Afro-Caribbean Dishes"
         },
         {
             icon: Award,
-            number: "15+",
-            description: "15+ Industry awards won"
+            number: "180+",
+            description: "Afro-Caribbean Chefs & Restaurants"
         },
         {
             icon: TrendingUp,
-            number: "1000+",
-            description: "1,000+ couriers delivering daily"
+            number: "98%",
+            description: "On Time Delivery"
         },
         {
             icon: Star,
-            number: "01",
-            description: "1 mission  to celebrate Afro-Caribbean food culture"
+            number: "10,000+",
+            description: "Satisfied Customers"
         }
     ]
 
@@ -42,11 +42,11 @@ const Performance = () => {
             <div className="container mx-auto px-26 max-md:px-12 max-sm:px-8">
                 <div className="text-center mb-12">
                     <h2 className='font-fredoka-one font-extrabold text-5xl max-sm:text-2xl max-lg:text-4xl text-foreground mb-7'>
-                        A diverse and high-performing team
+                       Proud Moments That Define Our Journey
                     </h2>
                     <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
                     <p className='text-[16px] text-foreground font-ubuntu max-w-2xl mx-auto'>
-                        Where diversity fuels performance and impact.
+                       Celebrating growth, culture, and community through numbers
                     </p>
                 </div>
 

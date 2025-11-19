@@ -29,7 +29,8 @@ export default function ContactPage() {
             <span className='text-secondary font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl mb-5 max-sm:text-3xl max-sm:mb-2'>Contact</span> Us
           </h1>
           <p className='text-white max-w-3xl mx-auto font-ubuntu leading-relaxed text-center px-4'>
- Whether you've got a question, feedback, or partnership idea — we're here to help. At Chop  Now, we believe great food and great service go hand in hand.
+ Reach out to ChopNow for support, partnerships, or feedback and experience seamless African and
+Caribbean food service
           </p>
         </div>
       </div>

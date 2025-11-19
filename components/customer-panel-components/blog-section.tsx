@@ -69,11 +69,12 @@ const BlogSection = () => {
         {/* Header Section */}
         <div className=" mb-12">
           <h2 className="font-fredoka-one text-5xl max-sm:text-2xl max-lg:text-4xl font-extrabold text-foreground mb-6">
-         Chop Stories or From Our Kitchen to Yours
+        Celebrate African and Caribbean Flavours Through Inspiring Stories
           </h2>
           <div className="bg-secondary h-1 w-24 mb-4"></div>
           <p className="text-lg text-foreground max-w-3xl  font-ubuntu leading-relaxed">
-            Fresh flavours, fresh stories — straight from ChopNow.
+            Read chef journeys, cultural events, and authentic recipes celebrating African and Caribbean cuisine
+across the UK
           </p>
         </div>
 

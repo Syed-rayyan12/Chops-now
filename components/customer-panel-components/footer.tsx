@@ -14,7 +14,9 @@ export function Footer() {
                 <img className="w-32 object-cover mb-2" src="/chopNow.png" alt="" />
               </Link>
               <p className="text-foreground mb-4 text-[15px] font-ubuntu">
-                Taste Home. Anywhere.ChopNow connects you with authentic African & Caribbean cuisine from trusted restaurants and home chefs across the UK.
+                ChopNow is the UK's leading food platform for authentic African and Caribbean cuisine. We connect
+                food lovers with vibrant flavours and deliver a true taste of home.
+
               </p>
 
               {/* Follow Us inside company column */}
@@ -70,7 +72,7 @@ export function Footer() {
                   </Link>
                 </li>
 
-                   <li>
+                <li>
                   <Link href="/blog" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
                     Contact Us
                   </Link>
@@ -87,6 +89,19 @@ export function Footer() {
                   <Link href="/terms-of-service" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
                     Terms of Service
                   </Link>
+                </li>
+
+                <li>
+                  <Link href="/slavery-statement" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
+                    Modern Slavery Statement
+                  </Link>
+
+                </li>
+                 <li>
+                  <Link href="/gender-pay" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
+                   Gender Pay Gap
+                  </Link>
+
                 </li>
                 <li>
                   <Link href="/privacy-policy" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">

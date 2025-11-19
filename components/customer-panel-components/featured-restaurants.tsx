@@ -82,7 +82,7 @@ export function FeaturedRestaurants() {
     }
   }
 `}</style>
-  
+
 
 
 
@@ -90,12 +90,13 @@ export function FeaturedRestaurants() {
         {/* Heading (no animation) */}
         <div className="text-center mb-12">
           <h2 className="font-fredoka-one font-extrabold  text-5xl max-sm:text-2xl max-lg:text-4xl text-foreground mb-4">
-          Featured Restaurants & Chefs
+            Find Your Favourite Caribbean Food in UK
           </h2>
           <div className="bg-secondary h-1 w-24 mx-auto mb-4"></div>
 
           <p className="text-[16px] text-foreground font-ubuntu max-w-2xl max-md:px-22 max-sm:px-0 mx-auto">
-          Handpicked kitchens serving the dishes you love from traditional classics to modern twists.
+            Discover authentic Nigerian, Ghanaian, and Jamaican food Manchester locals love, cooked by talented
+            chefs near you
           </p>
         </div>
 

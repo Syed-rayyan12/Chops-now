@@ -5,48 +5,43 @@ import { motion } from 'framer-motion';
 
 const testimonials = [
   {
-    name: 'John Doe',
-    role: 'Food Enthusiast',
+    name: 'Isabella Clarke',
     rating: 5,
     message:
-      'ChopNow has revolutionized my dining experience. The authentic African and Caribbean flavors delivered right to my door are unbeatable!',
+      "Finally, a place to order Caribbean dishes in the UK that tastes like my grandma's cooking. The oxtail was pure perfection. I'm hooked!",
   },
   {
-    name: 'Jane Smith',
-    role: 'Busy Professional',
+    name: 'Ben Adebayo',
     rating: 5,
     message:
-      'Fast, fresh, and delicious! I love how ChopNow connects me with local restaurants and home chefs. Highly recommended.',
+      'The jerk chicken in the UK I had from ChopNow was unbelievably good. Perfectly spiced and so tender. It’s the real deal, no doubt!',
   },
   {
-    name: 'Mike Johnson',
-    role: 'Family Man',
+    name: 'Chantelle Williams',
     rating: 5,
     message:
-      'The best food delivery service for African and Caribbean cuisine. My family enjoys every meal, and the delivery is always on time.',
+      'I was able to order Nigerian jollof rice online in the UK for a party. It was a massive hit! So flavourful and authentic.',
   },
   {
-    name: 'Sarah Williams',
-    role: 'Food Blogger',
+    name: 'David Okoro',
     rating: 5,
     message:
-      'ChopNow brings the taste of home to everyone. The variety and quality of dishes are outstanding. Keep up the great work!',
+      'As a student far from home, finding proper fufu restaurants in London was hard. ChopNow delivered it right to me, and it tasted just like home. A lifesaver!',
   },
   {
-    name: 'Mike Johnson',
-    role: 'Family Man',
+    name: 'Michelle Johnson',
     rating: 5,
     message:
-      'The best food delivery service for African and Caribbean cuisine. My family enjoys every meal, and the delivery is always on time.',
+      "This is my go-to African restaurant in London, even though it's delivery! The quality is consistently fantastic, and the delivery is always swift.",
   },
   {
-    name: 'Sarah Williams',
-    role: 'Food Blogger',
+    name: 'Samuel Jones',
     rating: 5,
     message:
-      'ChopNow brings the taste of home to everyone. The variety and quality of dishes are outstanding. Keep up the great work!',
+      'I never knew there were so many ways to enjoy plantain dishes in the UK! The plantain porridge was a delicious and comforting discovery. Highly recommend!',
   },
 ];
+
 
 // Prepare testimonials for two rows
 const row1Testimonials = [
@@ -64,9 +59,9 @@ const TestimonialSlider = () => {
       <img src="/patte-left.png" className='absolute w-80 top-0 right-0 opacity-15' alt="" />
       <div>
         <h2 className="font-fredoka-one text-5xl max-sm:text-2xl  font-extrabold text-center mb-6">
-          What Our Customers Say
+    Served with a Side of Smiles
         </h2>
-        <p className='text-[16px] font-ubuntu text-center mb-8 max-sm:px-12'>Real voices, real experiences — hear what our community loves about ChopNow.</p>
+        <p className='text-[16px] font-ubuntu text-center mb-8 max-sm:px-12'>Stories That Celebrate Culture, Food, and Community</p>
          
         {/* Slider for screens 768px and above */}
         <div className="hidden md:block space-y-8">
@@ -161,7 +156,7 @@ const TestimonialSlider = () => {
                 </div>
                 <div>
                   <h4 className="font-ubuntu font-bold">{testimonial.name}</h4>
-                  <p className="font-ubuntu text-sm text-gray-500">{testimonial.role}</p>
+                  <p className="font-ubuntu text-sm text-gray-500">{testimonial.rating}</p>
                 </div>
               </div>
             </div>
