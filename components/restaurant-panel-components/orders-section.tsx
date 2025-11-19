@@ -204,7 +204,7 @@ export function OrdersSection() {
           </div>
           <Button
             onClick={() => setShowRidersCard(!showRidersCard)}
-            className="ml-4 bg-primary flex justify-end text-white hover:bg-primary/90"
+            className="ml-4 bg-primary flex justify-end text-white rounded-lg hover:bg-primary/90"
           >
             <Navigation className="mr-2 h-4 w-4" />
             {showRidersCard ? "Hide" : "View"} Available Riders
