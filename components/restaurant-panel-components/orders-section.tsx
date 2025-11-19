@@ -213,7 +213,7 @@ export function OrdersSection() {
             </div>
           {/* Available Riders Card */}
           {showRidersCard && (
-            <Card className="mb-6 border-primary/50 bg-white">
+            <Card className="mb-6 border-primary/50 bg-white p-4">
               <CardHeader className="">
                 <CardTitle className="text-primary font-ubuntu flex items-center">
                   <MapPin className="mr-2 h-5 w-5" />
