@@ -162,10 +162,13 @@ export default function CheckoutPage() {
 
       toast({
         title: "Order Placed Successfully! 🎉",
-        description: "Your order has been sent to the restaurant",
+        description: "Your order has been confirmed and sent to the restaurant. Redirecting...",
       })
 
-      router.push("/profile?tab=orders")
+      // Delay redirect to show success message
+      setTimeout(() => {
+        router.push("/profile?tab=orders")
+      }, 3000)
 
     } catch (error: any) {
       console.error("Order error:", error)
@@ -225,10 +228,13 @@ export default function CheckoutPage() {
 
       toast({
         title: "Payment Successful! 🎉",
-        description: "Your order has been placed and paid",
+        description: "Your order has been placed and paid successfully. Redirecting...",
       })
 
-      router.push("/profile?tab=orders")
+      // Delay redirect to show success message
+      setTimeout(() => {
+        router.push("/profile?tab=orders")
+      }, 3000)
     } catch (error: any) {
       console.error("Order creation error:", error)
       toast({
