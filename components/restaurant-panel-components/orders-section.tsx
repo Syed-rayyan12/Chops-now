@@ -133,8 +133,18 @@ export function OrdersSection() {
       })
       if (response.ok) {
         const data = await response.json()
-        if (data.latitude && data.longitude) {
-          setRestaurantLocation({ latitude: data.latitude, longitude: data.longitude })
+        console.log("📍 Restaurant data received:", data)
+        if (data.restaurant?.latitude && data.restaurant?.longitude) {
+          setRestaurantLocation({ 
+            latitude: data.restaurant.latitude, 
+            longitude: data.restaurant.longitude 
+          })
+          console.log("✅ Restaurant location set:", { 
+            latitude: data.restaurant.latitude, 
+            longitude: data.restaurant.longitude 
+          })
+        } else {
+          console.warn("⚠️ Restaurant location not available in response")
         }
       }
     } catch (error) {
@@ -150,6 +160,9 @@ export function OrdersSection() {
       })
       if (response.ok) {
         const data = await response.json()
+        console.log("🚴 Riders data received:", data)
+        console.log("🚴 Total riders:", data.riders?.length || 0)
+        console.log("🚴 Riders with location:", data.riders?.filter((r: Rider) => r.latitude && r.longitude).length || 0)
         setRiders(data.riders || [])
       }
     } catch (error) {
@@ -234,16 +247,26 @@ export function OrdersSection() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {riders
-                      .filter(rider => rider.latitude && rider.longitude)
-                      .map(rider => ({
-                        ...rider,
-                        distance: parseFloat(calculateRiderDistance(
+                      .filter(rider => {
+                        const hasLocation = rider.latitude && rider.longitude
+                        if (hasLocation) {
+                          console.log(`🎯 Rider ${rider.firstName} ${rider.lastName} has location:`, { lat: rider.latitude, lon: rider.longitude })
+                        }
+                        return hasLocation
+                      })
+                      .map(rider => {
+                        const distance = parseFloat(calculateRiderDistance(
                           restaurantLocation.latitude,
                           restaurantLocation.longitude,
                           rider.latitude!,
                           rider.longitude!
                         ))
-                      }))
+                        console.log(`📏 Distance for ${rider.firstName} ${rider.lastName}: ${distance} km`)
+                        return {
+                          ...rider,
+                          distance
+                        }
+                      })
                       .sort((a, b) => a.distance - b.distance)
                       .map(rider => (
                         <div key={rider.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">

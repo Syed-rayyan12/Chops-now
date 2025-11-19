@@ -497,6 +497,8 @@ router.get("/:slug", async (req, res) => {
       slug: restaurant.slug,
       phone: restaurant.phone,
       address: restaurant.address,
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
       createdAt: restaurant.createdAt.toISOString(),
       image: assetUrl(req as any, restaurant.image || "/placeholder.svg"),
       coverImage: assetUrl(req as any, restaurant.coverImage || restaurant.image || "/placeholder.svg"),
@@ -516,6 +518,8 @@ router.get("/:slug", async (req, res) => {
       tags: restaurant.cuisineType ? [restaurant.cuisineType] : [],
       menuItems: restaurant.menuItems
     };
+
+    console.log(`📍 Restaurant ${restaurant.name} location:`, { latitude: restaurant.latitude, longitude: restaurant.longitude });
 
     res.json({ restaurant: formattedRestaurant });
   } catch (err: any) {
