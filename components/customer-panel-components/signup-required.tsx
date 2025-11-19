@@ -20,7 +20,7 @@ export default function SignupRequiredModal({ open, onOpenChange, onClose }:any)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md p-4">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
             Create an Account to Continue
@@ -32,7 +32,7 @@ export default function SignupRequiredModal({ open, onOpenChange, onClose }:any)
         </DialogHeader>
 
         <div className="flex justify-center mt-6">
-          <Button onClick={handleSignup} className="w-full max-w-xs">
+          <Button onClick={handleSignup} variant="primary" className="w-full rounded-lg">
             Sign Up Now
           </Button>
         </div>
