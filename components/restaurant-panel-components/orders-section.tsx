@@ -214,7 +214,7 @@ export function OrdersSection() {
           {/* Available Riders Card */}
           {showRidersCard && (
             <Card className="mb-6 border-primary/50 bg-white">
-              <CardHeader className="bg-primary/10">
+              <CardHeader className="">
                 <CardTitle className="text-primary font-ubuntu flex items-center">
                   <MapPin className="mr-2 h-5 w-5" />
                   Available Riders Near You
