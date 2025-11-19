@@ -11,6 +11,20 @@ import { Check, X, MoreHorizontal } from "lucide-react"
 import { restaurantOrders } from "@/lib/api/order.api"
 import type { Order as ApiOrder } from "@/lib/api/order.api"
 
+// Helper function to calculate distance between rider and restaurant
+function calculateRiderDistance(restaurantLat: number, restaurantLon: number, riderLat: number, riderLon: number): string {
+  const R = 6371 // Earth's radius in km
+  const dLat = (riderLat - restaurantLat) * Math.PI / 180
+  const dLon = (riderLon - restaurantLon) * Math.PI / 180
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(restaurantLat * Math.PI / 180) * Math.cos(riderLat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c
+  return distance.toFixed(1)
+}
+
 export function OrdersSection() {
   const [activeOrderTab, setActiveOrderTab] = useState("new")
   const [orders, setOrders] = useState<ApiOrder[]>([])
@@ -187,14 +201,14 @@ export function OrdersSection() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12">
+                    <TableCell colSpan={10} className="text-center py-12">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                       <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
                     </TableCell>
                   </TableRow>
                 ) : getOrdersByStatus("pending").length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                       No pending orders
                     </TableCell>
                   </TableRow>
@@ -210,6 +224,27 @@ export function OrdersSection() {
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {order.rider ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-medium text-secondary">{order.rider.firstName} {order.rider.lastName}</span>
+                            {order.rider.latitude && order.rider.longitude && order.restaurant?.latitude && order.restaurant?.longitude ? (
+                              <span className="text-xs text-primary font-semibold">
+                                📍 {calculateRiderDistance(
+                                  order.restaurant.latitude,
+                                  order.restaurant.longitude,
+                                  order.rider.latitude,
+                                  order.rider.longitude
+                                )} km away
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">Location not available</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-500 italic">No rider assigned</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-gray-400">
                         {order.items.slice(0, 2).map((item, idx) => (

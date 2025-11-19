@@ -4,13 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Phone, EyeOff, Eye, User } from "lucide-react"
+import { Phone, EyeOff, Eye, User, MapPin, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
 import { Textarea } from "../ui/textarea"
+import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 
 export default function RiderSignup() {
   const router = useRouter()
@@ -28,6 +29,8 @@ export default function RiderSignup() {
     // 2️⃣ Personal Details & Address
     personalDetails: "",   // text or textarea
     address: "",           // text
+    latitude: null as number | null,
+    longitude: null as number | null,
 
     // 3️⃣ Document Uploads
     idDocument: null as File | null,        // file
@@ -47,6 +50,7 @@ export default function RiderSignup() {
     deliveryPartnerAgreementAccepted: false  // checkbox
   })
   const [loading, setLoading] = useState(false)
+  const [locationLoading, setLocationLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{
     firstName?: string
@@ -95,6 +99,35 @@ export default function RiderSignup() {
     // Clear field error when user types
     if (fieldErrors[name as keyof typeof fieldErrors]) {
       setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
+    }
+  }
+
+  const handleAddressClick = async () => {
+    setLocationLoading(true)
+    try {
+      const coords = await getCurrentPosition()
+      const address = await getAddressFromCoords(coords.latitude, coords.longitude)
+      
+      setFormData({
+        ...formData,
+        address: address,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      })
+
+      toast({
+        title: "Location captured",
+        description: "Your location has been set successfully",
+      })
+    } catch (error) {
+      console.error("Error getting location:", error)
+      toast({
+        title: "Location error",
+        description: "Could not get your location. Please enter address manually.",
+        variant: "destructive",
+      })
+    } finally {
+      setLocationLoading(false)
     }
   }
 
@@ -323,9 +356,27 @@ export default function RiderSignup() {
 
               {/* Address, Vehicle, ID Document, Proof of Address (all in one row) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2">
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <label className="text-sm font-medium text-gray-700">Address</label>
-                  <Input type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} className="pl-3 border h-10 text-foreground focus:border-secondary placeholder:text-gray-400/60 border-gray-400" />
+                  <div className="relative">
+                    <Input 
+                      type="text" 
+                      name="address" 
+                      placeholder="Click to get location or type address" 
+                      value={formData.address} 
+                      onChange={handleChange}
+                      onFocus={handleAddressClick}
+                      onClick={handleAddressClick}
+                      className="pl-3 pr-10 border h-10 text-foreground focus:border-secondary placeholder:text-gray-400/60 border-gray-400" 
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {locationLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-secondary" />
+                      ) : (
+                        <MapPin className="h-4 w-4 text-secondary" />
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Vehicle</label>
