@@ -8,7 +8,7 @@ export function Newsletter() {
       <img
         src="/cusine-shape-2.png"
         alt="Cuisine shape"
-        className="absolute top-70 left-40 w-30 max-sm:left-0 max-md:left-0 md:left-12 max-sm:top-135 max-sm:w-30 pointer-events-none select-none  float-shape" />
+        className="absolute top-70 left-40 w-30 max-sm:left-0 max-md:left-0 md:left-12 max-sm:top-174 max-sm:w-30 pointer-events-none select-none  float-shape" />
       <img
         src="/changa.png"
         alt="Cuisine shape"
