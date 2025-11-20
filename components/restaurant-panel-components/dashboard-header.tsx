@@ -341,13 +341,13 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
                     </Link>
 
                   {/* Search only in mobile menu */}
-                  <div className="relative mb-4 sm:hidden">
+                  {/* <div className="relative mb-4 sm:hidden">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 transform text-amber-500 h-4 w-4" />
                     <Input
                       placeholder="Search orders, restaurants, users..."
                       className="pl-10 w-ful border border-primary/50"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="space-y-2">
                     {MenuNav.map((item, idx) => {
