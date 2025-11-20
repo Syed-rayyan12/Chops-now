@@ -14,7 +14,7 @@ export function Newsletter() {
         alt="Cuisine shape"
         className="absolute top-4 right-10 w-40 max-sm:right-0 max-sm:w-30 pointer-events-none select-none  float-shape" />
 
-      <div className="mx-auto max-sm:px-18 max-md:px-14 md:px-12 text-center max-w-3xl">
+      <div className="mx-auto max-sm:px-10 max-md:px-14 md:px-12 text-center max-w-3xl">
         <div className="bg-secondary w-18 h-18 mx-auto flex justify-center items-center rounded-full mb-5">
           <Send className="text-white" />
         </div>
