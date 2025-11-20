@@ -536,33 +536,33 @@ export function MenuManagementSection() {
 
       {/* Table */}
       <Card className="border-primary/50 bg-white">
-        <CardContent className="p-4">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <CardContent className="p-2 sm:p-4">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <table className="w-full min-w-[800px]">
               <thead className="border-b border-primary/50  rounded-lg">
                 <tr className="border border-gray-400 rounded-lg h-12">
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Photo
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Name
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Description
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Allergy
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Category
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Price
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Available
                   </th>
-                  <th className="text-left text-foreground font-bold font-ubuntu text-[16px] px-4 py-2">
+                  <th className="text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] px-2 sm:px-4 py-2 whitespace-nowrap">
                     Actions
                   </th>
                 </tr>

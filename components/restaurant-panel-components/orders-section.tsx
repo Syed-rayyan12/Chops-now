@@ -218,9 +218,9 @@ export function OrdersSection() {
           <div className="flex justify-end mb-3">
           <Button
             onClick={() => setShowRidersCard(!showRidersCard)}
-            className="ml-4 bg-primary text-white rounded-lg hover:bg-primary/90"
+            className="ml-0 sm:ml-4 bg-primary text-white rounded-lg hover:bg-primary/90 text-xs sm:text-sm px-3 sm:px-4 py-2"
             >
-            <Navigation className="mr-2 h-4 w-4" />
+            <Navigation className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
             {showRidersCard ? "Hide" : "View"} Available Riders
           </Button>
             </div>
@@ -295,28 +295,28 @@ export function OrdersSection() {
           )}
 
           <Tabs value={activeOrderTab} onValueChange={setActiveOrderTab} className="">
-            <TabsList className="gap-2 hidden overflow-x-auto lg:flex lg:justify-between w-full text-white">
+            <TabsList className="gap-2 flex overflow-x-auto lg:justify-between w-full text-white">
               <TabsTrigger
                 value="new"
-                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
               >
                 New Orders
               </TabsTrigger>
               <TabsTrigger
                 value="progress"
-                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
               >
                 In Progress
               </TabsTrigger>
               <TabsTrigger
                 value="completed"
-                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
               >
                 Completed
               </TabsTrigger>
               <TabsTrigger
                 value="cancelled"
-                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary"
+                className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 data-[state=active]:opacity-[15px] cursor-pointer data-[state=active]:text-primary text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
               >
                 Cancelled
               </TabsTrigger>
@@ -326,18 +326,19 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border border-gray-400 rounded-lg p-4">
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                      </TableRow>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <Table className="min-w-full">
+                      <TableHeader>
+                        <TableRow className="border border-gray-400 rounded-lg p-4">
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order ID</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Customer</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Address</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Distance</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Items</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order Time</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Status</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Action</TableHead>
+                        </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
@@ -401,6 +402,7 @@ export function OrdersSection() {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -409,20 +411,21 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border border-gray-400 rounded-lg p-4">
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <Table className="min-w-full">
+                      <TableHeader>
+                        <TableRow className="border border-gray-400 rounded-lg p-4">
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order ID</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Customer</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Address</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Distance</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Items</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Amount</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order Time</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Status</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {loading ? (
                         <TableRow>
@@ -499,6 +502,7 @@ export function OrdersSection() {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -507,20 +511,21 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border border-gray-400 rounded-lg p-4">
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <Table className="min-w-full">
+                      <TableHeader>
+                        <TableRow className="border border-gray-400 rounded-lg p-4">
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order ID</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Customer</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Address</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Distance</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Items</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Amount</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order Time</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Status</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {loading ? (
                         <TableRow>
@@ -567,6 +572,7 @@ export function OrdersSection() {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -575,20 +581,21 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border border-gray-400 rounded-lg p-4">
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Address</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Distance</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Amount</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Order Time</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                        <TableHead className="text-foreground font-bold font-ubuntu text-[16px]">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <Table className="min-w-full">
+                      <TableHeader>
+                        <TableRow className="border border-gray-400 rounded-lg p-4">
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order ID</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Customer</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Address</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Distance</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Items</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Amount</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order Time</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Status</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {loading ? (
                         <TableRow>
@@ -635,6 +642,7 @@ export function OrdersSection() {
                       )}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

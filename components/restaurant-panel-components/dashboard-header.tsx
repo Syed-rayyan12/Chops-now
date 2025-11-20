@@ -231,6 +231,7 @@ import { Separator } from "../ui/separator"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { MobileBottomNav } from "./mobile-bottom-nav"
 
 const MenuNav = [
   { href: "/restaurant-dashboard", name: "Overview", icon: Home },
@@ -308,8 +309,8 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
   }
 
   return (
-    <header className="bg-background  px-6 py-[23px] h-16">
-      <div className="flex items-center justify-between gap-4">
+    <header className="bg-background px-3 sm:px-6 py-3 sm:py-[23px] min-h-[60px] sm:h-16">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Left side with toggle & title */}
         <div className="flex items-center space-x-4">
           <div className="flex gap-2">
@@ -387,13 +388,13 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-primary hidden sm:block">Dashboard</h1>
         </div>
 
         {/* Right side with search (hidden on small screens), notifications & profile */}
-        <div className="flex items-center space-x-4 w-full">
+        <div className="flex items-center space-x-2 sm:space-x-4 flex-1 sm:w-full justify-end">
           {/* Search bar on desktop only */}
-          <div className="hidden lg:block relative flex-1 w-full">
+          <div className="hidden lg:block relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-300 h-4 w-4" />
             <Input
               placeholder="Search orders, restaurants, users..."
@@ -402,8 +403,8 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="relative text-foreground/60 bg-white rounded-full w-10 h-10  cursor-pointer hover:bg-white">
-                <Bell className="h-5 w-5" />
+              <Button className="relative text-foreground/60 bg-white rounded-full w-9 h-9 sm:w-10 sm:h-10 cursor-pointer hover:bg-white p-0">
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadCount}
@@ -435,8 +436,8 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-10 w-10">
+              <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0">
+                <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                   <AvatarImage src="/admin-profile.png" alt="Admin" />
                   <AvatarFallback className="bg-secondary text-white  cursor-pointer">
                       {restaurant
@@ -476,6 +477,9 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </header>
   )
 }

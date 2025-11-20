@@ -151,14 +151,14 @@ export function EarningsSection() {
          
         </CardHeader>
         <CardContent className="mt-4">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full min-w-[600px]">
               <thead className="border-b border-orange-200">
                 <tr className="border border-gray-400 rounded-lg h-12 ">
-                  <th className="px-4 py-3 text-left text-foreground font-bold font-ubuntu text-[16px]">Order ID</th>
-                  <th className="px-4 py-3 text-left text-foreground font-bold font-ubuntu text-[16px]">Date</th>
-                  <th className="px-4 py-3 text-left text-foreground font-bold font-ubuntu text-[16px]">Amount</th>
-                  <th className="px-4 py-3 text-left text-foreground font-bold font-ubuntu text-[16px]">Status</th>
+                  <th className="px-2 sm:px-4 py-3 text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Order ID</th>
+                  <th className="px-2 sm:px-4 py-3 text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Date</th>
+                  <th className="px-2 sm:px-4 py-3 text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Amount</th>
+                  <th className="px-2 sm:px-4 py-3 text-left text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Status</th>
                 </tr>
               </thead>
               <tbody>

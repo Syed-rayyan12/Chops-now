@@ -163,45 +163,47 @@ export function OverviewSection() {
               No orders yet
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border border-gray-400 rounded-lg p-4 h-12">
-                  <TableHead className="px-4 py-2 text-foreground font-bold font-ubuntu text-[16px]">Order ID</TableHead>
-                  <TableHead className="px-4 py-2 text-foreground font-bold font-ubuntu text-[16px]">Customer</TableHead>
-                  <TableHead className="px-4 py-2 text-foreground font-bold font-ubuntu text-[16px]">Items</TableHead>
-                  <TableHead className="px-4 py-2 text-foreground font-bold font-ubuntu text-[16px]">Status</TableHead>
-                  <TableHead className="px-4 py-2 text-foreground font-bold font-ubuntu text-[16px] text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.slice(0, 5).map((order) => (
-                  <TableRow key={order.id} className="border-b border-gray-400">
-                    <TableCell className="px-4 py-2 text-center">
-                      {order.code}
-                    </TableCell>
-                    <TableCell className="px-4 py-2">
-                      {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
-                    </TableCell>
-                    <TableCell className="px-4 py-2">
-                      {order.items.length} item(s)
-                    </TableCell>
-                    <TableCell className="px-4 py-2">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                        order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-right">
-                      £{Number(order.amount).toFixed(2)}
-                    </TableCell>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <Table className="min-w-full">
+                <TableHeader>
+                  <TableRow className="border border-gray-400 rounded-lg p-4 h-12">
+                    <TableHead className="px-2 sm:px-4 py-2 text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Order ID</TableHead>
+                    <TableHead className="px-2 sm:px-4 py-2 text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Customer</TableHead>
+                    <TableHead className="px-2 sm:px-4 py-2 text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Items</TableHead>
+                    <TableHead className="px-2 sm:px-4 py-2 text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap">Status</TableHead>
+                    <TableHead className="px-2 sm:px-4 py-2 text-foreground font-bold font-ubuntu text-xs sm:text-[16px] text-right whitespace-nowrap">Amount</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {orders.slice(0, 5).map((order) => (
+                    <TableRow key={order.id} className="border-b border-gray-400">
+                      <TableCell className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm">
+                        {order.code}
+                      </TableCell>
+                      <TableCell className="px-2 sm:px-4 py-2 text-xs sm:text-sm">
+                        {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
+                      </TableCell>
+                      <TableCell className="px-2 sm:px-4 py-2 text-xs sm:text-sm">
+                        {order.items.length} item(s)
+                      </TableCell>
+                      <TableCell className="px-2 sm:px-4 py-2">
+                        <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs whitespace-nowrap ${
+                          order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                          order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                          order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-2 sm:px-4 py-2 text-right text-xs sm:text-sm whitespace-nowrap">
+                        £{Number(order.amount).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
