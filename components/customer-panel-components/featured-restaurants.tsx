@@ -102,7 +102,7 @@ export function FeaturedRestaurants() {
 
         {/* Cards with fade + slide on scroll */}
         <motion.div
-          className="grid grid-cols-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-md:px-12 max-sm:px-10 max-lg:grid-cols-2  gap-6"
+          className="grid grid-cols-4 max-sm:grid-cols-1 max-md:grid-cols-1 max-md:px-12 max-sm:px-6 max-lg:grid-cols-2  gap-6"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
