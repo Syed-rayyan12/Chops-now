@@ -123,7 +123,7 @@ export function Footer() {
 
             <div>
               <h3 className="font-fredoka-one font-semibold text-foreground mb-4">Contact Info</h3>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 pb-4">
                 <div className="flex gap-4">
                   <Phone className="font-ubuntu text-secondary text-[16px]" />
                   <span className="font-ubuntu text-[16px]">123 High Street, London, UK</span>
@@ -132,7 +132,7 @@ export function Footer() {
                   <LocateIcon className="font-ubuntu text-secondary text-[16px]" />
                   <span className="font-ubuntu text-[16px]">+44 20 7946 0123</span>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-4 pb-2">
                   <Mail className="font-ubuntu text-secondary text-[16px]" />
                   <span className="font-ubuntu text-[16px]">hello@chopnow.co.uk</span>
                 </div>
