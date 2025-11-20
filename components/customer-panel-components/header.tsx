@@ -246,8 +246,11 @@ export function Header() {
             <Link href="/services" onClick={() => setIsSheetOpen(false)} className="block text-lg text-foreground hover:text-primary transition-colors">
               Services
             </Link>
-            <Link href="/offers" onClick={() => setIsSheetOpen(false)} className="block text-lg text-foreground hover:text-primary transition-colors">
-              Offers
+            <Link href="/career" onClick={() => setIsSheetOpen(false)} className="block text-lg text-foreground hover:text-primary transition-colors">
+             Career
+            </Link>
+             <Link href="/partners" onClick={() => setIsSheetOpen(false)} className="block text-lg text-foreground hover:text-primary transition-colors">
+             Partners
             </Link>
             <Link href="/blog" onClick={() => setIsSheetOpen(false)} className="block text-lg text-foreground hover:text-primary transition-colors">
               Blogs
