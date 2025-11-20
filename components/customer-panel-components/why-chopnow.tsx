@@ -3,7 +3,7 @@ import React from 'react'
 const whyChopnow = () => {
     return (
         <div className='bg-white'>
-            <div className='px-36 py-20 max-sm:px-18 max-md:px-22 md:px-22 max-lg:py-10 max-2xl:px-6'>
+            <div className='px-36 py-20 max-sm:px-10 max-md:px-22 md:px-22 max-lg:py-10 max-2xl:px-6'>
                 <div className='flex items-center max-lg:flex-col max-sm:flex-col'>
                     <div className='pt-12 max-sm:pt-0'>
                         <h2 className='font-fredoka-one text-5xl max-sm:text-2xl font-extrabold'>Why ChopNow?</h2>
