@@ -22,7 +22,7 @@ export function ImageContentSection({
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-36 max-2xl:px-8 max-md:px-12 max-sm:px-8">
-        <div className="flex justify-between items-center gap-6">
+        <div className="flex justify-between max-sm:flex-col items-center gap-6">
           {/* Image Side */}
           <div className="w-full flex justify-center relative">
             {/* Vector and Group images */}

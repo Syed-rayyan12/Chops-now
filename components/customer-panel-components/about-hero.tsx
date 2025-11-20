@@ -17,10 +17,10 @@ export function AboutHero() {
         <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl mb-5 max-sm:text-3xl max-sm:mb-2 text-secondary">
          Bringing
         </h1>
-          <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl mb-6 max-sm:text-3xl max-sm:mb-2 text-white">
+          <h1 className="font-fredoka-one font-bold max-lg:text-4xl text-center max-md:text-5xl lg:text-5xl mb-6 max-sm:text-3xl max-sm:mb-2 text-white">
         Caribbean Food Delivery UK 
         </h1>
-          <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl mb-6 max-sm:text-3xl max-sm:mb-2 text-white">
+          <h1 className="font-fredoka-one font-bold max-lg:text-4xl text-center max-md:text-5xl lg:text-5xl mb-6 max-sm:text-3xl max-sm:mb-2 text-white">
        Straight to Your Doorstep
         </h1>
         <p className="font-ubuntu text-white mb-6 text-[18px] text-center max-w-2xl px-4">
