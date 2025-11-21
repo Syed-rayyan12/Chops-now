@@ -197,6 +197,21 @@ export function OrdersSection() {
     })
   }
 
+  const formatOrderCode = (code: string) => {
+    // Split code by hyphens and display in two lines
+    // Example: ORD-1234567890-123 becomes "ORD-1234567890" and "123"
+    const parts = code.split('-')
+    if (parts.length >= 3) {
+      return (
+        <div className="flex flex-col">
+          <span>{parts[0]}-{parts[1]}</span>
+          <span>{parts[2]}</span>
+        </div>
+      )
+    }
+    return <span>{code}</span>
+  }
+
   return (
     <>
       {initialLoad ? (
@@ -358,7 +373,7 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("pending").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{order.code}</TableCell>
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{formatOrderCode(order.code)}</TableCell>
                             <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
@@ -444,7 +459,7 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("in-progress").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{order.code.split("-")[0]}</TableCell>
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{formatOrderCode(order.code)}</TableCell>
                             <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
@@ -544,7 +559,7 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("completed").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{formatOrderCode(order.code)}</TableCell>
                             <TableCell className="text-gray-400">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
@@ -614,7 +629,7 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("cancelled").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{formatOrderCode(order.code)}</TableCell>
                             <TableCell className="text-gray-400">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
