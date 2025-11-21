@@ -146,6 +146,7 @@ export function Footer() {
             <p className="text-foreground text-[16px] text-center">
               © 2025 <span className="text-ubuntu text-secondary text-[16px] font-semibold">Chop</span><span className="text-ubuntu text-primary text-[16px] font-semibold">Now</span> Ltd — All rights reserved.
             </p>
+            <span>Designed & Developed by Xpertwebstudio <Link href="https://xpertwebstudio.co.uk" className="text-primary hover:underline">Xpertwebstudio</Link></span>
           </div>
         </div>
       </footer>
