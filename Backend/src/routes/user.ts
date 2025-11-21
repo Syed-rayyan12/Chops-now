@@ -400,6 +400,26 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
       }
     });
 
+    // Create notification for restaurant about new order
+    await prisma.notification.create({
+      data: {
+        type: "ORDER_STATUS",
+        title: "New Order Received",
+        message: `New order #${code} from ${customerName}`,
+        recipientRole: "RESTAURANT",
+        recipientId: restaurantId,
+        isRead: false,
+        metadata: JSON.stringify({
+          orderId: order.id,
+          orderCode: code,
+          customerId: userId,
+          customerName,
+          amount,
+          items: items.length
+        })
+      }
+    });
+
     res.status(201).json({ 
       message: "Order placed successfully! 🎉",
       order 
