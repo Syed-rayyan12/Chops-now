@@ -44,7 +44,7 @@ const ourValues = () => {
         </div>
 
         {/* Four Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 max-md:grid-cols-1 gap-6 max-w-6xl mx-auto">
           {values.map((value, index) => {
             const IconComponent = value.icon
             return (

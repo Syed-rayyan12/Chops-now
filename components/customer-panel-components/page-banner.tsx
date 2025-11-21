@@ -39,8 +39,8 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                     </div>
                 )}
                 {/* Heading row: highlightedWord + title + highlightedWord2 + optional image */}
-                <div className="mb-8">
-                    <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl max-sm:text-3xl text-white flex items-center justify-center gap-3 md:flex-nowrap flex-wrap">
+                <div className="mb-8 text-center px-4">
+                    <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl max-sm:text-3xl text-white flex items-center text-center justify-center gap-3 md:flex-nowrap flex-wrap">
                         <span className="whitespace-nowrap">{title}</span>
                         {highlightedWord2 && (
                             <span className="text-secondary whitespace-nowrap">{highlightedWord2}</span>
@@ -62,22 +62,22 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                 <p className="text-white max-w-3xl mx-auto font-ubuntu leading-relaxed text-center px-4">
                     {description}
                 </p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center max-sm:flex-col max-md:flex-col gap-4">
 
-                <div className="flex gap-4">
+                    <div className="flex gap-4">
 
-                    <div className="pt-8">
-                        <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Become Part of Our Partner Chefs</Button>
+                        <div className="pt-8">
+                            <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Become Part of Our Partner Chefs</Button>
+                        </div>
+
                     </div>
+                    <div className="flex gap-4">
 
-                </div>
-                <div className="flex gap-4">
+                        <div className="pt-8">
+                            <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Courier</Button>
+                        </div>
 
-                    <div className="pt-8">
-                        <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Courier</Button>
                     </div>
-
-                </div>
                 </div>
             </div>
         </div>

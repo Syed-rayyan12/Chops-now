@@ -2,7 +2,7 @@
 
 export function AboutHero() {
   return (
-    <div className="relative w-full flex items-center justify-center h-[89vh] bg-gradient-to-r from-orange-100 to-orange-200 py-22">
+    <div className="relative w-full flex items-center justify-center h-full  bg-gradient-to-r from-orange-100 to-orange-200 py-22">
       <img 
         src="/boo.png" 
         alt="About Us Banner" 
