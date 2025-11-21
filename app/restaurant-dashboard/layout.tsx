@@ -253,7 +253,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
 
       {/* Main Content */}
       <div
-        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
+        className={`flex flex-col flex-1 min-h-screen w-full transition-all duration-300 ${
           collapsed ? "lg:ml-20" : "lg:ml-[17rem]"
         }`}
       >
