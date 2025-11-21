@@ -176,29 +176,55 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
     checkAuthAndSetup()
   }, [pathname, router])
 
-  const [notifications] = useState<Notification[]>([
-    {
-      id: "1",
-      type: "order",
-      message: "New order received from John Doe",
-      time: "2 minutes ago",
-      status: "unread",
-    },
-    {
-      id: "2",
-      type: "stock",
-      message: "Low stock alert: Chicken Wings",
-      time: "15 minutes ago",
-      status: "unread",
-    },
-    {
-      id: "3",
-      type: "payout",
-      message: "Weekly payout processed",
-      time: "1 hour ago",
-      status: "read",
-    },
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+
+  // Load real notifications
+  useEffect(() => {
+    loadNotifications()
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const loadNotifications = async () => {
+    try {
+      const token = localStorage.getItem("restaurantToken")
+      if (!token) return
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/notification`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Map API notifications to component format
+        const mappedNotifications = data.notifications?.map((notif: any) => ({
+          id: notif.id.toString(),
+          type: notif.type?.toLowerCase() || "order",
+          message: notif.message || notif.title,
+          time: formatTimeAgo(notif.createdAt),
+          status: notif.isRead ? "read" : "unread",
+        })) || []
+        setNotifications(mappedNotifications)
+      }
+    } catch (error) {
+      console.error("Failed to load notifications:", error)
+    }
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (seconds < 60) return "Just now"
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
+    return `${Math.floor(seconds / 86400)} days ago`
+  }
 
   const handleSignOut = () => {
     localStorage.removeItem("restaurantToken")

@@ -412,20 +412,24 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80  bg-white border-none border">
+            <DropdownMenuContent align="end" className="w-80 bg-white border-none border max-h-[400px] overflow-y-auto">
               <DropdownMenuLabel className="text-primary text-lg font-bold p-3">Notifications</DropdownMenuLabel>
 
-              {notifications.length <= 1 ? (
-                <DropdownMenuItem className="text-sm text-gray-500">
+              {notifications.length === 0 ? (
+                <DropdownMenuItem className="text-sm text-gray-500 p-4 text-center">
                   No new notifications
                 </DropdownMenuItem>
               ) : (
-                notifications.slice(0, 3).map((notification, index) => (
-                  <DropdownMenuItem key={notification.id} className={`text-foreground border-b border-gray-400 rounded-none ${index < 2 ? 'bg-[#DCFCE7]' : 'bg-white'}`}>
-                    <div className="py-3 px-2">
-
+                notifications.slice(0, 5).map((notification) => (
+                  <DropdownMenuItem 
+                    key={notification.id} 
+                    className={`text-foreground border-b border-gray-400 rounded-none cursor-pointer hover:bg-gray-50 ${
+                      notification.status === 'unread' ? 'bg-[#DCFCE7]' : 'bg-white'
+                    }`}
+                  >
+                    <div className="py-3 px-2 w-full">
                       <p className="text-sm font-medium">{notification.message}</p>
-                      <p className="text-xs">{notification.time}</p>
+                      <p className="text-xs text-gray-500">{notification.time}</p>
                     </div>
                   </DropdownMenuItem>
                 ))
