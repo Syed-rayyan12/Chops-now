@@ -48,7 +48,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link href="/about" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
-                    about
+                    About
                   </Link>
                 </li>
                 <li>
@@ -68,7 +68,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link href="/blog" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
-                    blogs
+                    Blogs
                   </Link>
                 </li>
 
@@ -143,11 +143,22 @@ export function Footer() {
           </div>
 
           <div className="border-t border-secondary pt-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center max-sm:flex-col max-sm:text-center max-sm:gap-2">
               <p className="text-foreground text-[16px] text-center">
                 © 2025 <span className="text-ubuntu text-secondary text-[16px] font-semibold">Chop</span><span className="text-ubuntu text-primary text-[16px] font-semibold">Now</span> Ltd — All rights reserved.
               </p>
-              <span>Designed & Developed by <Link href="https://xpertwebstudio.co.uk" className="text-primary hover:underline">Xpertwebstudio</Link></span>
+              <span className="text-md">
+                Designed & Developed by{" "}
+                <Link
+                  href="https://xpertwebstudio.co.uk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Xpertwebstudio
+                </Link>
+              </span>
+
             </div>
           </div>
         </div>
