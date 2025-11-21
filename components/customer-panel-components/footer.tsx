@@ -97,9 +97,9 @@ export function Footer() {
                   </Link>
 
                 </li>
-                 <li>
+                <li>
                   <Link href="/gender-pay" className="text-foreground font-ubuntu text-sm hover:text-primary transition-colors">
-                   Gender Pay Gap
+                    Gender Pay Gap
                   </Link>
 
                 </li>
@@ -143,10 +143,12 @@ export function Footer() {
           </div>
 
           <div className="border-t border-secondary pt-4">
-            <p className="text-foreground text-[16px] text-center">
-              © 2025 <span className="text-ubuntu text-secondary text-[16px] font-semibold">Chop</span><span className="text-ubuntu text-primary text-[16px] font-semibold">Now</span> Ltd — All rights reserved.
-            </p>
-            <span>Designed & Developed by Xpertwebstudio <Link href="https://xpertwebstudio.co.uk" className="text-primary hover:underline">Xpertwebstudio</Link></span>
+            <div className="flex justify-between items-center">
+              <p className="text-foreground text-[16px] text-center">
+                © 2025 <span className="text-ubuntu text-secondary text-[16px] font-semibold">Chop</span><span className="text-ubuntu text-primary text-[16px] font-semibold">Now</span> Ltd — All rights reserved.
+              </p>
+              <span>Designed & Developed by Xpertwebstudio <Link href="https://xpertwebstudio.co.uk" className="text-primary hover:underline">Xpertwebstudio</Link></span>
+            </div>
           </div>
         </div>
       </footer>
