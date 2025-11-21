@@ -327,7 +327,7 @@ export function OrdersSection() {
 
                 <CardContent>
                   <div className="overflow-x-auto -mx-4 sm:mx-0">
-                    <Table className="min-w-full">
+                    <Table className="min-w-[900px]">
                       <TableHeader>
                         <TableRow className="border border-gray-400 rounded-lg p-4">
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order ID</TableHead>
@@ -335,6 +335,7 @@ export function OrdersSection() {
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Address</TableHead>
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Distance</TableHead>
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Items</TableHead>
+                          <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Amount</TableHead>
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order Time</TableHead>
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Status</TableHead>
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Action</TableHead>
@@ -357,26 +358,26 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("pending").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
-                            <TableCell className="text-gray-400">
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{order.code}</TableCell>
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
-                            <TableCell className="text-gray-400 max-w-[200px] truncate">
+                            <TableCell className="text-gray-400 max-w-[150px] sm:max-w-[200px] truncate text-xs sm:text-sm px-2 sm:px-4">
                               {order.deliveryAddress || order.address?.address || "N/A"}
                             </TableCell>
-                            <TableCell className="text-gray-400">
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
                             </TableCell>
-                            <TableCell className="text-gray-400">
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.items.slice(0, 2).map((item, idx) => (
                                 <div key={idx}>{item.title} x{item.qty}</div>
                               ))}
-                              {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
+                              {order.items.length > 2 && <div className="text-[10px] sm:text-xs">+{order.items.length - 2} more</div>}
                             </TableCell>
-                            <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
-                            <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
-                            <TableCell>
-                              <Badge className="bg-amber-100 text-amber-700">{order.status}</Badge>
+                            <TableCell className="text-secondary text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">£{Number(order.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">{formatDate(order.createdAt)}</TableCell>
+                            <TableCell className="px-2 sm:px-4">
+                              <Badge className="bg-amber-100 text-amber-700 text-[10px] sm:text-xs">{order.status}</Badge>
                             </TableCell>
                             <TableCell>
                               <DropdownMenu>
@@ -412,7 +413,7 @@ export function OrdersSection() {
 
                 <CardContent>
                   <div className="overflow-x-auto -mx-4 sm:mx-0">
-                    <Table className="min-w-full">
+                    <Table className="min-w-[900px]">
                       <TableHeader>
                         <TableRow className="border border-gray-400 rounded-lg p-4">
                           <TableHead className="text-foreground font-bold font-ubuntu text-xs sm:text-[16px] whitespace-nowrap px-2 sm:px-4">Order ID</TableHead>
@@ -443,26 +444,26 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("in-progress").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground">{order.code}</TableCell>
-                            <TableCell className="text-gray-400">
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{order.code}</TableCell>
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
-                            <TableCell className="text-gray-400 max-w-[200px] truncate">
+                            <TableCell className="text-gray-400 max-w-[150px] sm:max-w-[200px] truncate text-xs sm:text-sm px-2 sm:px-4">
                               {order.deliveryAddress || order.address?.address || "N/A"}
                             </TableCell>
-                            <TableCell className="text-gray-400">
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.distanceKm ? `${Number(order.distanceKm).toFixed(1)} km` : "N/A"}
                             </TableCell>
-                            <TableCell className="text-gray-400">
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.items.slice(0, 2).map((item, idx) => (
                                 <div key={idx}>{item.title} x{item.qty}</div>
                               ))}
-                              {order.items.length > 2 && <div className="text-xs">+{order.items.length - 2} more</div>}
+                              {order.items.length > 2 && <div className="text-[10px] sm:text-xs">+{order.items.length - 2} more</div>}
                             </TableCell>
-                            <TableCell className="text-secondary">£{Number(order.amount).toFixed(2)}</TableCell>
-                            <TableCell className="text-gray-400">{formatDate(order.createdAt)}</TableCell>
-                            <TableCell>
-                              <Badge className="bg-blue-100 text-blue-800">{order.status}</Badge>
+                            <TableCell className="text-secondary text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">£{Number(order.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">{formatDate(order.createdAt)}</TableCell>
+                            <TableCell className="px-2 sm:px-4">
+                              <Badge className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs">{order.status}</Badge>
                             </TableCell>
                             <TableCell>
                               <DropdownMenu>
