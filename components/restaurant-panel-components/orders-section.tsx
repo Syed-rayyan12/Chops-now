@@ -444,7 +444,7 @@ export function OrdersSection() {
                       ) : (
                         getOrdersByStatus("in-progress").map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{order.code}</TableCell>
+                            <TableCell className="font-medium text-foreground text-xs sm:text-sm px-2 sm:px-4">{order.code.split("-")[0]}</TableCell>
                             <TableCell className="text-gray-400 text-xs sm:text-sm px-2 sm:px-4">
                               {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "N/A"}
                             </TableCell>
