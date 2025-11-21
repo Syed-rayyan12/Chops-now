@@ -245,15 +245,15 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
   }
 
   return (
-    <div className="min-h-screen w-full max-w-[100vw] flex overflow-x-hidden">
+    <div className="min-h-screen w-full flex">
       {/* Sidebar - fixed and full height */}
-      <div className="hidden lg:block fixed top-0 left-0 h-screen">
+      <div className="hidden lg:block fixed top-0 left-0 h-screen z-40">
         <DashboardSidebar collapsed={collapsed} setCollapsed={setCollapsed} locked={locked} />
       </div>
 
       {/* Main Content */}
       <div
-        className={`flex flex-col flex-1 min-h-screen w-full max-w-full ${
+        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
           collapsed ? "lg:ml-20" : "lg:ml-[17rem]"
         }`}
       >
@@ -268,7 +268,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
         </div>
 
         {/* Scrollable main content only */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background py-4 px-3 sm:py-6 sm:px-6 pb-20 lg:pb-6">
+        <main className="flex-1 overflow-y-auto bg-background py-4 px-3 sm:py-6 sm:px-6 pb-20 lg:pb-6">
           {children}
         </main>
       </div>
