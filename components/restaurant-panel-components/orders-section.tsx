@@ -326,7 +326,7 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="overflow-x-auto">
                     <Table className="min-w-[900px]">
                       <TableHeader>
                         <TableRow className="border border-gray-400 rounded-lg p-4">
@@ -412,7 +412,7 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="overflow-x-auto">
                     <Table className="min-w-[900px]">
                       <TableHeader>
                         <TableRow className="border border-gray-400 rounded-lg p-4">
@@ -512,7 +512,7 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="overflow-x-auto">
                     <Table className="min-w-full">
                       <TableHeader>
                         <TableRow className="border border-gray-400 rounded-lg p-4">
@@ -582,7 +582,7 @@ export function OrdersSection() {
               <Card className="border-primary/50 p-4 bg-white">
 
                 <CardContent>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="overflow-x-auto">
                     <Table className="min-w-full">
                       <TableHeader>
                         <TableRow className="border border-gray-400 rounded-lg p-4">
