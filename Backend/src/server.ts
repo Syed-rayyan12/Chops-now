@@ -17,10 +17,16 @@ dotenv.config();
 const app = express();
 
 // CORS configuration - allow production frontend
-app.use(cors({
-  origin: 'https://chops-now-production.up.railway.app',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "https://www.chopnow.co.uk",
+      "https://chopnow.co.uk"
+    ],
+    credentials: true,
+  })
+);
+
 
 // Stripe webhook needs raw body, so add it before express.json()
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
