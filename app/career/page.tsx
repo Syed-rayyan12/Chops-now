@@ -15,12 +15,12 @@ export default function CareerPage() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      {/* <PageBanner
+      <PageBanner
         title="Ready to Reshape the Future of Flavour?"
         highlightedWord="Hungry"
         description="From perfecting the nation's favourite jollof rice in UK to serving authentic jerk chicken in UK, your
 career here feeds a movement. Join us!"
-      /> */}
+      />
 
       {/* <ContentWithImage
         heading="We’re Always Searching for Passionate Afro-Caribbean Chefs"

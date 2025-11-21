@@ -39,14 +39,14 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                     </div>
                 )}
                 {/* Heading row: highlightedWord + title + highlightedWord2 + optional image */}
-                <div className="mb-8 text-center px-4">
-                    <h1 className="font-fredoka-one font-bold max-lg:text-4xl max-md:text-5xl lg:text-5xl max-sm:text-3xl text-white flex items-center text-center justify-center gap-3 md:flex-nowrap flex-wrap">
-                        <span className="whitespace-nowrap">{title}</span>
+                <div className="mb-8 text-center px-4 sm:px-8 lg:px-40">
+                    <h1 className="font-fredoka-one font-bold text-3xl  md:text-5xl lg:text-5xl text-white flex items-center text-center justify-center gap-3 flex-wrap">
+                        <span>{title}</span>
                         {highlightedWord2 && (
-                            <span className="text-secondary whitespace-nowrap">{highlightedWord2}</span>
+                            <span className="text-secondary">{highlightedWord2}</span>
                         )}
                         {highlightedWord && (
-                            <span className="text-white whitespace-nowrap">{highlightedWord}</span>
+                            <span className="text-white">{highlightedWord}</span>
                         )}
 
                         {!imageOnTop && inlineImageSrc && (

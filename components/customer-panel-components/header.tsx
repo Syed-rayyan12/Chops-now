@@ -87,7 +87,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 py-2 bg-white border-b border-primary/50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-0 xl:px-12 2xl:px-16">
         <div className="relative flex items-center justify-end lg:justify-between h-16">
           {/* Logo */}
           <Link href="/" className="absolute left-0 lg:static lg:transform-none lg:left-auto">
