@@ -6,12 +6,12 @@ const growth = () => {
   return (
     <div>
       <div className='py-16'>
-        <div className='container mx-auto flex  max-2xl:px-8 max-md:px-12 max-sm:px-8'>
+        <div className='container mx-auto flex max-lg:flex-col gap-8 max-2xl:px-8 max-md:px-12 max-sm:px-8 justify-between'>
           <div>
             <h2 className='font-fredoka-one font-extrabold  text-5xl max-sm:text-2xl max-lg:text-4xl leading-14 text-foreground mb-6 max-w-2xl'>Take Your Culinary Journey to The Next Level</h2>
             <div className="bg-secondary h-1 w-24  mb-6"></div>
 
-            <div className='space-y-6 '>
+            <div className='space-y-6'>
               <div className='flex items-center gap-4'> 
                 <div className='flex justify-center items-center bg-[#FFEDDF] rounded-full w-12 h-12'>
                   <Users className='text-secondary w-6 h-6' />

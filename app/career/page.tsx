@@ -22,7 +22,7 @@ export default function CareerPage() {
 career here feeds a movement. Join us!"
       />
 
-      {/* <ContentWithImage
+      <ContentWithImage
         heading="We’re Always Searching for Passionate Afro-Caribbean Chefs"
         paragraph="The appetite for authentic, professionally-made Afro-Caribbean cuisine has never been greater. With
 more people searching for how to order African food online in UK and seeking the best Caribbean food
@@ -31,14 +31,14 @@ delivery in UK, your talent is the missing ingredient"
 African food online in UK and experience true culinary heritage. Join us and meet the demand."
         imageSrc="/blog-0.png"
         imageAlt="Career at Chop Now"
-      /> */}
+      />
 
-      {/* <Performance />
+      <Performance />
       <OurPeople />
       <BeYourselfSection />
       <ReadOurLatestNews />
-      <Newsletter /> */}
-      {/* <Footer /> */}
+      <Newsletter />
+      <Footer />
     </div>
   );
 }

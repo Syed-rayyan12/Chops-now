@@ -85,7 +85,7 @@ export function FaqSection() {
                         <Plus className="w-5 h-5 text-white" />
                       )}
                     </div>
-                    <span className="font-ubuntu text-[20px] font-semibold text-foreground">
+                    <span className="font-ubuntu text-[20px] max-sm:text-[16px] font-semibold text-foreground">
                       {faq.question}
                     </span>
                   </div>

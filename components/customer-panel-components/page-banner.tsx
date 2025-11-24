@@ -20,7 +20,7 @@ interface PageBannerProps {
 
 export function PageBanner({ highlightedWord, title, highlightedWord2, description, inlineImageSrc, inlineImageAlt, imageOnTop }: PageBannerProps) {
     return (
-        <div className="relative w-full flex  items-center justify-center h-[90vh] bg-gradient-to-r from-orange-100 to-orange-200">
+        <div className="relative w-full flex items-center justify-center h-full py-18 bg-gradient-to-r from-orange-100 to-orange-200">
             <img
                 src="/boo.png"
                 alt={`${title} Banner`}

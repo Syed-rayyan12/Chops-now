@@ -6,7 +6,7 @@ const growth = () => {
   return (
     <div>
       <div className='py-16'>
-        <div className='container mx-auto flex gap-10 max-2xl:px-8 max-md:px-12 max-sm:px-8'>
+        <div className='container mx-auto flex max-lg:flex-col gap-8 justify-between max-2xl:px-8 max-md:px-12 max-sm:px-8'>
           <div>
             <img src="/deliver.png" className='w-full h-full object-cover rounded-lg' alt="" />
           </div>
