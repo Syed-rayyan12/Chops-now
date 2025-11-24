@@ -20,6 +20,9 @@ export default function CareerPage() {
         highlightedWord="Hungry"
         description="From perfecting the nation's favourite jollof rice in UK to serving authentic jerk chicken in UK, your
 career here feeds a movement. Join us!"
+        inlineImageSrc="/lines.svg"
+        inlineImageAlt="Lines decoration"
+        imageOnTop={true}
       />
 
       <ContentWithImage

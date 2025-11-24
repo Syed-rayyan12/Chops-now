@@ -9,7 +9,7 @@ export default function BlogPage() {
       <Header />
       
       {/* Hero Section */}
-      <div className="relative w-full flex items-center justify-center h-[90vh] bg-gradient-to-r from-orange-100 to-orange-200">
+      <div className="relative w-full flex items-center justify-center h-full py-42 bg-gradient-to-r from-orange-100 to-orange-200">
         <img 
           src="/boo.png" 
           alt="Blog Banner" 

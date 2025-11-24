@@ -20,14 +20,17 @@ interface PageBannerProps {
 
 export function PageBanner({ highlightedWord, title, highlightedWord2, description, inlineImageSrc, inlineImageAlt, imageOnTop }: PageBannerProps) {
     return (
-        <div className="relative w-full flex items-center justify-center h-full py-18 bg-gradient-to-r from-orange-100 to-orange-200">
+        <div className="relative w-full flex items-center justify-center h-full py-24 bg-gradient-to-r from-orange-100 to-orange-200">
             <img
                 src="/boo.png"
                 alt={`${title} Banner`}
                 className="absolute inset-0 w-full h-full object-cover"
             />
+            
 
             <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
+
+                
                 {/* Optional top image shown before heading */}
                 {imageOnTop && inlineImageSrc && (
                     <div className="mb-6">
