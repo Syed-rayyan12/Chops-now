@@ -45,11 +45,11 @@ const testimonials = [
 
 // Prepare testimonials for two rows
 const row1Testimonials = [
-  ...testimonials.slice(0, 4),
+  ...testimonials.slice(0, 3),
 
 ];
 const row2Testimonials = [
-  ...testimonials.slice(1, 4),
+  ...testimonials.slice(3, 6),
 
 ];
 

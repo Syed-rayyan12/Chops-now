@@ -31,7 +31,7 @@ const ReadOurLatestNews = () => {
     <div className="pt-20 pb-40 relative  bg-[url('/featured-bg.jpeg')] bg-cover max-sm:bg-contain bg-center">
       <img src="/patte.png" className='absolute w-80 bottom-0 left-0 opacity-15' alt="" />
       <div>
-        <h2 className="font-fredoka-one text-5xl max-sm:text-2xl font-extrabold text-center mb-6 px-44 max-sm:px-4">
+        <h2 className="font-fredoka-one text-5xl max-sm:text-2xl font-extrabold text-center  mb-6 px-44 max-sm:px-4">
        Stories That Celebrate Culture, Food, and Community
         </h2>
         <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
