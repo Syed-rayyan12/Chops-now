@@ -46,7 +46,7 @@ export function Footer() {
                   <Instagram className="w-5 h-5" />
                 </Link>
               </div>
-
+ 
             </div>
 
             {/* Contact Info (separate column) */}
