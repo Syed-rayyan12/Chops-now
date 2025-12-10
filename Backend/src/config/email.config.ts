@@ -1,5 +1,11 @@
 import nodemailer from 'nodemailer';
 
+// Log email configuration (without password)
+console.log('📧 Email Config:', {
+  user: process.env.EMAIL_USER,
+  passwordSet: !!process.env.EMAIL_PASSWORD,
+});
+
 // Create transporter using Gmail SMTP
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -7,6 +13,15 @@ export const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+});
+
+// Verify transporter on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ Email transporter verification failed:', error);
+  } else {
+    console.log('✅ Email transporter is ready to send emails');
+  }
 });
 
 // Company email addresses - emails will be sent to all of these

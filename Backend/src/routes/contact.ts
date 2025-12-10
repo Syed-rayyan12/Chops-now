@@ -5,11 +5,14 @@ const router = Router();
 
 // POST /api/contact/submit
 router.post('/submit', async (req: Request, res: Response) => {
+  console.log('📨 Contact form submission received:', req.body);
+  
   try {
     const { name, email, phone, subject, message } = req.body;
 
     // Validation
     if (!name || !email || !subject || !message) {
+      console.log('❌ Validation failed: missing fields');
       return res.status(400).json({
         success: false,
         message: 'Please fill in all required fields (name, email, subject, message)',
@@ -19,6 +22,7 @@ router.post('/submit', async (req: Request, res: Response) => {
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log('❌ Validation failed: invalid email');
       return res.status(400).json({
         success: false,
         message: 'Please provide a valid email address',
@@ -27,6 +31,7 @@ router.post('/submit', async (req: Request, res: Response) => {
 
     // Name validation
     if (name.trim().length < 2) {
+      console.log('❌ Validation failed: name too short');
       return res.status(400).json({
         success: false,
         message: 'Name must be at least 2 characters',
@@ -35,26 +40,30 @@ router.post('/submit', async (req: Request, res: Response) => {
 
     // Message validation
     if (message.trim().length < 10) {
+      console.log('❌ Validation failed: message too short');
       return res.status(400).json({
         success: false,
         message: 'Message must be at least 10 characters',
       });
     }
 
-    // Send email to all company accounts
-    await sendContactEmail({ name, email, phone, subject, message });
+    console.log('✅ Validation passed, sending email...');
 
-    console.log(`✉️ Contact form submitted by ${email} - Subject: ${subject}`);
+    // Send email to all company accounts
+    const result = await sendContactEmail({ name, email, phone, subject, message });
+    
+    console.log('✅ Email sent successfully:', result);
 
     return res.status(200).json({
       success: true,
       message: 'Thank you! Your message has been sent successfully. We will get back to you soon.',
     });
-  } catch (error) {
-    console.error('❌ Contact form error:', error);
+  } catch (error: any) {
+    console.error('❌ Contact form error:', error.message);
+    console.error('❌ Full error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to send message. Please try again later.',
+      message: `Failed to send message: ${error.message || 'Unknown error'}`,
     });
   }
 });
