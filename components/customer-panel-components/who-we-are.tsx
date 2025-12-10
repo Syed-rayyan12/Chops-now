@@ -28,8 +28,7 @@ const WhoWeAre = () => {
                                 <span className="absolute inset-0 translate-x-1 translate-y-1 -z-10 rounded-[40px] border-t-[2px] border-r-[333px] max-sm:border-r-[245px] border-b-[50px] border-l-0 border-orange-500">
                                 </span>
 
-                                <img src="/vector.svg" className="w-12 h-12 absolute -right-6 top-6 text-foreground" alt="" />
-                                {/* Icon */}
+                               
                                 <img src={item.img} className="w-10 h-10 text-primary" alt="" />
 
                                 {/* Text */}

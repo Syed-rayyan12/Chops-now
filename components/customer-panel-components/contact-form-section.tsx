@@ -1,16 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Phone, Mail } from "lucide-react"
+import { MapPin, Phone, Mail, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
+import { useToast } from "@/hooks/use-toast"
+import { submitContactForm } from "@/lib/api/contact.api"
 
 export function ContactFormSection() {
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     firstName: "",
     email: "",
     subject: "",
     message: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -19,16 +23,38 @@ export function ContactFormSection() {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
-    // Reset form
-    setFormData({
-      firstName: "",
-      email: "",
-      subject: "",
-      message: "",
+    setIsSubmitting(true)
+
+    const result = await submitContactForm({
+      name: formData.firstName,
+      email: formData.email,
+      subject: formData.subject,
+      message: formData.message,
     })
+
+    if (result.success) {
+      toast({
+        title: "Message Sent!",
+        description: result.message,
+      })
+      // Reset form
+      setFormData({
+        firstName: "",
+        email: "",
+        subject: "",
+        message: "",
+      })
+    } else {
+      toast({
+        title: "Error",
+        description: result.message,
+        variant: "destructive",
+      })
+    }
+
+    setIsSubmitting(false)
   }
 
   return (
@@ -198,9 +224,17 @@ export function ContactFormSection() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors font-medium font-ubuntu"
+                disabled={isSubmitting}
+                className="w-full bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors font-medium font-ubuntu disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Send Message
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Message"
+                )}
               </button>
             </form>
           </motion.div>
