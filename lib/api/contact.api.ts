@@ -9,9 +9,8 @@ import { API_CONFIG } from "./config";
 // ============================================
 
 export interface ContactFormData {
-  name: string;
+  firstName: string;
   email: string;
-  phone?: string;
   subject: string;
   message: string;
 }

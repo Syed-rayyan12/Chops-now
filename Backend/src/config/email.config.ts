@@ -20,15 +20,14 @@ export const COMPANY_EMAILS = [
 ];
 
 export interface ContactFormData {
-  name: string;
+  firstName: string;
   email: string;
-  phone?: string;
   subject: string;
   message: string;
 }
 
 export const sendContactEmail = async (data: ContactFormData) => {
-  const { name, email, phone, subject, message } = data;
+  const { firstName, email, subject, message } = data;
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -39,17 +38,13 @@ export const sendContactEmail = async (data: ContactFormData) => {
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333; width: 120px;">Name:</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">${name}</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">${firstName}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333;">Email:</td>
             <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">
               <a href="mailto:${email}" style="color: #FF6B00; text-decoration: none;">${email}</a>
             </td>
-          </tr>
-          <tr>
-            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333;">Phone:</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">${phone || 'Not provided'}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333;">Subject:</td>

@@ -8,14 +8,14 @@ router.post('/submit', async (req: Request, res: Response) => {
   console.log('📨 Contact form submission received:', req.body);
   
   try {
-    const { name, email, phone, subject, message } = req.body;
+    const { firstName, email, subject, message } = req.body;
 
     // Validation
-    if (!name || !email || !subject || !message) {
+    if (!firstName || !email || !subject || !message) {
       console.log('❌ Validation failed: missing fields');
       return res.status(400).json({
         success: false,
-        message: 'Please fill in all required fields (name, email, subject, message)',
+        message: 'Please fill in all required fields (firstName, email, subject, message)',
       });
     }
 
@@ -30,11 +30,11 @@ router.post('/submit', async (req: Request, res: Response) => {
     }
 
     // Name validation
-    if (name.trim().length < 2) {
-      console.log('❌ Validation failed: name too short');
+    if (firstName.trim().length < 2) {
+      console.log('❌ Validation failed: firstName too short');
       return res.status(400).json({
         success: false,
-        message: 'Name must be at least 2 characters',
+        message: 'First name must be at least 2 characters',
       });
     }
 
@@ -50,7 +50,7 @@ router.post('/submit', async (req: Request, res: Response) => {
     console.log('✅ Validation passed, sending email...');
 
     // Send email to all company accounts
-    const result = await sendContactEmail({ name, email, phone, subject, message });
+    const result = await sendContactEmail({ firstName, email, subject, message });
     
     console.log('✅ Email sent successfully:', result);
 

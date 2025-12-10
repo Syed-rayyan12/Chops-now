@@ -33,7 +33,7 @@ export function ContactFormSection() {
 
     try {
       const result = await submitContactForm({
-        name: formData.firstName,
+        firstName: formData.firstName,
         email: formData.email,
         subject: formData.subject,
         message: formData.message,
