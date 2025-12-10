@@ -1,21 +1,22 @@
-import { Resend } from 'resend';
-
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from 'nodemailer';
 
 console.log('📧 Email Config:', {
-  resendKeySet: !!process.env.RESEND_API_KEY,
+  emailUser: process.env.EMAIL_USER,
+  passwordSet: !!process.env.EMAIL_PASSWORD,
+});
+
+// Create transporter using Gmail SMTP
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
 });
 
 // Company email addresses - emails will be sent to all of these
-// TODO: Replace with client's 5 company emails after testing
 export const COMPANY_EMAILS = [
   'pr.muslim.82@gmail.com', // For testing - replace with client emails later
-  // 'contact@chopnow.co.uk',
-  // 'support@chopnow.co.uk',
-  // 'info@chopnow.co.uk',
-  // 'sales@chopnow.co.uk',
-  // 'admin@chopnow.co.uk',
 ];
 
 export interface ContactFormData {
@@ -71,20 +72,18 @@ export const sendContactEmail = async (data: ContactFormData) => {
     </div>
   `;
 
-  // Send email using Resend API
-  const { data: result, error } = await resend.emails.send({
-    from: 'ChopNow <onboarding@resend.dev>', // Use Resend's test domain or your verified domain
+  const mailOptions = {
+    from: `"ChopNow" <${process.env.EMAIL_USER}>`,
     to: COMPANY_EMAILS,
     replyTo: email,
     subject: `[ChopNow Contact] ${subject}`,
     html: htmlContent,
-  });
+  };
 
-  if (error) {
-    console.error('❌ Resend error:', error);
-    throw new Error(error.message);
-  }
-
-  console.log('✅ Email sent via Resend:', result);
+  console.log('📤 Sending email to:', COMPANY_EMAILS);
+  
+  const result = await transporter.sendMail(mailOptions);
+  console.log('✅ Email sent:', result.messageId);
+  
   return result;
 };
