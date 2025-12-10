@@ -6,21 +6,18 @@ console.log('📧 Email Config:', {
   passwordSet: !!process.env.EMAIL_PASSWORD,
 });
 
-// Create transporter using Gmail SMTP with explicit settings
+// Create transporter using Gmail SMTP with SSL (port 465)
 export const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Use TLS
+  port: 465,
+  secure: true, // Use SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 30000, // 30 seconds
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
+  connectionTimeout: 60000, // 60 seconds
+  greetingTimeout: 60000,
+  socketTimeout: 60000,
 });
 
 // Verify transporter on startup
