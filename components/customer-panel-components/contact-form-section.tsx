@@ -25,36 +25,49 @@ export function ContactFormSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    if (isSubmitting) return // Prevent double submission
+    
     setIsSubmitting(true)
 
-    const result = await submitContactForm({
-      name: formData.firstName,
-      email: formData.email,
-      subject: formData.subject,
-      message: formData.message,
-    })
+    try {
+      const result = await submitContactForm({
+        name: formData.firstName,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      })
 
-    if (result.success) {
-      toast({
-        title: "Message Sent!",
-        description: result.message,
-      })
-      // Reset form
-      setFormData({
-        firstName: "",
-        email: "",
-        subject: "",
-        message: "",
-      })
-    } else {
+      if (result.success) {
+        toast({
+          title: "Message Sent!",
+          description: result.message,
+        })
+        // Reset form
+        setFormData({
+          firstName: "",
+          email: "",
+          subject: "",
+          message: "",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
       toast({
         title: "Error",
-        description: result.message,
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
   return (
