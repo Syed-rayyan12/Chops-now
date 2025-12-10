@@ -1,32 +1,10 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Log email configuration (without password)
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 console.log('📧 Email Config:', {
-  user: process.env.EMAIL_USER,
-  passwordSet: !!process.env.EMAIL_PASSWORD,
-});
-
-// Create transporter using Gmail SMTP with SSL (port 465)
-export const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // Use SSL
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-  connectionTimeout: 60000, // 60 seconds
-  greetingTimeout: 60000,
-  socketTimeout: 60000,
-});
-
-// Verify transporter on startup
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Email transporter verification failed:', error);
-  } else {
-    console.log('✅ Email transporter is ready to send emails');
-  }
+  resendKeySet: !!process.env.RESEND_API_KEY,
 });
 
 // Company email addresses - emails will be sent to all of these
@@ -93,13 +71,20 @@ export const sendContactEmail = async (data: ContactFormData) => {
     </div>
   `;
 
-  const mailOptions = {
-    from: `"ChopNow" <${process.env.EMAIL_USER}>`,
-    to: COMPANY_EMAILS.join(', '),
+  // Send email using Resend API
+  const { data: result, error } = await resend.emails.send({
+    from: 'ChopNow <onboarding@resend.dev>', // Use Resend's test domain or your verified domain
+    to: COMPANY_EMAILS,
     replyTo: email,
     subject: `[ChopNow Contact] ${subject}`,
     html: htmlContent,
-  };
+  });
 
-  return transporter.sendMail(mailOptions);
+  if (error) {
+    console.error('❌ Resend error:', error);
+    throw new Error(error.message);
+  }
+
+  console.log('✅ Email sent via Resend:', result);
+  return result;
 };
