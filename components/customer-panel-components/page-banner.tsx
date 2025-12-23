@@ -1,5 +1,6 @@
 import { Bike } from "lucide-react"
 import { Button } from "../ui/button"
+import Link from "next/link"
 
 interface PageBannerProps {
     // Heading parts rendered in a single row when possible
@@ -70,14 +71,14 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                     <div className="flex gap-4">
 
                         <div className="pt-8">
-                            <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Become Part of Our Partner Chefs</Button>
+                            <Link href="/restaurant-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Become Part of Our Partner Chefs</Link>
                         </div>
 
                     </div>
                     <div className="flex gap-4">
 
                         <div className="pt-8">
-                            <Button variant="part1" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Courier</Button>
+                            <Link href="/rider-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Courier</Link>
                         </div>
 
                     </div>

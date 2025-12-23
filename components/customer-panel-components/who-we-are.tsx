@@ -28,7 +28,7 @@ const WhoWeAre = () => {
                                 <span className="absolute inset-0 translate-x-1 translate-y-1 -z-10 rounded-[40px] border-t-[2px] border-r-[333px] max-sm:border-r-[245px] border-b-[50px] border-l-0 border-orange-500">
                                 </span>
 
-                               
+
                                 <img src={item.img} className="w-10 h-10 text-primary" alt="" />
 
                                 {/* Text */}
@@ -54,7 +54,8 @@ const WhoWeAre = () => {
                             </div>
                             <div>
                                 <h1 className='font-ubuntu text-foreground font-semibold'>How to Order?</h1>
-                                <span className='text-secondary text-[16px] font-ubuntu'>Call Us: +44 20 7946 0123</span>
+                                <span className='text-secondary text-[16px] font-ubuntu'>Call Us: 07944 445328
+                                </span>
                             </div>
                         </div>
                     </div>

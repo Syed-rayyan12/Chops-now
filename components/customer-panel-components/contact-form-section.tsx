@@ -103,7 +103,7 @@ export function ContactFormSection() {
                     Our Address
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                    123 Food Street, London, UK, SW1A 1AA
+                   Chopnow Ltd Westgate House West Square HARLOW Essex CM20 1YS UNITED KINGDOM
                   </p>
                 </div>
               </div>
@@ -118,7 +118,7 @@ export function ContactFormSection() {
                   Contact Us
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                    +44 20 1234 5678
+                  07944 445328
                   </p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export function ContactFormSection() {
                     Email Address
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                    info@chopnow.co.uk
+                hello@chopnow.uk.com
                   </p>
                 </div>
               </div>
