@@ -106,7 +106,7 @@ export default function AccessibilityPage() {
                             If you suspect modern slavery or exploitation in our operations or supply chain, contact:
                         </p>
                         <p><strong>Email:</strong> hello@chopnow.co.uk</p>
-                        <p className=''><strong>Phone:</strong> +44 20 7946 0123</p>
+                        <p className=''><strong>Phone:</strong> 07944 445328</p>
                         <p>ChopNow Ltd</p>
 
                         <h2 className="font-fredoka-one text-2xl font-bold text-foreground mt-8 mb-4">Approval</h2>

@@ -54,7 +54,7 @@ const ReadOurLatestNews = () => {
                 <h3 className="font-space-grotesk max-2xl:text-lg text-xl font-bold mb-4">{news.title}</h3>
                 <p className="font-ubuntu text-gray-600 text-[14px] max-2xl:scale-[8px]">{news.summary}</p>
                <div className='mt-4'>
-                <Link href="" className='text-primary font-ubuntu text-[18px]'>Read More</Link>
+                <Link href="/blog" className='text-primary font-ubuntu text-[18px]'>Read More</Link>
                </div>
               </div>
             </motion.div>

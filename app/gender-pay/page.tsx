@@ -219,7 +219,7 @@ export default function AccessibilityPage() {
                         <h2 className="font-fredoka-one text-2xl font-bold text-foreground mt-8 mb-4">Contact and Further Information</h2>
                         <p>For questions about this report or to request further detail, contact:</p>
                         <p>Email: hello@chopnow.co.uk</p>
-                         <p>Phone: +44 20 7946 0123</p>
+                         <p>Phone: 07944 445328</p>
                         <p>ChopNow Ltd</p>
                     </div>
                 </div>

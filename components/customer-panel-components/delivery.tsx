@@ -1,6 +1,7 @@
 import { Users } from 'lucide-react'
 import React from 'react'
 import { Button } from '../ui/button'
+import Link from 'next/link'
 
 const growth = () => {
   return (
@@ -52,7 +53,9 @@ const growth = () => {
                 </div>
               </div>
                <div className='pt-6'>
-                <Button variant="part1" className='px-4 py-5 bg-primary'>Start Delivering Now</Button>
+                <Link href="/rider-signup">
+                <Button variant="part1" className='px-4 py-5 bg-primary cursor-pointer'>Start Delivering Now</Button>
+                </Link>
                </div>
             </div>
           </div>
