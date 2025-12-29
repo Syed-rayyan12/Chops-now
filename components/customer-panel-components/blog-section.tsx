@@ -92,15 +92,17 @@ across the UK
           {blogPosts.map((post, index) => (
             <motion.div
               key={index}
-              className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 h-64"
+              className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 h-64 group"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              <img 
-                src={post.image} 
-                alt={post.title} 
-                className="w-full h-full object-cover rounded-lg" 
-              />
+              <Link href={`/blog/${post.slug}`} className="block w-full h-full">
+                <img 
+                  src={post.image} 
+                  alt={post.title} 
+                  className="w-full h-full object-cover rounded-lg cursor-pointer" 
+                />
+              </Link>
               <div className="absolute top-4 left-4 bg-secondary text-white px-3 py-1 rounded-lg text-sm font-ubuntu font-medium">
                 {post.badge}
               </div>
@@ -113,9 +115,9 @@ across the UK
                 </p>
                 <Link 
                   href={`/blog/${post.slug}`} 
-                  className="text-secondary font-ubuntu text-base hover:underline"
+                  className="text-secondary font-ubuntu text-base hover:underline font-semibold"
                 >
-                  Read More
+                  Read More →
                 </Link>
               </div>
             </motion.div>
