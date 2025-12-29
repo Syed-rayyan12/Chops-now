@@ -100,9 +100,9 @@ export function AdminAccountsContent() {
       </div>
 
       {/* Search Bar */}
-      <Card>
+      <Card className="bg-white p-4">
         <CardHeader>
-          <CardTitle>Search Admins</CardTitle>
+          <CardTitle className="text-foreground">Search Admins</CardTitle>
         </CardHeader>
         <CardContent>
           <Input
@@ -115,9 +115,9 @@ export function AdminAccountsContent() {
       </Card>
 
       {/* Admins Table */}
-      <Card>
+      <Card className="bg-white p-4">
         <CardHeader>
-          <CardTitle>Admin List</CardTitle>
+          <CardTitle className="text-foreground">Admin List</CardTitle>
           <CardDescription>Total Admins: {filteredAdmins.length}</CardDescription>
         </CardHeader>
         <CardContent>
