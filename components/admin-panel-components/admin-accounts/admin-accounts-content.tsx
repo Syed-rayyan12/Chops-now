@@ -72,12 +72,12 @@ export function AdminAccountsContent() {
     try {
       setDeleteLoading(id)
       const token = localStorage.getItem("adminToken")
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
-      const response = await fetch(`${backendUrl}/api/admin/accounts/${id}`, {
+      const response = await fetch(`${apiUrl}/admin/accounts/${id}`, {
         method: "DELETE",
         headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -90,7 +90,7 @@ export function AdminAccountsContent() {
         variant: "default",
       })
     } catch (error) {
-      console.error("Error deleting admin:", error)
+      console.error("❌ Error deleting admin:", error)
       toast({
         title: "Error",
         description: "Failed to delete admin account",

@@ -63,17 +63,17 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
     try {
       setLoading(true)
       const token = localStorage.getItem("adminToken")
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
       console.log("🔄 Creating admin with token:", token ? "Present" : "Missing")
-      console.log("🌐 Backend URL:", backendUrl)
+      console.log("🌐 API URL:", apiUrl)
       console.log("📝 Form data:", formData)
       
-      const response = await fetch(`${backendUrl}/api/admin/accounts`, {
+      const response = await fetch(`${apiUrl}/admin/accounts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       })
