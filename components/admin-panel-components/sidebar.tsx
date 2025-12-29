@@ -25,6 +25,7 @@ const navigation = [
   { href: "/admin-dashboard/users", name: "User Management", icon: ChefHat },
   { href: "/admin-dashboard/restaurants", name: "Restaurant Management", icon: CreditCard },
   { href: "/admin-dashboard/riders", name: "Rider Management", icon: Bike },
+  { href: "/admin-dashboard/admin-accounts", name: "Admin Accounts", icon: Users },
   { href: "/admin-dashboard/analytics", name: "Analytics", icon: Star },
 ]
 

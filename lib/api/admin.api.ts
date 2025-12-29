@@ -197,6 +197,66 @@ export const getAdminAnalytics = () => {
 };
 
 // ============================================
+// Admin Account Management
+// ============================================
+
+export interface CreateAdminPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+export interface UpdateAdminPayload {
+  firstName: string;
+  lastName: string;
+}
+
+export interface AdminAccount {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt: string;
+}
+
+export const adminAccounts = {
+  getAll: () =>
+    apiRequest<AdminAccount[]>("/admin/accounts", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+      },
+    }),
+
+  create: (data: CreateAdminPayload) =>
+    apiRequest<AdminAccount>("/admin/accounts", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+      },
+    }),
+
+  update: (id: number, data: UpdateAdminPayload) =>
+    apiRequest<AdminAccount>(`/admin/accounts/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+      },
+    }),
+
+  delete: (id: number) =>
+    apiRequest<{ message: string }>(`/admin/accounts/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+      },
+    }),
+};
+
+// ============================================
 // Legacy Function Names (for backward compatibility)
 // ============================================
 

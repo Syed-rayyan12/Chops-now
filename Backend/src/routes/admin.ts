@@ -879,4 +879,142 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
   }
 });
 
+// ============================================
+// Admin Account Management Routes
+// ============================================
+
+// Get all admin accounts
+router.get("/accounts", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const admins = await prisma.user.findMany({
+      where: {
+        role: "ADMIN",
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json(admins);
+  } catch (error) {
+    console.error("Error fetching admin accounts:", error);
+    res.status(500).json({ message: "Failed to fetch admin accounts" });
+  }
+});
+
+// Create new admin account
+router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    // Validate input
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    // Check if email already exists
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new admin
+    const newAdmin = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        role: "ADMIN",
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+      },
+    });
+
+    res.status(201).json(newAdmin);
+  } catch (error) {
+    console.error("Error creating admin account:", error);
+    res.status(500).json({ message: "Failed to create admin account" });
+  }
+});
+
+// Update admin account
+router.put("/accounts/:id", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName } = req.body;
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ message: "First name and last name are required" });
+    }
+
+    const updatedAdmin = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: {
+        firstName,
+        lastName,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+      },
+    });
+
+    res.json(updatedAdmin);
+  } catch (error) {
+    console.error("Error updating admin account:", error);
+    res.status(500).json({ message: "Failed to update admin account" });
+  }
+});
+
+// Delete admin account
+router.delete("/accounts/:id", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Prevent deleting the last admin (optional but recommended)
+    const adminCount = await prisma.user.count({
+      where: { role: "ADMIN" },
+    });
+
+    if (adminCount <= 1) {
+      return res.status(400).json({ message: "Cannot delete the last admin account" });
+    }
+
+    await prisma.user.delete({
+      where: { id: parseInt(id) },
+    });
+
+    res.json({ message: "Admin account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting admin account:", error);
+    res.status(500).json({ message: "Failed to delete admin account" });
+  }
+});
+
 export default router;
