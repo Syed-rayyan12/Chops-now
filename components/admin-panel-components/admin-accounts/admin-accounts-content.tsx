@@ -35,16 +35,16 @@ export function AdminAccountsContent() {
     try {
       setLoading(true)
       const token = localStorage.getItem("adminToken")
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
       console.log("Fetching admins with token:", token ? "Present" : "Missing")
-      console.log("Backend URL:", backendUrl)
+      console.log("API URL:", apiUrl)
       
-      const response = await fetch(`${backendUrl}/api/admin/accounts`, {
+      const response = await fetch(`${apiUrl}/admin/accounts`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
+          Authorization: `Bearer ${token}`,
         },
       })
 
