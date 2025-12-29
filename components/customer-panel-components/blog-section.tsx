@@ -7,54 +7,63 @@ import { Button } from '../ui/button';
 
 const blogPosts = [
   {
+    slug: 'rise-of-african-caribbean-food',
     title: 'The Rise of African & Caribbean Food in the UK',
     badge: '4 Oct',
     summary: 'Caribbean flavours are taking the UK storm discover they are more popular than ever.',
     image: '/blog-3.jpeg',
   },
   {
+    slug: 'top-10-must-try-dishes',
     title: 'Top 10 Must-Try African & Caribbean Dishes',
     badge: '28 Sep',
     summary: 'From jollof to jerk chicken, here are the dishes you simply cannot miss.',
     image: '/blog-2.jpeg',
   },
   {
+    slug: 'healthy-eating-afro-caribbean',
     title: 'Healthy Eating with Afro-Caribbean Flavours',
     badge: '20 Sep',
     summary: 'Fresh vegetables and fruits used in African/Caribbean cooking (plantain, callaloo, okra).',
     image: '/blog-1.jpeg',
   },
   {
+    slug: 'history-of-jollof-rice',
     title: 'The History of Jollof Rice',
     badge: '15 Sep',
     summary: 'Discover the origins and cultural significance of West Africa most beloved dish.',
     image: '/blog-0.png',
   },
   {
+    slug: 'caribbean-street-food-guide',
     title: 'Caribbean Street Food Guide',
     badge: '10 Sep',
     summary: 'Explore the vibrant world of Caribbean street food from doubles to patties.',
     image: '/blogpost-1.png',
   },
   {
+    slug: 'cooking-with-plantains',
     title: 'Cooking with Plantains',
     badge: '5 Sep',
     summary: 'Learn different ways to prepare this versatile ingredient in your kitchen.',
     image: '/blogpost-2.png',
   },
   {
+    slug: 'spice-blends-caribbean',
     title: 'Spice Blends of the Caribbean',
     badge: '1 Sep',
     summary: 'A deep dive into the aromatic spice mixes that define Caribbean cuisine.',
     image: '/blogpost-3.png',
   },
   {
+    slug: 'african-soups-stews',
     title: 'African Soups and Stews',
     badge: '25 Aug',
     summary: 'Warm, hearty, and full of flavor - explore traditional African comfort food.',
     image: '/blogpost-4.png',
   },
   {
+    slug: 'art-of-grilling-suya',
     title: 'The Art of Grilling Suya',
     badge: '20 Aug',
     summary: 'Master the technique of making this spicy Nigerian street food favorite.',
@@ -103,7 +112,7 @@ across the UK
                   {post.summary}
                 </p>
                 <Link 
-                  href="/blog" 
+                  href={`/blog/${post.slug}`} 
                   className="text-secondary font-ubuntu text-base hover:underline"
                 >
                   Read More
