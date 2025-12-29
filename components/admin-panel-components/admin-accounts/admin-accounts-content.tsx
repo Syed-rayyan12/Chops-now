@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Edit2, Eye, EyeOff } from "lucide-react"
+import { Plus, Trash2, Edit2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import { CreateAdminDialog } from "./create-admin-dialog"
 import { EditAdminDialog } from "./edit-admin-dialog"
 
@@ -24,6 +25,7 @@ export function AdminAccountsContent() {
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchAdmins()
@@ -32,20 +34,33 @@ export function AdminAccountsContent() {
   const fetchAdmins = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/admin/accounts", {
+      const token = localStorage.getItem("adminToken")
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      
+      console.log("Fetching admins with token:", token ? "Present" : "Missing")
+      console.log("Backend URL:", backendUrl)
+      
+      const response = await fetch(`${backendUrl}/api/admin/accounts`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
       })
 
-      if (!response.ok) throw new Error("Failed to fetch admins")
+      console.log("Fetch response status:", response.status)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to fetch admins")
+      }
 
       const data = await response.json()
+      console.log("Admins fetched:", data)
       setAdmins(data)
     } catch (error) {
       console.error("Error fetching admins:", error)
+      alert("Failed to load admin accounts. Please check your connection and try again.")
     } finally {
       setLoading(false)
     }
@@ -56,19 +71,31 @@ export function AdminAccountsContent() {
 
     try {
       setDeleteLoading(id)
-      const response = await fetch(`/api/admin/accounts/${id}`, {
+      const token = localStorage.getItem("adminToken")
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      
+      const response = await fetch(`${backendUrl}/api/admin/accounts/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
       })
 
       if (!response.ok) throw new Error("Failed to delete admin")
 
       setAdmins(admins.filter((admin) => admin.id !== id))
+      toast({
+        title: "Success",
+        description: "Admin account deleted successfully!",
+        variant: "default",
+      })
     } catch (error) {
       console.error("Error deleting admin:", error)
-      alert("Failed to delete admin account")
+      toast({
+        title: "Error",
+        description: "Failed to delete admin account",
+        variant: "destructive",
+      })
     } finally {
       setDeleteLoading(null)
     }
@@ -194,6 +221,11 @@ export function AdminAccountsContent() {
         onOpenChange={setShowCreateDialog}
         onAdminCreated={() => {
           setShowCreateDialog(false)
+          toast({
+            title: "Success",
+            description: "Admin account created successfully!",
+            variant: "default",
+          })
           fetchAdmins()
         }}
       />
@@ -206,6 +238,11 @@ export function AdminAccountsContent() {
           admin={selectedAdmin}
           onAdminUpdated={() => {
             setShowEditDialog(false)
+            toast({
+              title: "Success",
+              description: "Admin account updated successfully!",
+              variant: "default",
+            })
             fetchAdmins()
           }}
         />

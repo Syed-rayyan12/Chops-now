@@ -60,11 +60,14 @@ export function EditAdminDialog({
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/admin/accounts/${admin.id}`, {
+      const token = localStorage.getItem("adminToken")
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      
+      const response = await fetch(`${backendUrl}/api/admin/accounts/${admin.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify(formData),
       })

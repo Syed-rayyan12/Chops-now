@@ -10,23 +10,59 @@ const ADMIN_EMAIL = "admin@chopnow.com";
 const ADMIN_PASSWORD = "admin123"; // hardcoded
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  const token = generateToken({ email, role: "ADMIN" });
-  res.json({
-    token,
-    user: {
-      id: 1,
-      firstName: "Admin",
-      lastName: "User",
-      email: ADMIN_EMAIL,
-      role: "ADMIN"
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
-  });
+
+    // First check if it's the hardcoded admin
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      const token = generateToken({ email, role: "ADMIN" });
+      return res.json({
+        token,
+        user: {
+          id: 1,
+          firstName: "Admin",
+          lastName: "User",
+          email: ADMIN_EMAIL,
+          role: "ADMIN"
+        }
+      });
+    }
+
+    // Then check database for other admin accounts
+    const admin = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!admin || admin.role !== "ADMIN") {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, admin.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate token
+    const token = generateToken({ email: admin.email, role: "ADMIN", id: admin.id });
+    res.json({
+      token,
+      user: {
+        id: admin.id,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        email: admin.email,
+        role: admin.role
+      }
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // Get all users for admin panel with optional search and status filtering
@@ -914,12 +950,16 @@ router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
+    console.log("📝 Creating new admin account:", { email });
+
     // Validate input
     if (!firstName || !lastName || !email || !password) {
+      console.log("❌ Missing fields:", { firstName, lastName, email, password });
       return res.status(400).json({ message: "All fields are required" });
     }
 
     if (password.length < 6) {
+      console.log("❌ Password too short");
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
@@ -929,6 +969,7 @@ router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
     });
 
     if (existingAdmin) {
+      console.log("❌ Email already exists:", email);
       return res.status(400).json({ message: "Email already exists" });
     }
 
@@ -953,9 +994,10 @@ router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
       },
     });
 
+    console.log("✅ Admin account created:", newAdmin);
     res.status(201).json(newAdmin);
   } catch (error) {
-    console.error("Error creating admin account:", error);
+    console.error("❌ Error creating admin account:", error);
     res.status(500).json({ message: "Failed to create admin account" });
   }
 });

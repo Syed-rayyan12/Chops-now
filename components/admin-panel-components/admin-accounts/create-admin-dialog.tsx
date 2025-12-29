@@ -30,6 +30,7 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -42,6 +43,7 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setSuccess(false)
 
     if (
       !formData.firstName ||
@@ -60,30 +62,47 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
 
     try {
       setLoading(true)
-      const response = await fetch("/api/admin/accounts", {
+      const token = localStorage.getItem("adminToken")
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+      
+      console.log("🔄 Creating admin with token:", token ? "Present" : "Missing")
+      console.log("🌐 Backend URL:", backendUrl)
+      console.log("📝 Form data:", formData)
+      
+      const response = await fetch(`${backendUrl}/api/admin/accounts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify(formData),
       })
 
+      console.log("📤 Response status:", response.status)
+      const responseData = await response.json()
+      console.log("📥 Response data:", responseData)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to create admin")
+        throw new Error(responseData.message || "Failed to create admin")
       }
 
+      setSuccess(true)
       setFormData({
         firstName: "",
         lastName: "",
         email: "",
         password: "",
       })
-      onAdminCreated()
-      onOpenChange(false)
+      
+      // Delay closing dialog to show success message
+      setTimeout(() => {
+        onAdminCreated()
+        onOpenChange(false)
+        setSuccess(false)
+      }, 1500)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create admin"
+      console.error("❌ Error creating admin:", message)
       setError(message)
     } finally {
       setLoading(false)
@@ -164,6 +183,12 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+              ✓ Admin account created successfully!
             </div>
           )}
 
