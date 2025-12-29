@@ -64,14 +64,7 @@ export function BlogDetail({ blog }: BlogDetailProps) {
         <div className="mt-16 pt-8 border-t border-gray-200">
           <h3 className="font-fredoka-one text-2xl font-bold mb-6 text-foreground">More Blog Posts</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link href="/blog" className="group">
-              <div className="bg-gray-50 p-6 rounded-lg hover:shadow-lg transition-shadow">
-                <h4 className="font-space-grotesk font-bold text-lg mb-2 group-hover:text-secondary transition-colors">
-                  Back to All Articles
-                </h4>
-                <p className="text-gray-600 font-ubuntu text-sm">Explore more stories about African and Caribbean cuisine</p>
-              </div>
-            </Link>
+           
           </div>
         </div>
       </div>

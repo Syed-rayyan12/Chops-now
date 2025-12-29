@@ -10,16 +10,21 @@ const blogPosts: Record<string, any> = {
     image: '/blog-3.jpeg',
     content: `
       <h2>The Rise of African & Caribbean Food in the UK</h2>
-      <p>Caribbean flavours are taking the UK by storm. In recent years, we've witnessed an incredible surge in the popularity of African and Caribbean cuisine across the United Kingdom. What was once confined to specific communities has now become a mainstream culinary movement, with restaurants, food trucks, and home cooks embracing these vibrant flavours.</p>
       
-      <h3>Why Are These Cuisines So Popular?</h3>
-      <p>The rise can be attributed to several factors. First, there's the authenticity and depth of flavours that African and Caribbean dishes offer. These cuisines are rooted in centuries of tradition and cultural heritage, bringing stories and history to every plate. Second, there's growing awareness about the health benefits of ingredients like plantain, okra, and callaloo, which are rich in nutrients.</p>
+      <h3>1. Cultural Roots and Migration Influence</h3>
+      <p>The growth of African and Caribbean food in the UK is deeply connected to migration and cultural heritage. Communities that settled in Britain brought traditional recipes and cooking methods that preserved their identity. Over time, these foods moved beyond family homes and local eateries, becoming an important part of the UK's multicultural food scene.</p>
       
-      <h3>The Cultural Impact</h3>
-      <p>Beyond just food, this movement represents a celebration of African and Caribbean cultures. It's about bringing communities together, sharing stories, and creating spaces where these cultures are not just tolerated but celebrated. Food has become a bridge between communities, breaking down barriers and fostering understanding.</p>
+      <h3>2. Growing Demand for Bold and Authentic Flavours</h3>
+      <p>British consumers are increasingly drawn to rich, spicy, and authentic flavours. Dishes such as jerk chicken, jollof rice, plantain, and oxtail have gained widespread popularity due to their depth of taste and unique preparation styles. This growing curiosity has helped African and Caribbean food reach a much wider audience.</p>
       
-      <h3>The Future of African & Caribbean Food</h3>
-      <p>As we move forward, we can expect to see even more fusion dishes, celebrity chefs from these backgrounds, and a continued expansion of restaurants offering authentic cuisine. The movement is here to stay, and it's reshaping the UK food landscape in the most delicious way possible.</p>
+      <h3>3. Street Food and Modern Dining Experiences</h3>
+      <p>Street food markets and pop-up events have played a major role in introducing African and Caribbean cuisine to the public. These spaces allow chefs to showcase traditional dishes in modern, creative ways. As a result, many successful street food businesses have expanded into full-scale restaurants across major UK cities.</p>
+      
+      <h3>4. Media, Social Platforms, and Food Influencers</h3>
+      <p>Social media and digital platforms have significantly boosted the visibility of African and Caribbean food in the UK. Food creators, chefs, and influencers share recipes, cooking videos, and cultural stories, helping to educate audiences and celebrate the richness of these cuisines. This online exposure has accelerated mainstream acceptance.</p>
+      
+      <h3>5. A Lasting Impact on the UK Food Industry</h3>
+      <p>The rise of African and Caribbean food is shaping the future of the UK food industry. Supermarkets, restaurants, and food brands are embracing these flavours, reflecting long-term demand rather than a passing trend. This movement not only enriches British cuisine but also supports cultural recognition and economic growth.</p>
     `
   },
   'top-10-must-try-dishes': {
