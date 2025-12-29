@@ -92,7 +92,7 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] p-4">
         <DialogHeader>
           <DialogTitle>Create New Admin Account</DialogTitle>
           <DialogDescription>
