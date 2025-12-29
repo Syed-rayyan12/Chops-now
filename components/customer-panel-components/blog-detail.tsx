@@ -61,12 +61,7 @@ export function BlogDetail({ blog }: BlogDetailProps) {
         </div>
 
         {/* Related Articles Section */}
-        <div className="mt-16 pt-8 border-t border-gray-200">
-          <h3 className="font-fredoka-one text-2xl font-bold mb-6 text-foreground">More Blog Posts</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           
-          </div>
-        </div>
+       
       </div>
     </div>
   );
