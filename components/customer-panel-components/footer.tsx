@@ -139,8 +139,8 @@ export function Footer() {
               <h3 className="font-fredoka-one font-semibold text-foreground mb-4">Contact Info</h3>
               <div className="flex flex-col gap-4 pb-4">
                 <div className="flex gap-4 items-center">
-                  <MapPinLineIcon className="font-ubuntu text-secondary text-[30px]" />
-                  <span className="font-ubuntu text-[14px]">Chopnow Ltd
+                  <MapPinLineIcon className="font-ubuntu text-secondary text-[30px] w-14 h-14" />
+                  <span className="font-ubuntu text-[13px]">Chopnow Ltd
                     Westgate House
                     West Square
                     HARLOW
