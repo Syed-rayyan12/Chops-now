@@ -36,10 +36,8 @@ export function AdminAccountsContent() {
       setLoading(true)
       const token = localStorage.getItem("adminToken")
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      
       console.log("Fetching admins with token:", token ? "Present" : "Missing")
       console.log("API URL:", apiUrl)
-      
       const response = await fetch(`${apiUrl}/admin/accounts`, {
         method: "GET",
         headers: {
