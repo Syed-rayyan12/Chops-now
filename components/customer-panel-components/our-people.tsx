@@ -15,7 +15,7 @@ export function OurPeople() {
       <div className="container mx-auto  max-2xl:px-8 max-md:px-12 max-sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="w-full flex justify-center relative">
-            <img src="/vector.png" alt="Vector decoration" className="absolute bottom-0 right-4 translate-x-4 translate-y-4" />
+            <img src="/Vector.png" alt="Vector decoration" className="absolute bottom-0 right-4 translate-x-4 translate-y-4" />
             <img src="/Group (1).png" alt="Group decoration" className="absolute top-4 left-10 -translate-x-4 -translate-y-4" />
             <img src={data.image.src} alt={data.image.alt} className="w-full max-w-xl rounded-lg shadow-lg object-cover" />
           </div>

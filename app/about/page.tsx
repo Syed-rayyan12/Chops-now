@@ -34,26 +34,26 @@ of West African cuisine in UK directly to your table, satisfying hearts and home
       <FeaturedSection
         title="Our Journey"
         description="A journey inspired by heritage, powered by flavor."
-      features={[
-  {
-    imageSrc: "/journey-1.png",
-    title: "Origin",
-    description:
-      "It all started with a shared vision to create the first black-owned food delivery platform in the UK. We saw the gap in the market, where finding a truly great Caribbean & African restaurant in London was a challenge. Our mission was clear: bringing vibrant tastes of home to your home!"
-  },
-  {
-    imageSrc: "/journey-2.png",
-    title: "Growth",
-    description:
-      "We expanded our network of talented chefs, bringing the most sought-after authentic African meals in the UK to food lovers nationwide. Our commitment to quality and culture soon made us a leading name in Caribbean food delivery across the UK, uniting two rich culinary heritages!"
-  },
-  {
-    imageSrc: "/journey-3.png",
-    title: "Future & Beyond",
-    description:
-      "Our appetite for growth is as big as yours. We're excited to introduce beloved popular Ghanaian meals in the UK and explore new services like African grocery delivery in the UK, bringing all the essential ingredients for a true taste of home directly to your door."
-  }
-]}
+        features={[
+          {
+            imageSrc: "/journey-1.png",
+            title: "Origin",
+            description:
+              "It all started with a shared vision to create the first black-owned food delivery platform in the UK. We saw the gap in the market, where finding a truly great Caribbean & African restaurant in London was a challenge. Our mission was clear: bringing vibrant tastes of home to your home!"
+          },
+          {
+            imageSrc: "/journey-2.png",
+            title: "Growth",
+            description:
+              "We expanded our network of talented chefs, bringing the most sought-after authentic African meals in the UK to food lovers nationwide. Our commitment to quality and culture soon made us a leading name in Caribbean food delivery across the UK, uniting two rich culinary heritages!"
+          },
+          {
+            imageSrc: "/journey-3.png",
+            title: "Future & Beyond",
+            description:
+              "Our appetite for growth is as big as yours. We're excited to introduce beloved popular Ghanaian meals in the UK and explore new services like African grocery delivery in the UK, bringing all the essential ingredients for a true taste of home directly to your door."
+          }
+        ]}
 
       />
 
