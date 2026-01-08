@@ -1,11 +1,18 @@
 import nodemailer from 'nodemailer';
+import sendgridMail from '@sendgrid/mail';
 
 console.log('📧 Email Config:', {
   emailUser: process.env.EMAIL_USER,
   passwordSet: !!process.env.EMAIL_PASSWORD,
+  usingSendGrid: !!process.env.SENDGRID_API_KEY,
 });
 
-// Create transporter using Gmail SMTP
+// If SendGrid API key is present, configure SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sendgridMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+// Create transporter using Gmail SMTP (fallback)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -74,11 +81,25 @@ export const sendContactEmail = async (data: ContactFormData) => {
     subject: `[ChopNow Contact] ${subject}`,
     html: htmlContent,
   };
-
   console.log('📤 Sending email to:', COMPANY_EMAILS);
-  
-  const result = await transporter.sendMail(mailOptions);
-  console.log('✅ Email sent:', result.messageId);
-  
+
+  // If SendGrid key is present, use SendGrid SDK (preferred)
+  if (process.env.SENDGRID_API_KEY) {
+    const msg = {
+      to: COMPANY_EMAILS,
+      from: process.env.EMAIL_USER || 'no-reply@chopnow.example',
+      replyTo: email,
+      subject: mailOptions.subject,
+      html: htmlContent,
+    };
+
+    const result = await sendgridMail.send(msg as any);
+    console.log('✅ SendGrid response:', result && result[0] && result[0].statusCode);
+    return result;
+  }
+
+  // Fallback to nodemailer
+  const result = await transporter.sendMail(mailOptions as any);
+  console.log('✅ Nodemailer sent:', result.messageId);
   return result;
 };
