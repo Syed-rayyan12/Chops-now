@@ -27,7 +27,7 @@ export function ImageContentSection({
           <div className="w-full flex justify-center  relative">
             {/* Vector and Group images */}
             <img
-              src="/vector.png"
+              src="/Vector.png"
               alt="Vector decoration"
               className="absolute bottom-0 right-4 w-50 h-50 translate-x-4 translate-y-4 "
             />
