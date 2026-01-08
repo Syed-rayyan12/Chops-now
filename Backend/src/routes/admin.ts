@@ -1059,4 +1059,107 @@ router.delete("/accounts/:id", authenticate(["ADMIN"]), async (req, res) => {
   }
 });
 
+// Restaurant approval/rejection
+router.put("/restaurants/:id/approve", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved, rejectionReason } = req.body;
+
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    if (approved) {
+      // Approve - ensure deletedAt is null
+      await prisma.restaurant.update({
+        where: { id: parseInt(id) },
+        data: { deletedAt: null },
+      });
+    } else {
+      // Reject - soft delete
+      await prisma.restaurant.update({
+        where: { id: parseInt(id) },
+        data: { deletedAt: new Date() },
+      });
+    }
+
+    // Send approval/rejection email
+    try {
+      const { sendRestaurantStatusEmail } = await import('../config/email.config');
+      await sendRestaurantStatusEmail({
+        email: restaurant.ownerEmail,
+        restaurantName: restaurant.name,
+        ownerName: `${restaurant.ownerFirstName} ${restaurant.ownerLastName}`,
+        approved: !!approved,
+        rejectionReason: rejectionReason || undefined,
+      });
+      console.log('✅ Restaurant status email sent');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send restaurant status email:', emailError);
+    }
+
+    res.json({ 
+      message: approved ? "Restaurant approved successfully" : "Restaurant rejected",
+      restaurant 
+    });
+  } catch (error) {
+    console.error("Error updating restaurant status:", error);
+    res.status(500).json({ message: "Failed to update restaurant status" });
+  }
+});
+
+// Rider approval/rejection
+router.put("/riders/:id/approve", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved, rejectionReason } = req.body;
+
+    // Extract numeric ID if formatted (e.g., "RDR-001" -> 1)
+    let numericId: number;
+    if (typeof id === 'string' && id.startsWith('RDR-')) {
+      numericId = parseInt(id.replace('RDR-', ''));
+    } else {
+      numericId = parseInt(id);
+    }
+
+    const rider = await prisma.rider.findUnique({
+      where: { id: numericId },
+    });
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found" });
+    }
+
+    // Update rider approval status (you may want to add an 'approved' field to Rider model)
+    // For now, we'll just use this endpoint to send emails
+    // Consider adding: approved Boolean @default(false) to Rider model
+
+    // Send approval/rejection email
+    try {
+      const { sendRiderStatusEmail } = await import('../config/email.config');
+      await sendRiderStatusEmail({
+        email: rider.email,
+        riderName: `${rider.firstName} ${rider.lastName}`,
+        approved: !!approved,
+        rejectionReason: rejectionReason || undefined,
+      });
+      console.log('✅ Rider status email sent');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send rider status email:', emailError);
+    }
+
+    res.json({ 
+      message: approved ? "Rider approved successfully" : "Rider rejected",
+      rider 
+    });
+  } catch (error) {
+    console.error("Error updating rider status:", error);
+    res.status(500).json({ message: "Failed to update rider status" });
+  }
+});
+
 export default router;
