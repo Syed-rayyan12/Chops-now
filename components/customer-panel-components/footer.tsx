@@ -154,7 +154,7 @@ export function Footer() {
                 </div>
                 <div className="flex gap-4 pb-2">
                   <Mail className="font-ubuntu text-secondary text-[16px]" />
-                  <span className="font-ubuntu text-[16px]">hello@chopnow.uk.com</span>
+                  <span className="font-ubuntu text-[16px]">info@chopnow.co.uk</span>
                 </div>
               </div>
             </div>
