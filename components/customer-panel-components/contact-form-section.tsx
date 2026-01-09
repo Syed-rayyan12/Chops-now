@@ -133,7 +133,7 @@ export function ContactFormSection() {
                     Email Address
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                hello@chopnow.uk.com
+                info@chopnow.co.uk
                   </p>
                 </div>
               </div>
