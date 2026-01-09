@@ -108,6 +108,20 @@ router.post("/signup", async (req, res) => {
       expiresIn: "7d",
     });
 
+    // Send welcome email
+    try {
+      const { sendWelcomeEmail } = await import('../config/email.config');
+      await sendWelcomeEmail({
+        email: rider.email,
+        firstName: rider.firstName,
+        role: 'RIDER'
+      });
+      console.log('✅ Welcome email sent to rider');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send welcome email:', emailError);
+      // Don't fail signup if email fails
+    }
+
     res.status(201).json({ rider, token });
   } catch (err: any) {
     console.error("Signup error:", err);

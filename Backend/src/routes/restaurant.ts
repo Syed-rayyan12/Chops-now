@@ -173,6 +173,20 @@ router.post("/signup", async (req, res) => {
     // Generate token using restaurant id, email, and role
     const token = generateToken({ id: restaurant.id, email: restaurant.ownerEmail, role: "RESTAURANT" });
 
+    // Send welcome email
+    try {
+      const { sendWelcomeEmail } = await import('../config/email.config');
+      await sendWelcomeEmail({
+        email: businessEmail,
+        firstName: firstName,
+        role: 'RESTAURANT'
+      });
+      console.log('✅ Welcome email sent to restaurant');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send welcome email:', emailError);
+      // Don't fail signup if email fails
+    }
+
     // Return only form-matching fields in restaurant response
     const restaurantResponse = {
       id: restaurant.id,

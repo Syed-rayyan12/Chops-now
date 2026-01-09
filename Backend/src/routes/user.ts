@@ -98,6 +98,20 @@ router.post("/signup", async (req, res) => {
   // Generate JWT
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
+    // Send welcome email
+    try {
+      const { sendWelcomeEmail } = await import('../config/email.config');
+      await sendWelcomeEmail({
+        email: user.email,
+        firstName: user.firstName,
+        role: 'USER'
+      });
+      console.log('✅ Welcome email sent to user');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send welcome email:', emailError);
+      // Don't fail signup if email fails
+    }
+
     // Return full user (without password) and token
     const { password: _pw, ...userWithoutPassword } = user;
     res.status(201).json({ user: userWithoutPassword, token });
@@ -419,6 +433,34 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
         })
       }
     });
+
+    // Send order confirmation email to customer
+    try {
+      const { sendOrderConfirmationEmail } = await import('../config/email.config');
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      
+      if (user && user.email) {
+        await sendOrderConfirmationEmail({
+          customerEmail: user.email,
+          customerName: `${user.firstName} ${user.lastName}`,
+          orderCode: code,
+          restaurantName: restaurant.name,
+          items: order.items.map(item => ({
+            title: item.title,
+            qty: item.qty,
+            unitPrice: item.unitPrice
+          })),
+          subtotal,
+          deliveryFee,
+          total: amount,
+          deliveryAddress
+        });
+        console.log('✅ Order confirmation email sent');
+      }
+    } catch (emailError) {
+      console.error('⚠️ Failed to send order confirmation email:', emailError);
+      // Don't fail the order if email fails
+    }
 
     res.status(201).json({ 
       message: "Order placed successfully! 🎉",
