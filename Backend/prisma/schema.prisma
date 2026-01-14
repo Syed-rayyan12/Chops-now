@@ -21,6 +21,7 @@ model User {
   addresses      Address[]
   cartItems      CartItem[]
   customerOrders Order[]   @relation("CustomerOrders")
+   image     String? 
 }
 
 model Restaurant {

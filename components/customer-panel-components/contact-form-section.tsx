@@ -26,9 +26,9 @@ export function ContactFormSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (isSubmitting) return // Prevent double submission
-    
+
     setIsSubmitting(true)
 
     try {
@@ -71,20 +71,20 @@ export function ContactFormSection() {
   }
 
   return (
-    <div 
+    <div
       className="py-16 bg-white relative bg-cover  bg-no-repeat"
       style={{ backgroundImage: "url('/featured-bg.jpeg')" }}
     >
       {/* Dark overlay for better text readability */}
 
-      
+
       <div className="container mx-auto px-36 max-2xl:px-8 max-md:px-12 max-sm:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
-          
+
           {/* Left Side - Get In Touch */}
           <div className="pt-14">
             <h2 className="font-fredoka-one text-4xl font-extrabold text-foreground mb-4">
-             Let's Start a Conversation
+              Let's Start a Conversation
             </h2>
             <div className="bg-secondary h-1 w-24 mb-6"></div>
             <p className="text-lg text-foreground font-ubuntu leading-relaxed mb-8">
@@ -103,7 +103,7 @@ export function ContactFormSection() {
                     Our Address
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                   Chopnow Ltd Westgate House West Square HARLOW Essex CM20 1YS UNITED KINGDOM
+                    Chopnow Ltd Westgate House West Square HARLOW Essex CM20 1YS UNITED KINGDOM
                   </p>
                 </div>
               </div>
@@ -115,10 +115,10 @@ export function ContactFormSection() {
                 </div>
                 <div>
                   <h3 className="font-space-grotesk text-lg font-bold text-foreground mb-1">
-                  Contact Us
+                    Contact Us
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                  07944 445328
+                    07944 445328
                   </p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export function ContactFormSection() {
                     Email Address
                   </h3>
                   <p className="text-gray-600 text-[16px] font-ubuntu">
-                info@chopnow.co.uk
+                    info@chopnow.co.uk
                   </p>
                 </div>
               </div>
@@ -149,19 +149,19 @@ export function ContactFormSection() {
           >
             {/* Top Right Border - Half Width */}
             <div className="absolute top-0 right-0 w-1/2 h-3 bg-secondary -z-10"></div>
-            
+
             {/* Right Vertical Border */}
             <div className="absolute top-0 right-0 w-4 h-full bg-secondary -z-10"></div>
-            
+
             {/* Bottom Right Border - Half Width */}
             <div className="absolute bottom-0 right-0 w-1/2 h-3 bg-secondary -z-10"></div>
-            
+
             <h2 className="font-fredoka-one text-3xl font-extrabold text-foreground mb-4">
               General Inquiries
             </h2>
             <div className="bg-secondary h-1 w-24 mb-6"></div>
             <p className="text-base text-foreground font-ubuntu leading-relaxed mb-6">
-             For all general questions and feedback, please contact us at [add email]. We're here to help!
+              For all general questions and feedback, please contact us at [add email]. We're here to help!
 
             </p>
 
