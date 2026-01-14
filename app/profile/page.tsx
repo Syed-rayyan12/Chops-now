@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { User, MapPin, Clock, Edit2, Loader2, DollarSign, Package } from "lucide-react"
+import { User, MapPin, Clock, Edit2, Loader2, DollarSign, Package, Upload, X } from "lucide-react"
 import { Header } from "@/components/customer-panel-components/header"
 import { Footer } from "@/components/customer-panel-components/footer"
 import { getUserProfile, updateUserProfile, getUserAddresses, getUserOrders } from "@/lib/api/user.api"
@@ -22,6 +22,7 @@ type EditForm = {
   lastName: string
   email: string
   phone: string
+  image?: string | null
 }
 
 const ubuntu = Ubuntu({
@@ -40,11 +41,14 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useState<HTMLInputElement | null>(null)[1]
   const [editForm, setEditForm] = useState<EditForm>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    image: null,
   })
 
   useEffect(() => {
@@ -69,12 +73,14 @@ export default function ProfilePage() {
       setUser(profileData)
       setAddresses(addressesData)
       setOrders(ordersData)
+      setImagePreview(profileData.image || null)
       
       setEditForm({
         firstName: profileData.firstName || "",
         lastName: profileData.lastName || "",
         email: profileData.email || "",
         phone: profileData.phone || "",
+        image: profileData.image || null,
       })
     } catch (error: any) {
       console.error("Failed to load profile:", error)
@@ -89,6 +95,33 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setImagePreview(base64String)
+        setEditForm({ ...editForm, image: base64String })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setImagePreview(null)
+    setEditForm({ ...editForm, image: null })
   }
 
   const handleSaveProfile = async () => {
@@ -150,8 +183,12 @@ export default function ProfilePage() {
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-[#FF6B35] rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-[#FF6B35] rounded-full flex items-center justify-center overflow-hidden">
+                {imagePreview || user.image ? (
+                  <img src={imagePreview || user.image} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-white" />
+                )}
               </div>
               <div>
                 <h1 className="text-3xl text-[#2D2D2D]">
@@ -224,6 +261,57 @@ export default function ProfilePage() {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-6 pt-4">
+                  {/* Profile Image Upload */}
+                  <div className="space-y-3">
+                    <Label className="text-gray-700">Profile Picture</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                        {imagePreview || user.image ? (
+                          <img src={imagePreview || user.image} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-12 h-12 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {isEditing && (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const input = document.createElement('input')
+                                input.type = 'file'
+                                input.accept = 'image/*'
+                                input.onchange = handleImageChange as any
+                                input.click()
+                              }}
+                              className="border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35] hover:text-white"
+                            >
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload
+                            </Button>
+                            {(imagePreview || user.image) && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRemoveImage}
+                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                              >
+                                <X className="w-4 h-4 mr-2" />
+                                Remove
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {isEditing && (
+                      <p className="text-xs text-gray-500">Recommended: Square image, max 5MB</p>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName" className="text-gray-700 mb-2">First Name</Label>

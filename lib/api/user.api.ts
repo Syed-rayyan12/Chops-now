@@ -41,6 +41,7 @@ export interface UserProfile {
   lastName: string;
   email: string;
   phone: string;
+  image?: string | null;
   createdAt: string;
 }
 

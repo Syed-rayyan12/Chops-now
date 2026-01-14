@@ -182,6 +182,7 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
         email: true,
         phone: true,
         role: true,
+        image: true,
         createdAt: true,
       },
     });
@@ -199,14 +200,15 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
 router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, email, phone } = req.body as {
+    const { firstName, lastName, email, phone, image } = req.body as {
       firstName?: string;
       lastName?: string;
       email?: string;
       phone?: string | null;
+      image?: string | null;
     };
 
-    if (!firstName && !lastName && !email && !phone) {
+    if (!firstName && !lastName && !email && !phone && image === undefined) {
       return res.status(400).json({ message: "At least one field is required" });
     }
 
@@ -256,6 +258,9 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
       }
       updates.phone = phone ?? null;
     }
+    if (image !== undefined) {
+      updates.image = image ?? null;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -267,6 +272,7 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
         email: true,
         phone: true,
         role: true,
+        image: true,
         createdAt: true,
       },
     });
