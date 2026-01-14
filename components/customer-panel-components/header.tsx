@@ -25,6 +25,7 @@ type CustomerUser = {
   lastName?: string
   email?: string
   role?: string
+  image?: string | null
 }
 
 export function Header() {
@@ -158,14 +159,20 @@ export function Header() {
                     size="sm"
                     className="flex items-center gap-2 bg-transparent px-2 py-1 rounded-full shadow-none hover:bg-transparent"
                   >
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold">
-                      {(() => {
-                        const f = user.firstName?.trim()?.[0]?.toUpperCase()
-                        const l = user.lastName?.trim()?.[0]?.toUpperCase()
-                        if (f && l) return `${f}${l}`
-                        if (f) return f
-                        return user.email?.charAt(0).toUpperCase() || 'U'
-                      })()}
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold overflow-hidden">
+                      {user.image ? (
+                        <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          {(() => {
+                            const f = user.firstName?.trim()?.[0]?.toUpperCase()
+                            const l = user.lastName?.trim()?.[0]?.toUpperCase()
+                            if (f && l) return `${f}${l}`
+                            if (f) return f
+                            return user.email?.charAt(0).toUpperCase() || 'U'
+                          })()}
+                        </>
+                      )}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>

@@ -32,7 +32,8 @@ app.use(
 // Stripe webhook needs raw body, so add it before express.json()
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve uploaded files (make sure uploads directory exists)
 app.use(
