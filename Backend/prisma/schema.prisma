@@ -77,6 +77,7 @@ model Rider {
   insuranceExpiryReminder          String?
   accountNumber                    String?
   sortCode                         String?
+  image                            String?
   deliveryPartnerAgreementAccepted Boolean              @default(false)
   isOnline                         Boolean              @default(false)
   latitude                         Float?

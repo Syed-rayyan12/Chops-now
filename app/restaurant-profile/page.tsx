@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Store, Edit2, Loader2 } from "lucide-react"
+import { User, Store, Edit2, Loader2, Upload, X } from "lucide-react"
 import { Header } from "@/components/restaurant-panel-components/header"
 import { getRestaurantProfile, updateRestaurantProfile } from "@/lib/api/restaurant.api";
 import { toast } from "@/components/ui/use-toast"
@@ -22,6 +22,7 @@ type EditForm = {
   ownerFirstName: string
   ownerLastName: string
   phone: string
+  image?: string | null
 }
 
 export default function RestaurantProfilePage() {
@@ -33,10 +34,12 @@ export default function RestaurantProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<EditForm>({
     ownerFirstName: "",
     ownerLastName: "",
     phone: "",
+    image: null,
   })
 
   useEffect(() => {
@@ -65,11 +68,13 @@ export default function RestaurantProfilePage() {
 
       const profileData = await getRestaurantProfile()
       setRestaurant(profileData)
+      setImagePreview(profileData.image || null)
       
       setEditForm({
         ownerFirstName: profileData.ownerFirstName || "",
         ownerLastName: profileData.ownerLastName || "",
         phone: profileData.phone || "",
+        image: profileData.image || null,
       })
     } catch (error: any) {
       console.error("Failed to load profile:", error)
@@ -85,6 +90,60 @@ export default function RestaurantProfilePage() {
       setIsLoading(false)
       setInitialLoad(false)
     }
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const MAX_WIDTH = 800
+          const MAX_HEIGHT = 800
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width
+              width = MAX_WIDTH
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height
+              height = MAX_HEIGHT
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+          setImagePreview(compressedBase64)
+          setEditForm({ ...editForm, image: compressedBase64 })
+        }
+        img.src = event.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setImagePreview(null)
+    setEditForm({ ...editForm, image: null })
   }
 
   const handleSaveProfile = async () => {
@@ -146,8 +205,12 @@ export default function RestaurantProfilePage() {
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-[#FF6B35] rounded-full flex items-center justify-center">
-                <Store className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-[#FF6B35] rounded-full flex items-center justify-center overflow-hidden">
+                {imagePreview || restaurant.image ? (
+                  <img src={imagePreview || restaurant.image} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <Store className="w-8 h-8 text-white" />
+                )}
               </div>
               <div>
                 <h1 className="text-3xl text-[#2D2D2D] font-bold">
@@ -194,6 +257,57 @@ export default function RestaurantProfilePage() {
               )}
             </CardHeader>
             <CardContent className="space-y-6 pt-4">
+              {/* Profile Image Upload */}
+              <div className="space-y-3">
+                <Label className="text-gray-700">Restaurant Profile Picture</Label>
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                    {imagePreview || restaurant.image ? (
+                      <img src={imagePreview || restaurant.image} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <Store className="w-12 h-12 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {isEditing && (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const input = document.createElement('input')
+                            input.type = 'file'
+                            input.accept = 'image/*'
+                            input.onchange = handleImageChange as any
+                            input.click()
+                          }}
+                          className="border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35] hover:text-white"
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload
+                        </Button>
+                        {(imagePreview || restaurant.image) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRemoveImage}
+                            className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Remove
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+                {isEditing && (
+                  <p className="text-xs text-gray-500">Recommended: Square image, max 5MB</p>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="ownerFirstName" className="text-gray-700 mb-2">First Name</Label>

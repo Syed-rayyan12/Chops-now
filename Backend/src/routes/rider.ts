@@ -235,7 +235,8 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
       address,
       vehicle,
       accountNumber,
-      sortCode
+      sortCode,
+      image
     } = req.body;
 
     const updatedRider = await prisma.rider.update({
@@ -248,7 +249,8 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
         address,
         vehicle,
         accountNumber,
-        sortCode
+        sortCode,
+        ...(image !== undefined && { image })
       },
       select: {
         id: true,
@@ -260,6 +262,7 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
         vehicle: true,
         accountNumber: true,
         sortCode: true,
+        image: true,
         createdAt: true,
       }
     });

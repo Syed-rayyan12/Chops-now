@@ -305,6 +305,7 @@ router.put("/profile", authenticate(["RESTAURANT"]), async (req: any, res) => {
       deliveryFee,
       serviceFee,
       deliveryTime,
+      image,
     } = req.body;
 
     // Build update object with only provided fields
@@ -323,6 +324,7 @@ router.put("/profile", authenticate(["RESTAURANT"]), async (req: any, res) => {
     if (deliveryFee !== undefined) updateData.deliveryFee = parseFloat(deliveryFee);
     if (serviceFee !== undefined) updateData.serviceFee = parseFloat(serviceFee);
     if (deliveryTime !== undefined) updateData.deliveryTime = deliveryTime;
+    if (image !== undefined) updateData.image = image;
 
     // Check for phone uniqueness if updating
     if (phone && phone !== "") {

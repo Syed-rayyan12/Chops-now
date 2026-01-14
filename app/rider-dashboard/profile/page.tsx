@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { User, MapPin, Clock, Edit2, Loader2, Package, DollarSign, Navigation, Phone as PhoneIcon, X } from "lucide-react"
+import { User, MapPin, Clock, Edit2, Loader2, Package, DollarSign, Navigation, Phone as PhoneIcon, X, Upload } from "lucide-react"
 import { STORAGE_KEYS, API_CONFIG } from "@/lib/api/config"
 import { toast } from "@/components/ui/use-toast"
 
@@ -23,6 +23,7 @@ type EditForm = {
   vehicle: string
   accountNumber: string
   sortCode: string
+  image?: string | null
 }
 
 export default function RiderProfilePage() {
@@ -35,6 +36,7 @@ export default function RiderProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<EditForm>({
     firstName: "",
     lastName: "",
@@ -44,6 +46,7 @@ export default function RiderProfilePage() {
     vehicle: "",
     accountNumber: "",
     sortCode: "",
+    image: null,
   })
 
   useEffect(() => {
@@ -69,6 +72,7 @@ export default function RiderProfilePage() {
       const profileData = await profileRes.json()
 
       setRider(profileData.rider)
+      setImagePreview(profileData.rider.image || null)
 
       setEditForm({
         firstName: profileData.rider.firstName || "",
@@ -79,6 +83,7 @@ export default function RiderProfilePage() {
         vehicle: profileData.rider.vehicle || "",
         accountNumber: profileData.rider.accountNumber || "",
         sortCode: profileData.rider.sortCode || "",
+        image: profileData.rider.image || null,
       })
     } catch (error: any) {
       console.error("Failed to load profile:", error)
@@ -111,6 +116,60 @@ export default function RiderProfilePage() {
     } catch (error: any) {
       console.error("Failed to load orders:", error)
     }
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const MAX_WIDTH = 800
+          const MAX_HEIGHT = 800
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width
+              width = MAX_WIDTH
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height
+              height = MAX_HEIGHT
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+          setImagePreview(compressedBase64)
+          setEditForm({ ...editForm, image: compressedBase64 })
+        }
+        img.src = event.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setImagePreview(null)
+    setEditForm({ ...editForm, image: null })
   }
 
   const handleSaveProfile = async () => {
@@ -242,8 +301,12 @@ export default function RiderProfilePage() {
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-[#FF6B35] rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-[#FF6B35] rounded-full flex items-center justify-center overflow-hidden">
+                {imagePreview || rider.image ? (
+                  <img src={imagePreview || rider.image} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-white" />
+                )}
               </div>
               <div>
                 <h1 className="text-3xl text-[#2D2D2D]">
@@ -315,6 +378,57 @@ export default function RiderProfilePage() {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-6 pt-4">
+                  {/* Profile Image Upload */}
+                  <div className="space-y-3">
+                    <Label className="text-gray-700">Profile Picture</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                        {imagePreview || rider.image ? (
+                          <img src={imagePreview || rider.image} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-12 h-12 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {isEditing && (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const input = document.createElement('input')
+                                input.type = 'file'
+                                input.accept = 'image/*'
+                                input.onchange = handleImageChange as any
+                                input.click()
+                              }}
+                              className="border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35] hover:text-white"
+                            >
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload
+                            </Button>
+                            {(imagePreview || rider.image) && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRemoveImage}
+                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                              >
+                                <X className="w-4 h-4 mr-2" />
+                                Remove
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {isEditing && (
+                      <p className="text-xs text-gray-500">Recommended: Square image, max 5MB</p>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName" className="text-gray-700 mb-2">First Name</Label>
