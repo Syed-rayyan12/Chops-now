@@ -75,7 +75,7 @@ router.post("/google", async (req, res) => {
           password: '', // No password for OAuth users
           role: "USER",
           phone: null,
-          image: googleUser.picture || null,
+          // image: googleUser.picture || null, // Temporarily removed - requires migration
         },
       });
 
