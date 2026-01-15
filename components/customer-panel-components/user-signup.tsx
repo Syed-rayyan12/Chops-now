@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,11 +11,12 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 
 export default function RiderSignup() {
   const router = useRouter()
   const { toast } = useToast() // ✅ Correct way to trigger a toast
+  const { data: session, status } = useSession()
 
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -38,6 +39,30 @@ export default function RiderSignup() {
     password?: string
     address?: string
   }>({})
+
+  // Check if user signed up via Google OAuth
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      const token = (session as any).accessToken
+      const userEmail = session.user?.email
+      
+      if (token && userEmail) {
+        console.log('✅ Google OAuth signup successful, storing token')
+        localStorage.setItem('token', token)
+        localStorage.setItem('userEmail', userEmail)
+        
+        toast({
+          title: "Success!",
+          description: "Account created with Google",
+          duration: 1500,
+        })
+        
+        setTimeout(() => {
+          router.push('/customer-panel')
+        }, 500)
+      }
+    }
+  }, [status, session, router, toast])
 
   const handleAddressClick = async () => {
     if (isGettingLocation) return

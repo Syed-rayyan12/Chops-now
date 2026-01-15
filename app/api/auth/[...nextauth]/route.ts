@@ -18,6 +18,11 @@ export const authOptions: NextAuthOptions = {
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
 
+        console.log('🔄 Calling backend for Google OAuth:', {
+          email: user.email,
+          apiUrl: process.env.NEXT_PUBLIC_API_URL
+        });
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/google`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -30,16 +35,21 @@ export const authOptions: NextAuthOptions = {
           }),
         });
 
-        if (response.ok) {
-          const data = await response.json();
+        const data = await response.json();
+        console.log('✅ Backend response:', { status: response.status, hasToken: !!data.token });
+
+        if (response.ok && data.token) {
           // Token ko user object mein store karo for later use
           (user as any).token = data.token;
           (user as any).userId = data.user?.id;
+          (user as any).email = data.user?.email || user.email;
           return true;
+        } else {
+          console.error('❌ Backend error:', data);
+          return false;
         }
-        return false;
       } catch (error) {
-        console.error('Google Sign In Error:', error);
+        console.error('❌ Google Sign In Error:', error);
         return false;
       }
     },

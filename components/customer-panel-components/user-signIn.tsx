@@ -15,11 +15,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 
 export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) => void }) {
  
   const { toast } = useToast()
+  const { data: session, status } = useSession()
   const [showPassword, setShowPassword] = useState(false)
   const [showSignupOptions, setShowSignupOptions] = useState(false)
   const [formData, setFormData] = useState({ email: "", password: "" })
@@ -29,6 +30,30 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
   const router = useRouter()
   // store logged-in user
   const [user, setUser] = useState<any>(null)
+
+  // Check if user logged in via Google OAuth
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      const token = (session as any).accessToken
+      const userEmail = session.user?.email
+      
+      if (token && userEmail) {
+        console.log('✅ Google OAuth successful, storing token')
+        localStorage.setItem('token', token)
+        localStorage.setItem('userEmail', userEmail)
+        
+        toast({
+          title: "Success!",
+          description: "Logged in with Google",
+          duration: 1500,
+        })
+        
+        setTimeout(() => {
+          router.push('/customer-panel')
+        }, 500)
+      }
+    }
+  }, [status, session, router, toast])
 
   // Removed auto-redirect for logged-in users - allow them to access sign-in page
 
