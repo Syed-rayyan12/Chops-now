@@ -7,15 +7,18 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Store } from "lucide-react"
+import { Loader2, Store, MapPin } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
 import { useToast } from "@/hooks/use-toast"
+import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 
 export default function RestaurantSetupPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null)
   const [formData, setFormData] = useState({
     restaurantName: "",
     phone: "",
@@ -36,6 +39,34 @@ export default function RestaurantSetupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleAddressClick = async () => {
+    if (isGettingLocation) return
+    
+    setIsGettingLocation(true)
+    try {
+      const coords = await getCurrentPosition()
+      setGpsCoords(coords)
+      
+      const address = await getAddressFromCoords(coords.latitude, coords.longitude)
+      setFormData({ ...formData, address })
+      
+      toast({
+        title: "Location retrieved",
+        description: "Address set from your current location",
+        duration: 2000,
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to get location",
+        variant: "destructive",
+        duration: 3000,
+      })
+    } finally {
+      setIsGettingLocation(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,14 +176,30 @@ export default function RestaurantSetupPage() {
 
             <div>
               <Label htmlFor="address">Restaurant Address *</Label>
-              <Input
-                id="address"
-                name="address"
-                placeholder="Enter restaurant address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="address"
+                  name="address"
+                  placeholder="Enter restaurant address or use GPS"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddressClick}
+                  disabled={isGettingLocation}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                  title="Use current location"
+                >
+                  {isGettingLocation ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                  ) : (
+                    <MapPin className="h-5 w-5 text-gray-400 hover:text-primary" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div>
