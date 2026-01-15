@@ -61,29 +61,195 @@ router.post("/google", async (req, res) => {
 
     console.log('✅ Google user info received:', { email: googleUser.email, role: userRole });
 
+    const firstName = googleUser.given_name || googleUser.email.split('@')[0];
+    const lastName = googleUser.family_name || '';
+    const email = googleUser.email.toLowerCase();
+
+    // Handle different roles
+    if (userRole === "RESTAURANT") {
+      // Check if restaurant already exists
+      let restaurant = await prisma.restaurant.findFirst({
+        where: { ownerEmail: email }
+      });
+
+      if (!restaurant) {
+        // Create new restaurant
+        const restaurantName = `${firstName}'s Restaurant`;
+        const slug = `${firstName.toLowerCase()}-restaurant-${Date.now()}`;
+        
+        restaurant = await prisma.restaurant.create({
+          data: {
+            name: restaurantName,
+            slug,
+            phone: '', // Will be updated in profile
+            address: '', // Will be updated in profile
+            ownerEmail: email,
+            ownerFirstName: firstName,
+            ownerLastName: lastName,
+          },
+        });
+
+        console.log(`✅ New restaurant created via Google OAuth:`, restaurant.ownerEmail);
+
+        // Send welcome email
+        try {
+          const { sendWelcomeEmail } = await import('../config/email.config');
+          await sendWelcomeEmail({
+            email: restaurant.ownerEmail,
+            firstName: restaurant.ownerFirstName,
+            role: 'RESTAURANT'
+          });
+          console.log('✅ Welcome email sent to restaurant owner');
+        } catch (emailError) {
+          console.error('⚠️ Failed to send welcome email:', emailError);
+        }
+
+        // Return with isNewUser flag
+        const token = jwt.sign({ 
+          id: restaurant.id, 
+          role: 'RESTAURANT',
+          email: restaurant.ownerEmail 
+        }, JWT_SECRET, { expiresIn: "7d" });
+
+        return res.status(200).json({ 
+          success: true,
+          isNewUser: true,
+          user: {
+            id: restaurant.id,
+            email: restaurant.ownerEmail,
+            firstName: restaurant.ownerFirstName,
+            lastName: restaurant.ownerLastName,
+            phone: restaurant.phone,
+            role: 'RESTAURANT',
+          }, 
+          token 
+        });
+      } else {
+        console.log(`✅ Existing restaurant logged in via Google:`, restaurant.ownerEmail);
+      }
+
+      // Generate JWT token with restaurant data (for existing users)
+      const token = jwt.sign({ 
+        id: restaurant.id, 
+        role: 'RESTAURANT',
+        email: restaurant.ownerEmail 
+      }, JWT_SECRET, { expiresIn: "7d" });
+
+      return res.status(200).json({ 
+        success: true,
+        isNewUser: false,
+        user: {
+          id: restaurant.id,
+          email: restaurant.ownerEmail,
+          firstName: restaurant.ownerFirstName,
+          lastName: restaurant.ownerLastName,
+          phone: restaurant.phone,
+          role: 'RESTAURANT',
+        }, 
+        token 
+      });
+    }
+
+    if (userRole === "RIDER") {
+      // Check if rider already exists
+      let rider = await prisma.rider.findFirst({
+        where: { email }
+      });
+
+      if (!rider) {
+        // Create new rider
+        rider = await prisma.rider.create({
+          data: {
+            email,
+            firstName,
+            lastName,
+            phone: '', // Will be updated in profile
+            password: '', // No password for OAuth users
+            address: null,
+          },
+        });
+
+        console.log(`✅ New rider created via Google OAuth:`, rider.email);
+
+        // Send welcome email
+        try {
+          const { sendWelcomeEmail } = await import('../config/email.config');
+          await sendWelcomeEmail({
+            email: rider.email,
+            firstName: rider.firstName,
+            role: 'RIDER'
+          });
+          console.log('✅ Welcome email sent to rider');
+        } catch (emailError) {
+          console.error('⚠️ Failed to send welcome email:', emailError);
+        }
+
+        // Return with isNewUser flag
+        const token = jwt.sign({ 
+          id: rider.id, 
+          role: 'RIDER',
+          email: rider.email 
+        }, JWT_SECRET, { expiresIn: "7d" });
+
+        return res.status(200).json({ 
+          success: true,
+          isNewUser: true,
+          user: {
+            id: rider.id,
+            email: rider.email,
+            firstName: rider.firstName,
+            lastName: rider.lastName,
+            phone: rider.phone,
+            role: 'RIDER',
+          }, 
+          token 
+        });
+      } else {
+        console.log(`✅ Existing rider logged in via Google:`, rider.email);
+      }
+
+      // Generate JWT token with rider data (for existing users)
+      const token = jwt.sign({ 
+        id: rider.id, 
+        role: 'RIDER',
+        email: rider.email 
+      }, JWT_SECRET, { expiresIn: "7d" });
+
+      return res.status(200).json({ 
+        success: true,
+        isNewUser: false,
+        user: {
+          id: rider.id,
+          email: rider.email,
+          firstName: rider.firstName,
+          lastName: rider.lastName,
+          phone: rider.phone,
+          role: 'RIDER',
+        }, 
+        token 
+      });
+    }
+
+    // Handle USER role (default)
     // Check if user already exists
     let user = await prisma.user.findFirst({
-      where: { email: googleUser.email.toLowerCase() }
+      where: { email }
     });
 
     if (!user) {
       // Create new user from Google data
-      const firstName = googleUser.given_name || googleUser.email.split('@')[0];
-      const lastName = googleUser.family_name || '';
-
       user = await prisma.user.create({
         data: {
-          email: googleUser.email.toLowerCase(),
+          email,
           firstName,
           lastName,
           password: '', // No password for OAuth users
-          role: userRole as any,
+          role: "USER",
           phone: null,
-          // image: googleUser.picture || null, // Temporarily removed - requires migration
         },
       });
 
-      console.log(`✅ New ${userRole} user created via Google OAuth:`, user.email);
+      console.log(`✅ New USER created via Google OAuth:`, user.email);
 
       // Send welcome email
       try {
@@ -91,23 +257,26 @@ router.post("/google", async (req, res) => {
         await sendWelcomeEmail({
           email: user.email,
           firstName: user.firstName,
-          role: userRole
+          role: 'USER'
         });
         console.log('✅ Welcome email sent to Google user');
       } catch (emailError) {
         console.error('⚠️ Failed to send welcome email:', emailError);
       }
     } else {
-      console.log(`✅ Existing ${user.role} user logged in via Google:`, user.email);
+      console.log(`✅ Existing USER logged in via Google:`, user.email);
     }
 
     // Generate JWT token
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
-    // Return user data and token
+    // Return user data and token with isNewUser flag
     const { password: _pw, ...userWithoutPassword } = user;
+    const isNewUser = !user.createdAt || (Date.now() - new Date(user.createdAt).getTime()) < 5000;
+    
     res.status(200).json({ 
       success: true,
+      isNewUser: false, // Users don't need additional setup
       user: userWithoutPassword, 
       token 
     });

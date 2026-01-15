@@ -52,20 +52,28 @@ function GoogleCallbackContent() {
 
         console.log('✅ Google OAuth successful')
 
-        // Store token based on role
-        if (roleInfo.role === 'RESTAURANT') {
-          localStorage.setItem('restaurantToken', backendData.token)
-          localStorage.setItem('restaurantEmail', backendData.user.email)
-        } else if (roleInfo.role === 'RIDER') {
-          localStorage.setItem('riderToken', backendData.token)
-          localStorage.setItem('riderEmail', backendData.user.email)
-        } else {
-          localStorage.setItem('token', backendData.token)
-          localStorage.setItem('userEmail', backendData.user.email)
+        // Store token and email
+        localStorage.setItem('token', backendData.token)
+        localStorage.setItem('userEmail', backendData.user.email)
+
+        // Check if this is a new user (needs profile completion)
+        const isNewUser = backendData.isNewUser || false
+
+        // Determine redirect based on role and profile completion
+        let redirectUrl = roleInfo.redirect
+
+        if (isNewUser) {
+          // New users need to complete their profile
+          if (roleInfo.role === 'RESTAURANT') {
+            redirectUrl = '/restaurant-setup'
+          } else if (roleInfo.role === 'RIDER') {
+            redirectUrl = '/rider-setup'
+          }
+          // USER role goes directly to customer-panel (already has email)
         }
 
-        // Redirect to appropriate dashboard
-        router.push(roleInfo.redirect)
+        // Redirect to appropriate page
+        router.push(redirectUrl)
       } catch (err: any) {
         console.error('❌ Google OAuth Error:', err)
         setError(err.message)

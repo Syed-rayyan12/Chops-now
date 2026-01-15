@@ -238,6 +238,57 @@ router.post("/login", async (req, res) => {
   });
 });
 
+// POST complete restaurant profile (for OAuth users)
+router.post("/complete-profile", authenticate(["RESTAURANT"]), async (req: any, res) => {
+  try {
+    const restaurantId = req.user.id;
+    const { restaurantName, phone, address, cuisineType, description } = req.body;
+
+    if (!restaurantName || !phone || !address) {
+      return res.status(400).json({ message: "Restaurant name, phone, and address are required" });
+    }
+
+    // Update restaurant with profile data
+    const slug = `${restaurantName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${restaurantId}`;
+    
+    const updatedRestaurant = await prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: {
+        name: restaurantName,
+        slug,
+        phone,
+        address,
+        cuisineType: cuisineType || null,
+        description: description || null,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        phone: true,
+        address: true,
+        ownerEmail: true,
+        ownerFirstName: true,
+        ownerLastName: true,
+        cuisineType: true,
+        description: true,
+        image: true,
+      },
+    });
+
+    console.log(`✅ Restaurant profile completed:`, updatedRestaurant.ownerEmail);
+
+    res.status(200).json({
+      success: true,
+      message: "Restaurant profile completed successfully",
+      restaurant: updatedRestaurant,
+    });
+  } catch (error: any) {
+    console.error("Error completing restaurant profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // GET restaurant profile (protected) - for avatar dropdown and profile page
 router.get("/profile", authenticate(["RESTAURANT"]), async (req: any, res) => {
   try {

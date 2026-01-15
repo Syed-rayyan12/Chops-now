@@ -165,6 +165,49 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// POST complete rider profile (for OAuth users)
+router.post("/complete-profile", authenticate(["RIDER"]), async (req: any, res) => {
+  try {
+    const riderId = req.user.id;
+    const { firstName, lastName, phone, address } = req.body;
+
+    if (!firstName || !lastName || !phone || !address) {
+      return res.status(400).json({ message: "First name, last name, phone, and address are required" });
+    }
+
+    // Update rider with profile data
+    const updatedRider = await prisma.rider.update({
+      where: { id: riderId },
+      data: {
+        firstName,
+        lastName,
+        phone,
+        address,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        image: true,
+      },
+    });
+
+    console.log(`✅ Rider profile completed:`, updatedRider.email);
+
+    res.status(200).json({
+      success: true,
+      message: "Rider profile completed successfully",
+      rider: updatedRider,
+    });
+  } catch (error: any) {
+    console.error("Error completing rider profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // GET - All riders (for restaurant to see available riders)
 router.get("/all", async (_req: any, res: any) => {
   try {
