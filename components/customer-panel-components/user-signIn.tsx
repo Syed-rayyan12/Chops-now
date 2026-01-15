@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -28,30 +28,6 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
   const router = useRouter()
   // store logged-in user
   const [user, setUser] = useState<any>(null)
-
-  // Check if user logged in via Google OAuth
-  useEffect(() => {
-    if (status === 'authenticated' && session) {
-      const token = (session as any).accessToken
-      const userEmail = session.user?.email
-      
-      if (token && userEmail) {
-        console.log('✅ Google OAuth successful, storing token')
-        localStorage.setItem('token', token)
-        localStorage.setItem('userEmail', userEmail)
-        
-        toast({
-          title: "Success!",
-          description: "Logged in with Google",
-          duration: 1500,
-        })
-        
-        setTimeout(() => {
-          router.push('/customer-panel')
-        }, 500)
-      }
-    }
-  }, [status, session, router, toast])
 
   // Removed auto-redirect for logged-in users - allow them to access sign-in page
 

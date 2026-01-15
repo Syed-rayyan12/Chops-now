@@ -38,30 +38,6 @@ export default function RiderSignup() {
     address?: string
   }>({})
 
-  // Check if user signed up via Google OAuth
-  useEffect(() => {
-    if (status === 'authenticated' && session) {
-      const token = (session as any).accessToken
-      const userEmail = session.user?.email
-      
-      if (token && userEmail) {
-        console.log('✅ Google OAuth signup successful, storing token')
-        localStorage.setItem('token', token)
-        localStorage.setItem('userEmail', userEmail)
-        
-        toast({
-          title: "Success!",
-          description: "Account created with Google",
-          duration: 1500,
-        })
-        
-        setTimeout(() => {
-          router.push('/customer-panel')
-        }, 500)
-      }
-    }
-  }, [status, session, router, toast])
-
   const handleAddressClick = async () => {
     if (isGettingLocation) return
     
