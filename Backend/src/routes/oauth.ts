@@ -128,6 +128,9 @@ router.post("/google", async (req, res) => {
         console.log(`✅ Existing restaurant logged in via Google:`, restaurant.ownerEmail);
       }
 
+      // Check if profile is complete (phone and address required)
+      const needsSetup = !restaurant.phone || !restaurant.address;
+
       // Generate JWT token with restaurant data (for existing users)
       const token = jwt.sign({ 
         id: restaurant.id, 
@@ -137,7 +140,7 @@ router.post("/google", async (req, res) => {
 
       return res.status(200).json({ 
         success: true,
-        isNewUser: false,
+        isNewUser: needsSetup, // Redirect to setup if profile incomplete
         user: {
           id: restaurant.id,
           email: restaurant.ownerEmail,
@@ -208,6 +211,9 @@ router.post("/google", async (req, res) => {
         console.log(`✅ Existing rider logged in via Google:`, rider.email);
       }
 
+      // Check if profile is complete (phone and address required)
+      const needsSetup = !rider.phone || !rider.address;
+
       // Generate JWT token with rider data (for existing users)
       const token = jwt.sign({ 
         id: rider.id, 
@@ -217,7 +223,7 @@ router.post("/google", async (req, res) => {
 
       return res.status(200).json({ 
         success: true,
-        isNewUser: false,
+        isNewUser: needsSetup, // Redirect to setup if profile incomplete
         user: {
           id: rider.id,
           email: rider.email,
