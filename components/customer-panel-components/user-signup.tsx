@@ -380,7 +380,7 @@ export default function RiderSignup() {
                 const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`
                 window.location.href = googleAuthUrl
               }}
-              className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg py-4 flex items-center justify-center gap-3"
+              className="w-full bg-white text-gray-700 border border-gray-300 rounded-lg py-4 flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
