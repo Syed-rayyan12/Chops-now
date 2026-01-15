@@ -191,7 +191,7 @@ router.post("/complete-profile", authenticate(["RIDER"]), async (req: any, res) 
         email: true,
         phone: true,
         address: true,
-        image: true,
+        // Exclude image field - doesn't exist in database yet
       },
     });
 
@@ -305,7 +305,7 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
         vehicle: true,
         accountNumber: true,
         sortCode: true,
-        image: true,
+        // Exclude image field - doesn't exist in database yet
         createdAt: true,
       }
     });
