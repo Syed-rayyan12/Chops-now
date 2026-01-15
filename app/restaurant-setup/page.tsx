@@ -74,7 +74,7 @@ export default function RestaurantSetupPage() {
     setLoading(true)
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken') || localStorage.getItem('token')
       
       const response = await fetch(`${API_CONFIG.BASE_URL}/restaurant/complete-profile`, {
         method: 'POST',
@@ -96,6 +96,7 @@ export default function RestaurantSetupPage() {
       if (response.ok) {
         // Store restaurant data in localStorage
         if (data.restaurant) {
+          localStorage.setItem('restaurantToken', token || '')
           localStorage.setItem('restaurantSlug', data.restaurant.slug)
           localStorage.setItem('restaurantData', JSON.stringify(data.restaurant))
         }

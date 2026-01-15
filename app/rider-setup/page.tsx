@@ -72,7 +72,7 @@ export default function RiderSetupPage() {
     setLoading(true)
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('riderToken') || localStorage.getItem('token')
       
       const response = await fetch(`${API_CONFIG.BASE_URL}/rider/complete-profile`, {
         method: 'POST',
@@ -93,6 +93,7 @@ export default function RiderSetupPage() {
       if (response.ok) {
         // Store rider data in localStorage
         if (data.rider) {
+          localStorage.setItem('riderToken', token || '')
           localStorage.setItem('riderEmail', data.rider.email)
           localStorage.setItem('riderData', JSON.stringify(data.rider))
         }
