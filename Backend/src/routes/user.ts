@@ -14,6 +14,64 @@ router.get("/ping", (req, res) => {
   res.send("Auth router working ✅");
 });
 
+// Google OAuth Signup/Login
+router.post("/google", async (req, res) => {
+  try {
+    const { email, firstName, lastName, image, googleId } = req.body;
+
+    // Validate required field
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Check if user already exists
+    let user = await prisma.user.findFirst({
+      where: { email: email.toLowerCase() }
+    });
+
+    if (!user) {
+      // Create new user from Google data
+      const nameParts = firstName || lastName 
+        ? { firstName: firstName || '', lastName: lastName || '' }
+        : { firstName: email.split('@')[0], lastName: '' };
+
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          firstName: nameParts.firstName,
+          lastName: nameParts.lastName,
+          password: '', // No password for OAuth users
+          role: "USER",
+          phone: null,
+        },
+      });
+
+      // Send welcome email
+      try {
+        const { sendWelcomeEmail } = await import('../config/email.config');
+        await sendWelcomeEmail({
+          email: user.email,
+          firstName: user.firstName,
+          role: 'USER'
+        });
+        console.log('✅ Welcome email sent to Google user');
+      } catch (emailError) {
+        console.error('⚠️ Failed to send welcome email:', emailError);
+      }
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+
+    // Return user data and token
+    const { password: _pw, ...userWithoutPassword } = user;
+    res.status(200).json({ user: userWithoutPassword, token });
+  } catch (err: any) {
+    console.error("Google OAuth error:", err);
+    res.status(500).json({ message: "Google authentication failed", error: err.message });
+  }
+});
+
 // Signup
 router.post("/signup", async (req, res) => {
   try {
@@ -348,6 +406,7 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
       select: { 
+        name: true,
         deliveryFee: true,
         latitude: true,
         longitude: true
@@ -398,10 +457,10 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
         distanceKm: distanceKm,
         items: {
           create: items.map((item: any) => ({
-            title: item.title || item.name,
+            title: item.title || item.name || 'Item',
             qty: item.quantity,
-            unitPrice: item.price,
-            total: item.price * item.quantity,
+            unitPrice: Number(item.price),
+            total: Number(item.price) * item.quantity,
           }))
         }
       },
@@ -454,7 +513,7 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
           items: order.items.map(item => ({
             title: item.title,
             qty: item.qty,
-            unitPrice: item.unitPrice
+            unitPrice: Number(item.unitPrice)
           })),
           subtotal,
           deliveryFee,
