@@ -32,6 +32,7 @@ function GoogleCallbackContent() {
 
       try {
         console.log('🔄 Exchanging Google code for token...')
+        console.log('Role:', roleInfo.role, 'Redirect:', roleInfo.redirect)
         
         // Send code to backend for token exchange
         const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/oauth/google`, {
@@ -47,10 +48,12 @@ function GoogleCallbackContent() {
         const backendData = await backendResponse.json()
 
         if (!backendResponse.ok) {
+          console.error('❌ Backend error:', backendData)
           throw new Error(backendData.message || 'Backend authentication failed')
         }
 
         console.log('✅ Google OAuth successful')
+        console.log('Backend data:', backendData)
 
         // Store token and email
         localStorage.setItem('token', backendData.token)
@@ -71,6 +74,7 @@ function GoogleCallbackContent() {
 
         // Check if this is a new user (needs profile completion)
         const isNewUser = backendData.isNewUser || false
+        console.log('Is new user:', isNewUser)
 
         // Determine redirect based on role and profile completion
         let redirectUrl = roleInfo.redirect
@@ -86,11 +90,20 @@ function GoogleCallbackContent() {
         }
 
         // Redirect to appropriate page
+        console.log('🔄 Redirecting to:', redirectUrl)
         router.push(redirectUrl)
       } catch (err: any) {
         console.error('❌ Google OAuth Error:', err)
         setError(err.message)
-        setTimeout(() => router.push('/user-signIn'), 3000)
+        
+        // Redirect to appropriate signin based on role
+        const signinPage = roleInfo.role === 'RESTAURANT' 
+          ? '/restaurant-signIn' 
+          : roleInfo.role === 'RIDER' 
+          ? '/rider-signIn' 
+          : '/user-signIn'
+        
+        setTimeout(() => router.push(signinPage), 3000)
       }
     }
 
