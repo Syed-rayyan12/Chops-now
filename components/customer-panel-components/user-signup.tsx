@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,12 +11,10 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
-import { signIn, useSession } from "next-auth/react"
 
 export default function RiderSignup() {
   const router = useRouter()
   const { toast } = useToast() // ✅ Correct way to trigger a toast
-  const { data: session, status } = useSession()
 
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -398,7 +396,13 @@ export default function RiderSignup() {
           <div className="mt-4">
             <Button
               type="button"
-              onClick={() => signIn('google', { callbackUrl: '/customer-panel' })}
+              onClick={() => {
+                const GOOGLE_CLIENT_ID = "840672697083-d3a8pdf9a9ap4mlaph1l8uj4m9rksvei.apps.googleusercontent.com"
+                const redirectUri = `${window.location.origin}/auth/callback`
+                const scope = "openid email profile"
+                const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`
+                window.location.href = googleAuthUrl
+              }}
               className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg py-4 flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
