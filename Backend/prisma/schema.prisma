@@ -21,7 +21,6 @@ model User {
   addresses      Address[]
   cartItems      CartItem[]
   customerOrders Order[]   @relation("CustomerOrders")
-  // image     String?  // Removed - not in Railway database
 }
 
 model Restaurant {
