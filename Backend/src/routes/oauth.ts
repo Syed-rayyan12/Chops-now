@@ -148,6 +148,9 @@ router.post("/google", async (req, res) => {
           lastName: restaurant.ownerLastName,
           phone: restaurant.phone,
           role: 'RESTAURANT',
+          slug: restaurant.slug,
+          name: restaurant.name,
+          address: restaurant.address,
         }, 
         token 
       });

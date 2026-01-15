@@ -94,6 +94,12 @@ export default function RestaurantSetupPage() {
       const data = await response.json()
 
       if (response.ok) {
+        // Store restaurant data in localStorage
+        if (data.restaurant) {
+          localStorage.setItem('restaurantSlug', data.restaurant.slug)
+          localStorage.setItem('restaurantData', JSON.stringify(data.restaurant))
+        }
+
         toast({
           title: "Success!",
           description: "Restaurant profile completed successfully",

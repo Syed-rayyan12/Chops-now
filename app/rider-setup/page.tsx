@@ -91,6 +91,12 @@ export default function RiderSetupPage() {
       const data = await response.json()
 
       if (response.ok) {
+        // Store rider data in localStorage
+        if (data.rider) {
+          localStorage.setItem('riderEmail', data.rider.email)
+          localStorage.setItem('riderData', JSON.stringify(data.rider))
+        }
+
         toast({
           title: "Success!",
           description: "Rider profile completed successfully",

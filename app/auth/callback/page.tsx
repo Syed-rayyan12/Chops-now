@@ -56,6 +56,19 @@ function GoogleCallbackContent() {
         localStorage.setItem('token', backendData.token)
         localStorage.setItem('userEmail', backendData.user.email)
 
+        // Store role-specific data
+        if (roleInfo.role === 'RESTAURANT' && backendData.user) {
+          localStorage.setItem('restaurantEmail', backendData.user.email)
+          // If restaurant data is returned (has slug), store it
+          if (backendData.user.slug) {
+            localStorage.setItem('restaurantSlug', backendData.user.slug)
+            localStorage.setItem('restaurantData', JSON.stringify(backendData.user))
+          }
+        } else if (roleInfo.role === 'RIDER' && backendData.user) {
+          localStorage.setItem('riderEmail', backendData.user.email)
+          localStorage.setItem('riderData', JSON.stringify(backendData.user))
+        }
+
         // Check if this is a new user (needs profile completion)
         const isNewUser = backendData.isNewUser || false
 
