@@ -157,25 +157,46 @@ router.post("/google", async (req, res) => {
     }
 
     if (userRole === "RIDER") {
+      console.log('🔍 Processing RIDER OAuth...', { email, firstName, lastName });
+      
       // Check if rider already exists
       let rider = await prisma.rider.findFirst({
         where: { email }
       });
 
       if (!rider) {
-        // Create new rider
-        rider = await prisma.rider.create({
-          data: {
-            email,
-            firstName,
-            lastName,
-            phone: '', // Will be updated in profile
-            password: '', // No password for OAuth users
-            address: null,
-          },
+        console.log('📝 Creating new rider with data:', {
+          email,
+          firstName,
+          lastName,
+          phone: '',
+          password: '',
+          address: null
         });
+        
+        // Create new rider
+        try {
+          rider = await prisma.rider.create({
+            data: {
+              email,
+              firstName,
+              lastName,
+              phone: '', // Will be updated in profile
+              password: '', // No password for OAuth users
+              address: null,
+            },
+          });
 
-        console.log(`✅ New rider created via Google OAuth:`, rider.email);
+          console.log(`✅ New rider created via Google OAuth:`, rider.email);
+        } catch (createError: any) {
+          console.error('❌ Prisma error creating rider:', createError);
+          console.error('❌ Error details:', {
+            code: createError.code,
+            meta: createError.meta,
+            message: createError.message
+          });
+          throw createError;
+        }
 
         // Send welcome email
         try {
