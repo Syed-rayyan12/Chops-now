@@ -209,7 +209,33 @@ router.post("/google", async (req, res) => {
               phone: '', // Will be updated in profile
               password: '', // No password for OAuth users
               address: null,
+              // Don't include image field - it doesn't exist in database yet
             },
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              password: true,
+              address: true,
+              createdAt: true,
+              personalDetails: true,
+              idDocument: true,
+              proofOfAddress: true,
+              selfie: true,
+              vehicle: true,
+              insurance: true,
+              insuranceExpiryReminder: true,
+              accountNumber: true,
+              sortCode: true,
+              deliveryPartnerAgreementAccepted: true,
+              isOnline: true,
+              latitude: true,
+              longitude: true,
+              lastLocationUpdate: true,
+              // Exclude image field as it doesn't exist in database yet
+            }
           });
 
           console.log(`✅ New rider created via Google OAuth:`, rider.email);
