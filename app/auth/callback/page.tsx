@@ -13,10 +13,21 @@ function GoogleCallbackContent() {
   useEffect(() => {
     const handleGoogleCallback = async () => {
       const code = searchParams.get('code')
+      const stateParam = searchParams.get('state')
       
       if (!code) {
         setError("No authorization code received")
         return
+      }
+
+      // Parse state to get role and redirect URL
+      let roleInfo = { role: 'USER', redirect: '/customer-panel' }
+      try {
+        if (stateParam) {
+          roleInfo = JSON.parse(decodeURIComponent(stateParam))
+        }
+      } catch (e) {
+        console.warn('Failed to parse state parameter, using defaults')
       }
 
       try {
@@ -28,7 +39,8 @@ function GoogleCallbackContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code,
-            redirectUri: `${window.location.origin}/auth/callback`
+            redirectUri: `${window.location.origin}/auth/callback`,
+            role: roleInfo.role
           })
         })
 
@@ -40,12 +52,20 @@ function GoogleCallbackContent() {
 
         console.log('✅ Google OAuth successful')
 
-        // Store token
-        localStorage.setItem('token', backendData.token)
-        localStorage.setItem('userEmail', backendData.user.email)
+        // Store token based on role
+        if (roleInfo.role === 'RESTAURANT') {
+          localStorage.setItem('restaurantToken', backendData.token)
+          localStorage.setItem('restaurantEmail', backendData.user.email)
+        } else if (roleInfo.role === 'RIDER') {
+          localStorage.setItem('riderToken', backendData.token)
+          localStorage.setItem('riderEmail', backendData.user.email)
+        } else {
+          localStorage.setItem('token', backendData.token)
+          localStorage.setItem('userEmail', backendData.user.email)
+        }
 
-        // Redirect to customer panel
-        router.push('/customer-panel')
+        // Redirect to appropriate dashboard
+        router.push(roleInfo.redirect)
       } catch (err: any) {
         console.error('❌ Google OAuth Error:', err)
         setError(err.message)

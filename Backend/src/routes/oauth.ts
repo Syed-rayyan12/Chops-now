@@ -12,7 +12,7 @@ console.log("✅ OAuth routes loaded");
 // Google OAuth - Exchange code for token and create/login user
 router.post("/google", async (req, res) => {
   try {
-    const { code, redirectUri } = req.body;
+    const { code, redirectUri, role = "USER" } = req.body;
 
     if (!code) {
       return res.status(400).json({ message: "Authorization code is required" });
@@ -22,6 +22,10 @@ router.post("/google", async (req, res) => {
       console.error("❌ Google OAuth credentials not configured");
       return res.status(500).json({ message: "OAuth not configured properly" });
     }
+
+    // Validate role
+    const validRoles = ["USER", "RESTAURANT", "RIDER"];
+    const userRole = validRoles.includes(role) ? role : "USER";
 
     // Exchange code for tokens with Google
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -55,7 +59,7 @@ router.post("/google", async (req, res) => {
       return res.status(400).json({ message: 'Failed to get user information' });
     }
 
-    console.log('✅ Google user info received:', { email: googleUser.email });
+    console.log('✅ Google user info received:', { email: googleUser.email, role: userRole });
 
     // Check if user already exists
     let user = await prisma.user.findFirst({
@@ -73,13 +77,13 @@ router.post("/google", async (req, res) => {
           firstName,
           lastName,
           password: '', // No password for OAuth users
-          role: "USER",
+          role: userRole as any,
           phone: null,
           // image: googleUser.picture || null, // Temporarily removed - requires migration
         },
       });
 
-      console.log('✅ New user created via Google OAuth:', user.email);
+      console.log(`✅ New ${userRole} user created via Google OAuth:`, user.email);
 
       // Send welcome email
       try {
@@ -87,14 +91,14 @@ router.post("/google", async (req, res) => {
         await sendWelcomeEmail({
           email: user.email,
           firstName: user.firstName,
-          role: 'USER'
+          role: userRole
         });
         console.log('✅ Welcome email sent to Google user');
       } catch (emailError) {
         console.error('⚠️ Failed to send welcome email:', emailError);
       }
     } else {
-      console.log('✅ Existing user logged in via Google:', user.email);
+      console.log(`✅ Existing ${user.role} user logged in via Google:`, user.email);
     }
 
     // Generate JWT token

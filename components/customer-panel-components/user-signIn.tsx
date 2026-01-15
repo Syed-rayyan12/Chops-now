@@ -199,7 +199,8 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
                 const GOOGLE_CLIENT_ID = "840672697083-d3a8pdf9a9ap4mlaph1l8uj4m9rksvei.apps.googleusercontent.com"
                 const redirectUri = `${window.location.origin}/auth/callback`
                 const scope = "openid email profile"
-                const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`
+                const state = JSON.stringify({ role: 'USER', redirect: '/customer-panel' })
+                const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`
                 window.location.href = googleAuthUrl
               }}
               className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg py-5 flex items-center justify-center gap-3"
