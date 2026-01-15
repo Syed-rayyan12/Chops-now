@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Store, MapPin } from "lucide-react"
+import { Loader2, Store, MapPin, StoreIcon } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
@@ -132,31 +132,31 @@ export default function RestaurantSetupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl p-4 bg-white rounded-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Store className="w-16 h-16 text-primary" />
+            <StoreIcon className="w-10 h-10 text-primary font-light" />
           </div>
-          <CardTitle className="text-2xl">Complete Your Restaurant Profile</CardTitle>
+          <CardTitle className="text-2xl text-[#000]">Complete Your Restaurant <span className="font-semibold text-secondary">Profile</span> </CardTitle>
           <p className="text-gray-500 mt-2">
             Welcome! Please provide your restaurant details to get started.
           </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 mt-10">
             <div>
-              <Label htmlFor="email">Email (from Google)</Label>
+              <Label htmlFor="email" className="mb-4">Email (from Google)</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 disabled
-                className="bg-gray-100"
+                className="border border-gray-300"
               />
             </div>
 
             <div>
-              <Label htmlFor="restaurantName">Restaurant Name *</Label>
+              <Label htmlFor="restaurantName" className="mb-4">Restaurant Name *</Label>
               <Input
                 id="restaurantName"
                 name="restaurantName"
@@ -164,11 +164,12 @@ export default function RestaurantSetupPage() {
                 value={formData.restaurantName}
                 onChange={handleChange}
                 required
+                className="border border-gray-300"
               />
             </div>
 
             <div>
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone" className="mb-4">Phone Number *</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -177,11 +178,12 @@ export default function RestaurantSetupPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 required
+                  className="border border-gray-300"
               />
             </div>
 
             <div>
-              <Label htmlFor="address">Restaurant Address *</Label>
+              <Label htmlFor="address" className="mb-4">Restaurant Address *</Label>
               <div className="relative">
                 <Input
                   id="address"
@@ -190,7 +192,7 @@ export default function RestaurantSetupPage() {
                   value={formData.address}
                   onChange={handleChange}
                   required
-                  className="pr-10"
+                  className="border border-gray-300"
                 />
                 <button
                   type="button"
@@ -202,25 +204,26 @@ export default function RestaurantSetupPage() {
                   {isGettingLocation ? (
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                   ) : (
-                    <MapPin className="h-5 w-5 text-gray-400 hover:text-primary" />
+                    <MapPin className="h-5 w-5 text-gray-400 hover:text-primary text-secondary" />
                   )}
                 </button>
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="cuisineType">Cuisine Type</Label>
+            {/* <div>
+              <Label htmlFor="cuisineType" className="mb-4">Cuisine Type</Label>
               <Input
                 id="cuisineType"
                 name="cuisineType"
                 placeholder="e.g., Italian, Chinese, Indian"
                 value={formData.cuisineType}
                 onChange={handleChange}
+                  className="border border-gray-300"
               />
-            </div>
+            </div> */}
 
             <div>
-              <Label htmlFor="description">Description (Optional)</Label>
+              <Label htmlFor="description" className="mb-4">Description (Optional)</Label>
               <Textarea
                 id="description"
                 name="description"
@@ -228,10 +231,11 @@ export default function RestaurantSetupPage() {
                 value={formData.description}
                 onChange={handleChange}
                 rows={3}
+                  className="border border-gray-300"
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-secondary rounded-md cursor-pointer" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
