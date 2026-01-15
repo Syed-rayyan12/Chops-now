@@ -26,13 +26,12 @@ export default function RiderSetupPage() {
   })
 
   useEffect(() => {
-    // Get email from localStorage
-    const userEmail = localStorage.getItem('userEmail')
-    if (!userEmail) {
-      router.push('/rider-signIn')
-      return
+    // Get email from localStorage or callback will have set it
+    const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('riderEmail')
+    if (userEmail) {
+      setEmail(userEmail)
     }
-    setEmail(userEmail)
+    // Don't redirect if no email - callback might still be setting it up
   }, [router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
