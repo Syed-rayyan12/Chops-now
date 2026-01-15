@@ -240,7 +240,6 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
         email: true,
         phone: true,
         role: true,
-        image: true,
         createdAt: true,
       },
     });
@@ -330,7 +329,6 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
         email: true,
         phone: true,
         role: true,
-        image: true,
         createdAt: true,
       },
     });
