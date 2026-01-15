@@ -161,7 +161,32 @@ router.post("/google", async (req, res) => {
       
       // Check if rider already exists
       let rider = await prisma.rider.findFirst({
-        where: { email }
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          password: true,
+          address: true,
+          createdAt: true,
+          personalDetails: true,
+          idDocument: true,
+          proofOfAddress: true,
+          selfie: true,
+          vehicle: true,
+          insurance: true,
+          insuranceExpiryReminder: true,
+          accountNumber: true,
+          sortCode: true,
+          deliveryPartnerAgreementAccepted: true,
+          isOnline: true,
+          latitude: true,
+          longitude: true,
+          lastLocationUpdate: true,
+          // Exclude image field as it doesn't exist in database yet
+        }
       });
 
       if (!rider) {
