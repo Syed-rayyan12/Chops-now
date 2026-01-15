@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
@@ -70,5 +70,18 @@ export default function GoogleCallbackPage() {
       <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
       <div className="text-gray-700">Completing Google sign in...</div>
     </div>
+  )
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+        <div className="text-gray-700">Loading...</div>
+      </div>
+    }>
+      <GoogleCallbackContent />
+    </Suspense>
   )
 }
