@@ -317,6 +317,8 @@ router.post("/google", async (req, res) => {
       where: { email }
     });
 
+    let isNewUser = false;
+
     if (!user) {
       // Create new user from Google data
       user = await prisma.user.create({
@@ -327,9 +329,11 @@ router.post("/google", async (req, res) => {
           password: '', // No password for OAuth users
           role: "USER",
           phone: null,
+          address: null,
         },
       });
 
+      isNewUser = true;
       console.log(`✅ New USER created via Google OAuth:`, user.email);
 
       // Send welcome email
@@ -346,6 +350,9 @@ router.post("/google", async (req, res) => {
       }
     } else {
       console.log(`✅ Existing USER logged in via Google:`, user.email);
+      // Check if profile is complete (phone and address required)
+      const needsSetup = !user.phone || !user.address;
+      isNewUser = needsSetup;
     }
 
     // Generate JWT token
@@ -353,11 +360,10 @@ router.post("/google", async (req, res) => {
 
     // Return user data and token with isNewUser flag
     const { password: _pw, ...userWithoutPassword } = user;
-    const isNewUser = !user.createdAt || (Date.now() - new Date(user.createdAt).getTime()) < 5000;
     
     res.status(200).json({ 
       success: true,
-      isNewUser: false, // Users don't need additional setup
+      isNewUser, // Will be true if new user or if phone/address are missing
       user: userWithoutPassword, 
       token 
     });
