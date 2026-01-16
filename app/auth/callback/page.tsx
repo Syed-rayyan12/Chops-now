@@ -87,8 +87,9 @@ function GoogleCallbackContent() {
             redirectUrl = '/restaurant-setup'
           } else if (roleInfo.role === 'RIDER') {
             redirectUrl = '/rider-setup'
+          } else if (roleInfo.role === 'USER') {
+            redirectUrl = '/user-setup'
           }
-          // USER role goes directly to customer-panel (already has email)
         }
 
         // Redirect to appropriate page

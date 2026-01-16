@@ -239,6 +239,7 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
         lastName: true,
         email: true,
         phone: true,
+        address: true,
         role: true,
         createdAt: true,
       },
@@ -257,15 +258,16 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
 router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, email, phone, image } = req.body as {
+    const { firstName, lastName, email, phone, address, image } = req.body as {
       firstName?: string;
       lastName?: string;
       email?: string;
       phone?: string | null;
+      address?: string | null;
       image?: string | null;
     };
 
-    if (!firstName && !lastName && !email && !phone && image === undefined) {
+    if (!firstName && !lastName && !email && !phone && address === undefined && image === undefined) {
       return res.status(400).json({ message: "At least one field is required" });
     }
 
@@ -315,6 +317,9 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
       }
       updates.phone = phone ?? null;
     }
+    if (address !== undefined) {
+      updates.address = address ?? null;
+    }
     if (image !== undefined) {
       updates.image = image ?? null;
     }
@@ -328,6 +333,7 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
         lastName: true,
         email: true,
         phone: true,
+        address: true,
         role: true,
         createdAt: true,
       },
@@ -337,6 +343,63 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
   } catch (error: any) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Failed to update profile", error: error.message });
+  }
+});
+
+// Protected: Complete user profile (after Google OAuth)
+router.post("/complete-profile", authenticate(["USER"]), async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const { firstName, lastName, phone, address } = req.body;
+
+    if (!firstName || !lastName || !phone || !address) {
+      return res.status(400).json({ message: "First name, last name, phone, and address are required" });
+    }
+
+    // Validate first name and last name (only letters, min 2 chars)
+    const nameRegex = /^[a-zA-Z\s]{2,}$/;
+    if (!nameRegex.test(firstName)) {
+      return res.status(400).json({ message: "First name must contain only letters and be at least 2 characters" });
+    }
+    if (!nameRegex.test(lastName)) {
+      return res.status(400).json({ message: "Last name must contain only letters and be at least 2 characters" });
+    }
+
+    // Validate phone number
+    if (!/^[0-9+\-\s()]{10,}$/.test(phone)) {
+      return res.status(400).json({ message: "Please provide a valid phone number" });
+    }
+
+    // Update user with profile data
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName,
+        lastName,
+        phone,
+        address,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        role: true,
+      },
+    });
+
+    console.log(`✅ User profile completed:`, updatedUser.email);
+
+    res.status(200).json({
+      success: true,
+      message: "User profile completed successfully",
+      user: updatedUser,
+    });
+  } catch (error: any) {
+    console.error("Error completing user profile:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

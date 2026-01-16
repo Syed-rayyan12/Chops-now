@@ -22,6 +22,7 @@ type EditForm = {
   lastName: string
   email: string
   phone: string
+  address: string
   image?: string | null
 }
 
@@ -48,6 +49,7 @@ export default function ProfilePage() {
     lastName: "",
     email: "",
     phone: "",
+    address: "",
     image: null,
   })
 
@@ -80,6 +82,7 @@ export default function ProfilePage() {
         lastName: profileData.lastName || "",
         email: profileData.email || "",
         phone: profileData.phone || "",
+        address: profileData.address || "",
         image: profileData.image || null,
       })
     } catch (error: any) {
@@ -380,6 +383,17 @@ export default function ProfilePage() {
                       onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                       disabled={!isEditing}
                       className="border-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="address" className="text-gray-700 mb-2">Address</Label>
+                    <Input
+                      id="address"
+                      value={editForm.address}
+                      onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                      disabled={!isEditing}
+                      className="border-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]"
+                      placeholder="Enter your delivery address"
                     />
                   </div>
                   <div className="pt-4 border-t border-gray-200">

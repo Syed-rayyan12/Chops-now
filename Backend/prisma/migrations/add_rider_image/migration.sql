@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "Rider" ADD COLUMN "image" TEXT;
+ALTER TABLE "Rider" ADD COLUMN IF NOT EXISTS "image" TEXT;
