@@ -247,8 +247,9 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getCartTotal()
+  const serviceFee = subtotal * 0.15 // ChopNow 15% service fee on food only
   const deliveryFee = 2.50
-  const grandTotal = subtotal + deliveryFee
+  const grandTotal = subtotal + serviceFee + deliveryFee
 
   if (items.length === 0) {
     return null
@@ -415,6 +416,10 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground">Subtotal</span>
                   <span>£{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground">ChopNow Service Fee (15%)</span>
+                  <span>£{serviceFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground">Delivery Fee</span>

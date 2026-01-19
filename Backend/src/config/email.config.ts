@@ -141,11 +141,12 @@ export const sendOrderConfirmationEmail = async (data: {
   restaurantName: string;
   items: Array<{ title: string; qty: number; unitPrice: number }>;
   subtotal: number;
+  serviceFee: number;
   deliveryFee: number;
   total: number;
   deliveryAddress: string;
 }) => {
-  const { customerEmail, customerName, orderCode, restaurantName, items, subtotal, deliveryFee, total, deliveryAddress } = data;
+  const { customerEmail, customerName, orderCode, restaurantName, items, subtotal, serviceFee, deliveryFee, total, deliveryAddress } = data;
 
   const itemsHtml = items.map(item => `
     <tr>
@@ -192,6 +193,10 @@ export const sendOrderConfirmationEmail = async (data: {
           <tr>
             <td style="padding: 8px 0; color: #555;">Subtotal:</td>
             <td style="padding: 8px 0; text-align: right; color: #555;">£${subtotal.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #555;">ChopNow Service Fee (15%):</td>
+            <td style="padding: 8px 0; text-align: right; color: #555;">£${serviceFee.toFixed(2)}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #555;">Delivery Fee:</td>

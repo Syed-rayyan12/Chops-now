@@ -90,7 +90,7 @@ export function EarningsSection() {
         <div className="flex justify-between items-center">
           <div>
           <h2 className="text-2xl font-bold font-ubuntu mb-2">EARNINGS & PAYMENTS</h2>
-          <p className="text-white font-ubuntu text-sm">View your earnings and payment records.</p>
+          <p className="text-white font-ubuntu text-sm">View your food revenue from completed orders (100% of food prices).</p>
           </div>
           <div>
             <Button variant="pdf" className="bg-transparent border border-white rounded-lg">
@@ -104,7 +104,7 @@ export function EarningsSection() {
       <Card className="p-4 border-primary/50 bg-white">
           <CardContent className="flex justify-between items-center space-y-4">
             <div className="flex flex-col gap-2 pt-6 justify-center">
-              <span className="text-md font-medium text-secondary">Today</span>
+              <span className="text-md font-medium text-secondary">Today's Food Revenue</span>
               <span className="text-xl font-bold text-foreground">
                 £{earnings.today.toFixed(2)}
               </span>
@@ -117,7 +117,7 @@ export function EarningsSection() {
         <Card className="p-4 border-primary/50 bg-white">
           <CardContent className="flex justify-between items-center space-y-4">
             <div className="flex flex-col gap-2 pt-6 justify-center">
-              <span className="text-md font-medium text-secondary">This Week</span>
+              <span className="text-md font-medium text-secondary">This Week's Revenue</span>
               <span className="text-xl font-bold text-foreground">
                 £{earnings.weekly.toFixed(2)}
               </span>
@@ -130,7 +130,7 @@ export function EarningsSection() {
         <Card className="p-4 border-primary/50 bg-white">
           <CardContent className="flex justify-between items-center space-y-4">
             <div className="flex flex-col gap-2 pt-6 justify-center">
-              <span className="text-md font-medium text-secondary">This Month</span>
+              <span className="text-md font-medium text-secondary">This Month's Revenue</span>
               <span className="text-xl font-bold text-foreground">
                 £{earnings.monthly.toFixed(2)}
               </span>
@@ -145,8 +145,8 @@ export function EarningsSection() {
       <Card className="border-primary/50 bg-white p-4">
         <CardHeader className="flex max-sm:flex-col max-sm:items-start max-sm:gap-3 flex-row items-center justify-between">
           <div className="flex flex-col gap-1">   
-          <h1 className="text-foreground  font-bold">Transaction History</h1>
-          <CardDescription className="text-primary">Stay on top of your restaurant's finances.</CardDescription>
+          <h1 className="text-foreground  font-bold">Payment History</h1>
+          <CardDescription className="text-primary">Your food revenue from completed orders (100% of food prices).</CardDescription>
           </div>
          
         </CardHeader>

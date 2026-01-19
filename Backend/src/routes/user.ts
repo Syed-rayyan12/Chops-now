@@ -479,9 +479,23 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
     }
 
     const deliveryFee = restaurant.deliveryFee || 2.50; // Default £2.50 if not set
+    
+    // NEW FLOW: Calculate ChopNow service fee (15% of food subtotal)
+    const serviceFee = subtotal * 0.15;
+    
+    // NEW FLOW: Restaurant gets 100% of food price
+    const restaurantPayout = subtotal;
+    
+    // NEW FLOW: ChopNow platform revenue (service fee)
+    const platformRevenue = serviceFee;
+    
+    // NEW FLOW: Rider gets 100% of delivery fee (will be set when order is accepted)
+    const riderPayout = deliveryFee;
+    
     const tip = 0; // Can be added from frontend
-    const riderPayout = 0; // Will be calculated when assigned to rider
-    const amount = subtotal + deliveryFee;
+    
+    // Total amount customer pays: food + service fee + delivery
+    const amount = subtotal + serviceFee + deliveryFee;
 
     // Generate unique order code
     const code = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -507,9 +521,12 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
         restaurantId,
         status: 'PENDING',
         subTotal: subtotal,
+        serviceFee: serviceFee,
         deliveryFee,
         tip,
         riderPayout,
+        restaurantPayout,
+        platformRevenue,
         amount,
         addressId: null,
         deliveryAddress: deliveryAddress,
@@ -577,6 +594,7 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
             unitPrice: Number(item.unitPrice)
           })),
           subtotal,
+          serviceFee,
           deliveryFee,
           total: amount,
           deliveryAddress

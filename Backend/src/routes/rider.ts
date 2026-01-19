@@ -569,8 +569,8 @@ router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any
       return res.status(400).json({ message: "Order already assigned to another rider" });
     }
 
-    // Calculate rider payout (80% of delivery fee)
-    const riderPayout = Number(order.deliveryFee) * 0.8;
+    // NEW FLOW: Rider gets 100% of delivery fee
+    const riderPayout = Number(order.deliveryFee);
 
     const updatedOrder = await prisma.order.update({
       where: { id: parseInt(orderId) },

@@ -98,9 +98,12 @@ model Order {
   riderId           Int?
   status            OrderStatus @default(PENDING)
   subTotal          Decimal     @db.Decimal(10, 2)
+  serviceFee        Decimal     @db.Decimal(10, 2) @default(0)
   deliveryFee       Decimal     @db.Decimal(10, 2)
   tip               Decimal     @db.Decimal(10, 2)
   riderPayout       Decimal     @db.Decimal(10, 2)
+  restaurantPayout  Decimal     @db.Decimal(10, 2) @default(0)
+  platformRevenue   Decimal     @db.Decimal(10, 2) @default(0)
   distanceKm        Decimal?    @db.Decimal(6, 2)
   customerLatitude  Float?
   customerLongitude Float?

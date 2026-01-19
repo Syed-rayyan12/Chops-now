@@ -130,7 +130,7 @@ export default function UserSetupPage() {
 
   return (
     <div className="min-h-screen bg-[#e9e9e9] flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-white">
+      <Card className="w-full max-w-2xl bg-white p-4">
         <CardHeader className="text-center space-y-4 pb-4">
           <Link href="/">
             <img

@@ -1204,41 +1204,41 @@ router.get(
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      // Today's earnings (DELIVERED orders only)
+      // Today's earnings (DELIVERED orders only) - Restaurant gets 100% of food price
       const todayOrders = await prisma.order.findMany({
         where: {
           restaurantId: restaurant.id,
           status: 'DELIVERED',
           createdAt: { gte: todayStart }
         },
-        select: { amount: true }
+        select: { restaurantPayout: true }
       });
 
-      const todayEarnings = todayOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+      const todayEarnings = todayOrders.reduce((sum, order) => sum + Number(order.restaurantPayout), 0);
 
-      // Weekly earnings (DELIVERED orders only)
+      // Weekly earnings (DELIVERED orders only) - Restaurant gets 100% of food price
       const weekOrders = await prisma.order.findMany({
         where: {
           restaurantId: restaurant.id,
           status: 'DELIVERED',
           createdAt: { gte: weekStart }
         },
-        select: { amount: true }
+        select: { restaurantPayout: true }
       });
 
-      const weeklyEarnings = weekOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+      const weeklyEarnings = weekOrders.reduce((sum, order) => sum + Number(order.restaurantPayout), 0);
 
-      // Monthly earnings (DELIVERED orders only)
+      // Monthly earnings (DELIVERED orders only) - Restaurant gets 100% of food price
       const monthOrders = await prisma.order.findMany({
         where: {
           restaurantId: restaurant.id,
           status: 'DELIVERED',
           createdAt: { gte: monthStart }
         },
-        select: { amount: true }
+        select: { restaurantPayout: true }
       });
 
-      const monthlyEarnings = monthOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+      const monthlyEarnings = monthOrders.reduce((sum, order) => sum + Number(order.restaurantPayout), 0);
 
       res.json({
         earnings: {
@@ -1287,7 +1287,7 @@ router.get(
         select: {
           id: true,
           code: true,
-          amount: true,
+          restaurantPayout: true,
           createdAt: true,
           deliveredAt: true
         },
@@ -1306,7 +1306,7 @@ router.get(
       const transactions = orders.map(order => ({
         orderId: order.code,
         date: order.deliveredAt || order.createdAt,
-        amount: Number(order.amount),
+        amount: Number(order.restaurantPayout),
         status: 'COMPLETED'
       }));
 
