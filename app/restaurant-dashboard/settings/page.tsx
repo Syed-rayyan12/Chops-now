@@ -20,7 +20,6 @@ export default function RestaurantSettingsPage() {
     priceRange: "",
     openingHours: "",
     minimumOrder: 0,
-    deliveryFee: 0,
     deliveryTime: "",
     phone: "",
     address: "",
@@ -68,7 +67,6 @@ export default function RestaurantSettingsPage() {
             priceRange: r.priceRange ?? f.priceRange,
             openingHours: r.openingHours ?? f.openingHours,
             minimumOrder: r.minimumOrder ?? f.minimumOrder,
-            deliveryFee: r.deliveryFee ?? f.deliveryFee,
             deliveryTime: r.deliveryTime ?? f.deliveryTime,
             phone: r.phone ?? f.phone,
             address: r.address ?? f.address,
@@ -90,7 +88,7 @@ export default function RestaurantSettingsPage() {
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    const numeric = ["minimumOrder", "deliveryFee"]
+    const numeric = ["minimumOrder"]
     setForm((prev) => ({
       ...prev,
       [name]: numeric.includes(name) ? Number(value) : value,
@@ -106,7 +104,7 @@ export default function RestaurantSettingsPage() {
     console.log("🚀 Save Changes clicked!")
     console.log("🔑 Current slug:", slug)
     console.log("📦 Form data:", form)
-    console.log("🎫 Token in localStorage:", localStorage.getItem("token") ? "Present" : "Missing")
+    console.log("🎫 Restaurant Token in localStorage:", localStorage.getItem("restaurantToken") ? "Present" : "Missing")
     
     if (!slug) {
       console.error("❌ Cannot save: slug is empty!")
@@ -256,15 +254,9 @@ export default function RestaurantSettingsPage() {
           <input className="border p-2 w-full rounded bg-white" name="deliveryTime" value={form.deliveryTime || ""} onChange={onChange} placeholder="e.g., 30-45 min" />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium mb-2">Minimum Order (£)</label>
-            <input className="border p-2 w-full rounded bg-white" type="number" step="0.01" name="minimumOrder" value={form.minimumOrder ?? 0} onChange={onChange} placeholder="15.00" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Delivery Fee (£)</label>
-            <input className="border p-2 w-full rounded bg-white" type="number" step="0.01" name="deliveryFee" value={form.deliveryFee ?? 0} onChange={onChange} placeholder="0.00" />
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Minimum Order (£)</label>
+          <input className="border p-2 w-full rounded bg-white" type="number" step="0.01" name="minimumOrder" value={form.minimumOrder ?? 0} onChange={onChange} placeholder="15.00" />
         </div>
         
         <div>

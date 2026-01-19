@@ -66,8 +66,6 @@ export interface RestaurantProfile {
   priceRange?: string;
   openingHours?: string;
   minimumOrder?: number;
-  deliveryFee?: number;
-  serviceFee?: number;
   deliveryTime?: string;
   image?: string;
   coverImage?: string;
@@ -115,8 +113,6 @@ export type RestaurantUpdatePayload = {
   priceRange?: string;
   openingHours?: string;
   minimumOrder?: number;
-  deliveryFee?: number;
-  serviceFee?: number;
   deliveryTime?: string;
   phone?: string;
   address?: string;
@@ -163,8 +159,6 @@ export const restaurantProfile = {
     priceRange?: string;
     openingHours?: string;
     minimumOrder?: number;
-    deliveryFee?: number;
-    serviceFee?: number;
     deliveryTime?: string;
   }) =>
     apiRequest<RestaurantProfile>("/restaurant/profile", {
