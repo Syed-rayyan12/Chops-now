@@ -17,6 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/customer-panel-components/header"
 import { Footer } from "@/components/customer-panel-components/footer"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
+import { calculateDistance, calculateDeliveryFee } from "@/lib/utils/distance"
+import { getRestaurantBySlug } from "@/lib/api/restaurant.api"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -24,6 +26,9 @@ export default function CheckoutPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [customerEmail, setCustomerEmail] = useState("")
+  const [restaurantData, setRestaurantData] = useState<any>(null)
+  const [distanceKm, setDistanceKm] = useState<number>(0)
+  const [calculatedDeliveryFee, setCalculatedDeliveryFee] = useState<number>(0)
   
   type CheckoutForm = {
     name: string;
@@ -92,6 +97,52 @@ export default function CheckoutPage() {
     }
 
     prefillFromProfile()
+
+    // Fetch restaurant data and calculate distance
+    const fetchRestaurantAndCalculateDistance = async () => {
+      try {
+        if (items.length === 0) return
+
+        const restaurantSlug = items[0]?.restaurantSlug
+        if (!restaurantSlug) {
+          console.warn("No restaurant slug found in cart")
+          return
+        }
+
+        // Fetch restaurant data
+        const restaurant = await getRestaurantBySlug(restaurantSlug)
+        if (!restaurant) {
+          console.warn("Restaurant not found")
+          return
+        }
+        setRestaurantData(restaurant)
+
+        // Get customer GPS coordinates
+        const coords = localStorage.getItem("user_coords")
+        if (coords && restaurant.latitude && restaurant.longitude) {
+          const parsed = JSON.parse(coords)
+          const distance = calculateDistance(
+            parsed.latitude,
+            parsed.longitude,
+            restaurant.latitude,
+            restaurant.longitude
+          )
+          setDistanceKm(distance)
+          
+          // Calculate delivery fee based on distance (£0.50 per km)
+          const deliveryFee = calculateDeliveryFee(distance)
+          setCalculatedDeliveryFee(deliveryFee)
+        } else {
+          // Fallback to default delivery fee if no GPS data
+          setCalculatedDeliveryFee(2.50)
+        }
+      } catch (error) {
+        console.error("Error fetching restaurant or calculating distance:", error)
+        setCalculatedDeliveryFee(2.50) // Fallback
+      }
+    }
+
+    fetchRestaurantAndCalculateDistance()
   }, [items, router, toast])
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
@@ -247,9 +298,9 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getCartTotal()
-  const serviceFee = subtotal * 0.15 // ChopNow 15% service fee on food only
-  const deliveryFee = 2.50
-  const grandTotal = subtotal + serviceFee + deliveryFee
+  const platformFee = subtotal * 0.15 // ChopNow 15% platform fee on food only
+  const deliveryFee = calculatedDeliveryFee || 2.50 // Distance-based: £0.50/km
+  const grandTotal = subtotal + platformFee + deliveryFee
 
   if (items.length === 0) {
     return null
@@ -418,11 +469,11 @@ export default function CheckoutPage() {
                   <span>£{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-foreground">ChopNow Service Fee (15%)</span>
-                  <span>£{serviceFee.toFixed(2)}</span>
+                  <span className="text-foreground">Platform Fee (15%)</span>
+                  <span>£{platformFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-foreground">Delivery Fee</span>
+                  <span className="text-foreground">Delivery Fee{distanceKm > 0 ? ` (${distanceKm.toFixed(1)} km × £0.50/km)` : ''}</span>
                   <span>£{deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">

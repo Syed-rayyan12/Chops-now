@@ -55,6 +55,8 @@ export interface RestaurantProfile {
   name: string;
   phone: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
   ownerFirstName: string;
   ownerLastName: string;
   ownerEmail: string;
