@@ -14,15 +14,14 @@ export default function RestaurantSettingsPage() {
   const [form, setForm] = useState<RestaurantUpdatePayload>({
     name: "",
     description: "",
-    image: "/placeholder.svg",
-    coverImage: "/placeholder.svg",
+    image: "",
+    coverImage: "",
     cuisineType: "",
-    priceRange: "££",
-    openingHours: "9:00 AM - 10:00 PM",
-    minimumOrder: 15,
+    priceRange: "",
+    openingHours: "",
+    minimumOrder: 0,
     deliveryFee: 0,
-    serviceFee: 2.99,
-    deliveryTime: "30-45 min",
+    deliveryTime: "",
     phone: "",
     address: "",
   })
@@ -70,7 +69,6 @@ export default function RestaurantSettingsPage() {
             openingHours: r.openingHours ?? f.openingHours,
             minimumOrder: r.minimumOrder ?? f.minimumOrder,
             deliveryFee: r.deliveryFee ?? f.deliveryFee,
-            serviceFee: r.serviceFee ?? f.serviceFee,
             deliveryTime: r.deliveryTime ?? f.deliveryTime,
             phone: r.phone ?? f.phone,
             address: r.address ?? f.address,
@@ -92,7 +90,7 @@ export default function RestaurantSettingsPage() {
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    const numeric = ["minimumOrder", "deliveryFee", "serviceFee"]
+    const numeric = ["minimumOrder", "deliveryFee"]
     setForm((prev) => ({
       ...prev,
       [name]: numeric.includes(name) ? Number(value) : value,
@@ -258,7 +256,7 @@ export default function RestaurantSettingsPage() {
           <input className="border p-2 w-full rounded bg-white" name="deliveryTime" value={form.deliveryTime || ""} onChange={onChange} placeholder="e.g., 30-45 min" />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium mb-2">Minimum Order (£)</label>
             <input className="border p-2 w-full rounded bg-white" type="number" step="0.01" name="minimumOrder" value={form.minimumOrder ?? 0} onChange={onChange} placeholder="15.00" />
@@ -266,10 +264,6 @@ export default function RestaurantSettingsPage() {
           <div>
             <label className="block text-sm font-medium mb-2">Delivery Fee (£)</label>
             <input className="border p-2 w-full rounded bg-white" type="number" step="0.01" name="deliveryFee" value={form.deliveryFee ?? 0} onChange={onChange} placeholder="0.00" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Service Fee (£)</label>
-            <input className="border p-2 w-full rounded bg-white" type="number" step="0.01" name="serviceFee" value={form.serviceFee ?? 0} onChange={onChange} placeholder="2.99" />
           </div>
         </div>
         
