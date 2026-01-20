@@ -22,9 +22,9 @@ export function CartSidebar({ isOpen, onClose, restaurant }: CartSidebarProps) {
   const { items, updateQuantity, removeItem, getCartTotal } = useCart()
 
   const subtotal = getCartTotal()
-  const deliveryFee = restaurant.deliveryFee
-  const serviceFee = restaurant.serviceFee
-  const total = subtotal + deliveryFee + serviceFee
+  const platformFee = subtotal * 0.15 // ChopNow 15% platform fee (same as checkout)
+  const deliveryFee = 2.50 // Fixed delivery fee (same as checkout)
+  const total = subtotal + platformFee + deliveryFee
 
   const isMinimumMet = subtotal >= restaurant.minimumOrder
 
@@ -123,12 +123,12 @@ export function CartSidebar({ isOpen, onClose, restaurant }: CartSidebarProps) {
             <span className="text-secondary">£{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-foreground">Delivery fee</span>
-            <span className="text-secondary">{deliveryFee === 0 ? "Free" : `£${deliveryFee.toFixed(2)}`}</span>
+            <span className="text-foreground">Platform Fee (15%)</span>
+            <span className="text-secondary">£{platformFee.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-foreground">Service fee</span>
-            <span className="text-secondary">£{serviceFee.toFixed(2)}</span>
+            <span className="text-foreground">Delivery Fee</span>
+            <span className="text-secondary">£{deliveryFee.toFixed(2)}</span>
           </div>
           <Separator className="bg-secondary/50" />
           <div className="flex justify-between font-semibold">

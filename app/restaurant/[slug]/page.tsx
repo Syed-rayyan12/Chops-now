@@ -269,8 +269,8 @@ export default function RestaurantPage() {
         onClose={() => setIsCartOpen(false)}
         restaurant={{
           name: restaurant.name,
-          deliveryFee: restaurant.deliveryFee || 0,
-          serviceFee: restaurant.serviceFee || 2.99,
+          deliveryFee: 2.50,
+          serviceFee: 0,
           minimumOrder: restaurant.minimumOrder || 15
         }}
       />

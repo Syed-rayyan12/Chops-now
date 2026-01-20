@@ -299,7 +299,7 @@ export default function CheckoutPage() {
 
   const subtotal = getCartTotal()
   const platformFee = subtotal * 0.15 // ChopNow 15% platform fee on food only
-  const deliveryFee = calculatedDeliveryFee || 2.50 // Distance-based: £0.50/km
+  const deliveryFee = calculatedDeliveryFee || 2.50 // Distance-based: £0.50/km, minimum £2.50
   const grandTotal = subtotal + platformFee + deliveryFee
 
   if (items.length === 0) {
