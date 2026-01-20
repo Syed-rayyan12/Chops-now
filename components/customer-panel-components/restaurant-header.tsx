@@ -82,21 +82,21 @@ export function RestaurantHeader({ restaurant }: RestaurantHeaderProps) {
                       <span className="font-medium text-gray-600">{restaurant.deliveryTime}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                      {/* <div className="flex items-center space-x-2">
                         <Truck className="w-4 h-4 text-muted-foreground" />
                         <span>Delivery fee</span>
                       </div>
                       <span className="font-medium">
                         {restaurant.deliveryFee === 0 ? "Free" : `£${restaurant.deliveryFee}`}
-                      </span>
+                      </span> */}
                     </div>
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Info className="w-4 h-4 text-muted-foreground" />
                         <span>Service fee</span>
                       </div>
                       <span className="font-medium text-gray-600">£{restaurant.serviceFee}</span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-secondary" />
