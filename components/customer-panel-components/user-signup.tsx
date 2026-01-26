@@ -130,10 +130,10 @@ export default function RiderSignup() {
       nextErrors.firstName = "First name must be at least 2 letters (hyphens, apostrophes, spaces allowed)"
       hasError = true
     }
-    if (!nameRegex.test(formData.lastName) || formData.lastName.length < 2) {
-      nextErrors.lastName = "Last name must be at least 2 letters (hyphens, apostrophes, spaces allowed)"
-      hasError = true
-    }
+    // if (!nameRegex.test(formData.lastName) || formData.lastName.length < 2) {
+    //   nextErrors.lastName = "Last name must be at least 2 letters (hyphens, apostrophes, spaces allowed)"
+    //   hasError = true
+    // }
 
     // Email validation - must contain @ and .
     if (!formData.email.includes("@")) {
