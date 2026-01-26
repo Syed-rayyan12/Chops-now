@@ -124,14 +124,14 @@ export default function RiderSignup() {
       return
     }
 
-    // Step 2: Format validations
-    const nameRegex = /^[a-zA-Z\s]{2,}$/
-    if (!nameRegex.test(formData.firstName)) {
-      nextErrors.firstName = "First name must contain only letters and be at least 2 characters"
+    // Step 2: Format validations (allow letters, hyphens, apostrophes, and spaces)
+    const nameRegex = /^[a-zA-Z][a-zA-Z\s'\-]*[a-zA-Z]$|^[a-zA-Z]{1,2}$/
+    if (!nameRegex.test(formData.firstName) || formData.firstName.length < 2) {
+      nextErrors.firstName = "First name must be at least 2 letters (hyphens, apostrophes, spaces allowed)"
       hasError = true
     }
-    if (!nameRegex.test(formData.lastName)) {
-      nextErrors.lastName = "Last name must contain only letters and be at least 2 characters"
+    if (!nameRegex.test(formData.lastName) || formData.lastName.length < 2) {
+      nextErrors.lastName = "Last name must be at least 2 letters (hyphens, apostrophes, spaces allowed)"
       hasError = true
     }
 

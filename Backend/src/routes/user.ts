@@ -82,13 +82,13 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "All fields including address are required" });
     }
 
-    // Validate first name and last name (only letters, min 2 chars)
-    const nameRegex = /^[a-zA-Z]{2,}$/;
-    if (!nameRegex.test(firstName)) {
-      return res.status(400).json({ message: "First name must contain only letters and be at least 2 characters" });
+    // Validate first name and last name (letters, hyphens, apostrophes, spaces allowed, min 2 chars)
+    const nameRegex = /^[a-zA-Z]([a-zA-Z\s'-]*[a-zA-Z])?$/;
+    if (!nameRegex.test(firstName) || firstName.length < 2) {
+      return res.status(400).json({ message: "First name must contain at least 2 letters and may include hyphens, apostrophes, or spaces" });
     }
-    if (!nameRegex.test(lastName)) {
-      return res.status(400).json({ message: "Last name must contain only letters and be at least 2 characters" });
+    if (!nameRegex.test(lastName) || lastName.length < 2) {
+      return res.status(400).json({ message: "Last name must contain at least 2 letters and may include hyphens, apostrophes, or spaces" });
     }
 
     // Validate email format
