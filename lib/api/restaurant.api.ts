@@ -94,6 +94,7 @@ export interface MenuItem {
   price: number;
   category: string;
   image?: string;
+  images?: string[]; // Multiple images support
   isAvailable: boolean;
   allergyInfo?: string;
   isVegetarian: boolean;

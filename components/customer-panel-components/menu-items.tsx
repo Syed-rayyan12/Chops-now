@@ -9,6 +9,7 @@ import { Star, Plus } from "lucide-react"
 // Updated import to slug-based route
 import type { MenuItem } from "@/app/restaurant/[slug]/page"
 import { MenuItemModal } from "./menu-item-modal"
+import { ImageCarousel } from "@/components/ui/image-carousel"
 
 interface MenuItemsProps {
   items: MenuItem[]
@@ -82,11 +83,11 @@ export function MenuItems({ items, categoryName, onAddToCart }: MenuItemsProps) 
                   </Button>
                 </div>
 
-                <div className="w-full flex justify-center items-center sm:w-48 h-48 sm:h-auto relative overflow-hidden">
-                  <img
-                    src={item.image || "/placeholder.svg"}
+                <div className="w-full flex justify-center items-center sm:w-48 h-48 sm:h-auto relative overflow-hidden rounded-r-md">
+                  <ImageCarousel
+                    images={item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : ["/placeholder.svg"])}
                     alt={item.name}
-                    className="w-60 h-full p-3 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full"
                   />
                 </div>
               </div>

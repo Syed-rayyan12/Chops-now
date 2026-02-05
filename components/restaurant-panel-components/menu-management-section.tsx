@@ -46,8 +46,8 @@ export function MenuManagementSection() {
     available: true,
     image: "",
   })
-  const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>("")
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   // ✅ For editing
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
@@ -171,15 +171,30 @@ export function MenuManagementSection() {
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedImage(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      // Add new files to existing ones
+      const newFiles = [...selectedImages, ...files]
+      setSelectedImages(newFiles)
+      
+      // Generate previews for all images
+      const newPreviews: string[] = []
+      newFiles.forEach((file) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          newPreviews.push(reader.result as string)
+          if (newPreviews.length === newFiles.length) {
+            setImagePreviews(newPreviews)
+          }
+        }
+        reader.readAsDataURL(file)
+      })
     }
+  }
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
   }
 
   const resetForm = () => {
@@ -192,8 +207,8 @@ export function MenuManagementSection() {
       available: true,
       image: "",
     })
-    setSelectedImage(null)
-    setImagePreview("")
+    setSelectedImages([])
+    setImagePreviews([])
   }
 
   const handleAddMenuItem = async () => {
@@ -217,8 +232,11 @@ export function MenuManagementSection() {
         formData.append("isAvailable", String(newMenuItem.available))
         formData.append("allergyInfo", newMenuItem.allergy)
         
-        if (selectedImage) {
-          formData.append("image", selectedImage)
+        // Append all selected images
+        if (selectedImages.length > 0) {
+          selectedImages.forEach((image) => {
+            formData.append("images", image)
+          })
         }
 
         const createdItem = await menuItemsApi.create(restaurantSlug, formData)
@@ -467,24 +485,40 @@ export function MenuManagementSection() {
                 />
               </div>
               <div>
-                <Label htmlFor="image" className="mb-2 text-gray-400">Image</Label>
-                <div className="space-y-2">
+                <Label htmlFor="images" className="mb-2 text-gray-400">Images (Multiple)</Label>
+                <div className="space-y-3">
                   <Input
-                    id="image"
+                    id="images"
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleImageUpload}
                     className="border border-gray-400 bg-white"
                   />
-                  {imagePreview && (
-                    <div className="flex justify-center">
-                      <img
-                        src={imagePreview || "/placeholder.svg"}
-                        alt="Preview"
-                        className="w-20 h-20 rounded-full object-cover border-2 border-orange-200"
-                      />
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-4 gap-3">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview || "/placeholder.svg"}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-20 rounded-md object-cover border-2 border-orange-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                          <div className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
+                  <p className="text-xs text-gray-500">You can upload multiple images for this menu item</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">

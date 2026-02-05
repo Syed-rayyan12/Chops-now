@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Minus, Plus, Star } from "lucide-react"
 // Updated import to slug-based route
 import type { MenuItem } from "@/app/restaurant/[slug]/page"
+import { ImageCarousel } from "@/components/ui/image-carousel"
 
 interface MenuItemModalProps {
   item: MenuItem
@@ -69,7 +70,12 @@ export function MenuItemModal({ item, isOpen, onClose, onAddToCart }: MenuItemMo
         <div className="space-y-6 mt-4">
           {/* Item Image */}
           <div className="relative h-64 rounded-lg overflow-hidden">
-            <img src={item.image || "/placeholder.svg"} alt={item.name} className="w-full h-full object-cover" />
+            <ImageCarousel
+              images={item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : ["/placeholder.svg"])}
+              alt={item.name}
+              showThumbnails={true}
+              className="w-full h-full"
+            />
           </div>
 
           {/* Item Info */}

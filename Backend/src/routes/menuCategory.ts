@@ -74,10 +74,22 @@ router.get('/restaurant/:slug/categories', async (req: Request, res: Response) =
     // Convert image paths to absolute URLs
     const categoriesWithUrls = categories.map((category: any) => ({
       ...category,
-      menuItems: (category.menuItems as any[]).map((item: any) => ({
-        ...item,
-        image: assetUrl(req, item.image)
-      }))
+      menuItems: (category.menuItems as any[]).map((item: any) => {
+        let images: (string | null)[] = [];
+        if (item.image) {
+          try {
+            const imagePaths = JSON.parse(item.image);
+            images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => assetUrl(req, p)) : [assetUrl(req, item.image)];
+          } catch {
+            images = [assetUrl(req, item.image)];
+          }
+        }
+        return {
+          ...item,
+          image: images[0] || null,
+          images: images
+        };
+      })
     }));
 
     res.json(categoriesWithUrls);
@@ -242,10 +254,22 @@ router.get('/restaurant/:slug/categories/:categoryId/items', async (req: Request
       orderBy: { displayOrder: 'asc' }
     });
 
-    const itemsWithUrls = items.map((item: any) => ({
-      ...item,
-      image: assetUrl(req, item.image)
-    }));
+    const itemsWithUrls = items.map((item: any) => {
+      let images: (string | null)[] = [];
+      if (item.image) {
+        try {
+          const imagePaths = JSON.parse(item.image);
+          images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => assetUrl(req, p)) : [assetUrl(req, item.image)];
+        } catch {
+          images = [assetUrl(req, item.image)];
+        }
+      }
+      return {
+        ...item,
+        image: images[0] || null,
+        images: images
+      };
+    });
 
     res.json(itemsWithUrls);
   } catch (error) {
@@ -255,7 +279,7 @@ router.get('/restaurant/:slug/categories/:categoryId/items', async (req: Request
 });
 
 // POST create new menu item
-router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RESTAURANT']), upload.single('image'), async (req: AuthRequest, res: Response) => {
+router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RESTAURANT']), upload.array('images', 5), async (req: AuthRequest, res: Response) => {
   try {
     const { slug, categoryId } = req.params;
     const {
@@ -295,15 +319,16 @@ router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RES
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    const item = await prisma.menuItem.create({
-      data: {
+    const item = await prisma.menuItem.create({      data: {
         restaurantId: restaurant.id,
         categoryId: parseInt(categoryId),
         name,
         description,
         price: parseFloat(price),
         category: category || menuCategory.name,
-        image: req.file ? req.file.path : null,
+        image: req.files && (req.files as Express.Multer.File[]).length > 0 
+          ? JSON.stringify((req.files as Express.Multer.File[]).map(f => f.path)) 
+          : null,
         isAvailable: isAvailable !== undefined ? isAvailable === 'true' || isAvailable === true : true,
         allergyInfo,
         isVegetarian: isVegetarian === 'true' || isVegetarian === true,
@@ -313,9 +338,21 @@ router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RES
       }
     });
 
+    // Parse images array and convert to URLs
+    let images: (string | null)[] = [];
+    if (item.image) {
+      try {
+        const imagePaths = JSON.parse(item.image);
+        images = Array.isArray(imagePaths) ? imagePaths.map(p => assetUrl(req, p)) : [assetUrl(req, item.image)];
+      } catch {
+        images = [assetUrl(req, item.image)];
+      }
+    }
+
     const itemWithUrl = {
       ...item,
-      image: assetUrl(req, item.image)
+      image: images[0] || null,
+      images: images
     };
 
     res.status(201).json(itemWithUrl);
@@ -326,7 +363,7 @@ router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RES
 });
 
 // PATCH update menu item
-router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authenticate(['RESTAURANT']), upload.single('image'), async (req: AuthRequest, res: Response) => {
+router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authenticate(['RESTAURANT']), upload.array('images', 5), async (req: AuthRequest, res: Response) => {
   try {
     const { slug, categoryId, itemId } = req.params;
     const {
@@ -374,7 +411,9 @@ router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authentic
         ...(description !== undefined && { description }),
         ...(price && { price: parseFloat(price) }),
         ...(category && { category }),
-        ...(req.file && { image: req.file.path }),
+        ...((req.files && (req.files as Express.Multer.File[]).length > 0) && { 
+          image: JSON.stringify((req.files as Express.Multer.File[]).map(f => f.path))
+        }),
         ...(isAvailable !== undefined && { isAvailable: isAvailable === 'true' || isAvailable === true }),
         ...(allergyInfo !== undefined && { allergyInfo }),
         ...(isVegetarian !== undefined && { isVegetarian: isVegetarian === 'true' || isVegetarian === true }),
@@ -384,9 +423,21 @@ router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authentic
       }
     });
 
+    // Parse images array and convert to URLs
+    let images: (string | null)[] = [];
+    if (updated.image) {
+      try {
+        const imagePaths = JSON.parse(updated.image);
+        images = Array.isArray(imagePaths) ? imagePaths.map(p => assetUrl(req, p)) : [assetUrl(req, updated.image)];
+      } catch {
+        images = [assetUrl(req, updated.image)];
+      }
+    }
+
     const itemWithUrl = {
       ...updated,
-      image: assetUrl(req, updated.image)
+      image: images[0] || null,
+      images: images
     };
 
     res.json(itemWithUrl);

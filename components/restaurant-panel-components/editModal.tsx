@@ -31,38 +31,60 @@ export  function EditModal({
   onSave,
 }: EditMenuItemModalProps) {
   const [editItem, setEditItem] = useState<MenuItem | null>(item)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([])
 
   // Sync item into local state when modal opens
   useEffect(() => {
     if (item) {
       setEditItem(item)
-      setImagePreview(item.image || null)
-      setSelectedImageFile(null) // Reset file when opening new item
+      // Load existing images
+      if (item.images && item.images.length > 0) {
+        setImagePreviews(item.images)
+      } else if (item.image) {
+        setImagePreviews([item.image])
+      } else {
+        setImagePreviews([])
+      }
+      setSelectedImageFiles([]) // Reset files when opening new item
     }
   }, [item])
 
   // Image upload handler
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedImageFile(file) // Store the actual file
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string) // Show preview
-      }
-      reader.readAsDataURL(file)
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      // Add new files to existing ones
+      const newFiles = [...selectedImageFiles, ...files]
+      setSelectedImageFiles(newFiles)
+      
+      // Generate previews for new files
+      const newPreviews: string[] = []
+      files.forEach((file) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          newPreviews.push(reader.result as string)
+          if (newPreviews.length === files.length) {
+            setImagePreviews(prev => [...prev, ...newPreviews])
+          }
+        }
+        reader.readAsDataURL(file)
+      })
     }
+  }
+
+  const removeImage = (index: number) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
+    setSelectedImageFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   // Save handler
   const handleSave = () => {
     if (editItem) {
-      // Attach the image file to the item if uploaded
+      // Attach the image files to the item if uploaded
       const itemToSave = {
         ...editItem,
-        imageFile: selectedImageFile, // Add file for upload
+        imageFiles: selectedImageFiles.length > 0 ? selectedImageFiles : undefined, // Add files for upload
       }
       onSave(itemToSave as any)
       onClose()
@@ -152,26 +174,42 @@ export  function EditModal({
             />
           </div>
 
-          {/* Image */}
+          {/* Images */}
           <div>
-            <Label htmlFor="image" className="mb-2 text-gray-400">Image</Label>
-            <div className="space-y-2">
+            <Label htmlFor="images" className="mb-2 text-gray-400">Images (Multiple)</Label>
+            <div className="space-y-3">
               <Input
-              className="bg-white border border-gray-400"
-                id="image"
+                className="bg-white border border-gray-400"
+                id="images"
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageUpload}
               />
-              {imagePreview && (
-                <div className="flex justify-center">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-20 h-20 rounded-lg object-cover border-2 border-orange-200"
-                  />
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-20 rounded-md object-cover border-2 border-orange-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                      <div className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
+              <p className="text-xs text-gray-500">You can upload multiple images for this menu item</p>
             </div>
           </div>
 
