@@ -77,25 +77,25 @@ export function ImageCarousel({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-secondary opacity-0 group-hover:opacity-100 transition-opacity z-10 h-8 w-8 rounded-full shadow-lg"
             onClick={goToPrevious}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-secondary opacity-0 group-hover:opacity-100 transition-opacity z-10 h-8 w-8 rounded-full shadow-lg"
             onClick={goToNext}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </>
       )}
 
       {/* Dot Indicators */}
       {images.length > 1 && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
           {images.map((_, index) => (
             <button
               key={index}
@@ -104,7 +104,7 @@ export function ImageCarousel({
                 "w-2 h-2 rounded-full transition-all",
                 index === currentIndex
                   ? "bg-white w-6"
-                  : "bg-white/50 hover:bg-white/75"
+                  : "bg-white/60 hover:bg-white/90"
               )}
               aria-label={`Go to image ${index + 1}`}
             />

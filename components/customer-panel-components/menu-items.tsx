@@ -83,12 +83,64 @@ export function MenuItems({ items, categoryName, onAddToCart }: MenuItemsProps) 
                   </Button>
                 </div>
 
-                <div className="w-full flex justify-center items-center sm:w-48 h-48 sm:h-auto relative overflow-hidden rounded-r-md">
-                  <ImageCarousel
-                    images={item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : ["/placeholder.svg"])}
-                    alt={item.name}
-                    className="w-full h-full"
-                  />
+                <div className="w-full sm:w-64 h-56 relative overflow-hidden rounded-r-md group">
+                  {(() => {
+                    const images = item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : ["/placeholder.svg"])
+                    
+                    if (images.length === 1) {
+                      return (
+                        <img
+                          src={images[0]}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      )
+                    } else if (images.length === 2) {
+                      return (
+                        <div className="grid grid-cols-2 gap-1 h-full">
+                          {images.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img}
+                              alt={`${item.name} ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ))}
+                        </div>
+                      )
+                    } else if (images.length === 3) {
+                      return (
+                        <div className="grid grid-cols-2 gap-1 h-full">
+                          <img
+                            src={images[0]}
+                            alt={`${item.name} 1`}
+                            className="w-full h-full col-span-2 object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          {images.slice(1).map((img, idx) => (
+                            <img
+                              key={idx + 1}
+                              src={img}
+                              alt={`${item.name} ${idx + 2}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ))}
+                        </div>
+                      )
+                    } else {
+                      return (
+                        <div className="relative w-full h-full">
+                          <ImageCarousel
+                            images={images}
+                            alt={item.name}
+                            className="w-full h-full"
+                          />
+                          <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full z-20">
+                            {images.length} photos
+                          </div>
+                        </div>
+                      )
+                    }
+                  })()}
                 </div>
               </div>
             </CardContent>

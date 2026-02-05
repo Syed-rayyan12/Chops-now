@@ -69,13 +69,34 @@ export function MenuItemModal({ item, isOpen, onClose, onAddToCart }: MenuItemMo
 
         <div className="space-y-6 mt-4">
           {/* Item Image */}
-          <div className="relative h-64 rounded-lg overflow-hidden">
-            <ImageCarousel
-              images={item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : ["/placeholder.svg"])}
-              alt={item.name}
-              showThumbnails={true}
-              className="w-full h-full"
-            />
+          <div className="relative h-80 rounded-lg overflow-hidden bg-gray-100">
+            {(() => {
+              const images = item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : ["/placeholder.svg"])
+              
+              if (images.length > 1) {
+                return (
+                  <>
+                    <ImageCarousel
+                      images={images}
+                      alt={item.name}
+                      showThumbnails={true}
+                      className="w-full h-full"
+                    />
+                    <div className="absolute top-3 left-3 bg-secondary text-white text-sm px-3 py-1.5 rounded-full shadow-lg z-20 font-semibold">
+                      {images.length} Photos
+                    </div>
+                  </>
+                )
+              } else {
+                return (
+                  <img 
+                    src={images[0]} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover" 
+                  />
+                )
+              }
+            })()}
           </div>
 
           {/* Item Info */}
