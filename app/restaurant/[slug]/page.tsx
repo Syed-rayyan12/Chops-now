@@ -19,6 +19,7 @@ export type MenuItem = {
   description: string
   price: number
   image: string
+  images?: string[] // Multiple images support
   category: string
   popular?: boolean
   isAvailable?: boolean
@@ -66,6 +67,7 @@ export default function RestaurantPage() {
             description: m.description || "",
             price: typeof m.price === 'number' ? m.price : parseFloat(m.price || '0'),
             image: m.image || "/placeholder.svg",
+            images: m.images || (m.image ? [m.image] : ["/placeholder.svg"]), // Add images array
             category: m.category || cat.name || "Other",
             popular: undefined,
             isAvailable: m.isAvailable ?? true,
