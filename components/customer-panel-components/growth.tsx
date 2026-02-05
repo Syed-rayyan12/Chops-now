@@ -50,7 +50,7 @@ const growth = () => {
                 </div>
               </div>
                <div>
-                <Link href="/restaurant-signup" className='px-4 py-5'>Start Earning More Today</Link>
+                <Link href="/restaurant-signup" className='px-4 py-5 bg-secondary text-white rounded-lg'>Start Earning More Today</Link>
                </div>
             </div>
           </div>
