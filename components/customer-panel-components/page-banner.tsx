@@ -78,7 +78,7 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                     <div className="flex gap-4">
 
                         <div className="pt-8">
-                            <Link href="/rider-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Courier</Link>
+                            <Link href="/rider-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Drivers</Link>
                         </div>
 
                     </div>

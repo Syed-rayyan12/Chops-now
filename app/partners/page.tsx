@@ -17,8 +17,8 @@ export default function PartnersPage() {
       <Header />
 
       <PageBanner
-        title="Powering the Future"
-        highlightedWord="Afro-Caribbean Food"
+        title="Drivers &"
+        highlightedWord="Restaurants"
         highlightedWord2="Of"
         inlineImageSrc="/lines.svg"
         inlineImageAlt="Decorative lines"
