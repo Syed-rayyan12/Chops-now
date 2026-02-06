@@ -111,7 +111,47 @@ export const sendContactEmail = async (data: ContactFormData) => {
 export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscriptionData) => {
   const { email } = data;
 
-  const htmlContent = `
+  // Email to subscriber - Thank you message
+  const subscriberHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to ChopNow!</h1>
+        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Thank you for subscribing to our newsletter</p>
+      </div>
+      <div style="background: #ffffff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">Hello!</p>
+        <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
+          You've successfully subscribed to the ChopNow newsletter. Get ready for exciting updates, exclusive offers, and delicious food stories from authentic African & Caribbean cuisine!
+        </p>
+        
+        <div style="background: #fff8f0; padding: 20px; border-radius: 8px; border-left: 4px solid #FF6B00; margin: 25px 0;">
+          <p style="margin: 0; color: #555; font-size: 14px;">
+            <strong>What to expect:</strong><br/>
+            ✨ Exclusive deals and discounts<br/>
+            🍽️ New restaurant highlights<br/>
+            📰 Cultural food stories<br/>
+            🎁 Special seasonal offers
+          </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://www.chopnow.co.uk/restaurants" style="background: #FF6B00; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+            Browse Restaurants
+          </a>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
+          <p style="color: #999; font-size: 12px; margin: 0;">
+            Questions? Contact us at support@chopnow.co.uk<br/>
+            © ${new Date().getFullYear()} ChopNow. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Email to company - Notification
+  const companyHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 20px; border-radius: 10px 10px 0 0;">
         <h2 style="color: white; margin: 0; font-size: 24px;">📬 New Newsletter Subscription</h2>
@@ -135,9 +175,11 @@ export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscripti
     </div>
   `;
 
-  const subject = "[ChopNow Newsletter] New subscription";
+  // Send confirmation email to subscriber
+  await sendEmail(email, "Welcome to ChopNow Newsletter! 🎉", subscriberHtml);
 
-  return sendEmail(COMPANY_EMAILS, subject, htmlContent, email);
+  // Send notification to company
+  return sendEmail(COMPANY_EMAILS, "[ChopNow Newsletter] New subscription", companyHtml, email);
 };
 
 // Helper function to send emails (DRY)
