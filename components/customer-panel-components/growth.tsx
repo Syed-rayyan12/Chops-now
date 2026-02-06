@@ -49,8 +49,8 @@ const growth = () => {
                   <span className='text-[15px] font-ubuntu text-gray-600'>Become part of a supportive network of food entrepreneurs.</span>
                 </div>
               </div>
-               <div>
-                <Link href="/restaurant-signup" className='px-4 py-5 bg-secondary text-white rounded-lg'>Start Earning More Today</Link>
+               <div className='mt-10'>
+                <Link href="/restaurant-signup" className='px-4 py-3 bg-secondary text-white rounded-lg'>Start Earning More Today</Link>
                </div>
             </div>
           </div>

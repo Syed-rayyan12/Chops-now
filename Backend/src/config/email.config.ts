@@ -33,6 +33,10 @@ export interface ContactFormData {
   message: string;
 }
 
+export interface NewsletterSubscriptionData {
+  email: string;
+}
+
 export const sendContactEmail = async (data: ContactFormData) => {
   const { firstName, email, subject, message } = data;
 
@@ -102,6 +106,38 @@ export const sendContactEmail = async (data: ContactFormData) => {
   const result = await transporter.sendMail(mailOptions as any);
   console.log('✅ Nodemailer sent:', result.messageId);
   return result;
+};
+
+export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscriptionData) => {
+  const { email } = data;
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 20px; border-radius: 10px 10px 0 0;">
+        <h2 style="color: white; margin: 0; font-size: 24px;">📬 New Newsletter Subscription</h2>
+      </div>
+      <div style="background: #ffffff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 10px 10px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333; width: 120px;">Email:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">
+              <a href="mailto:${email}" style="color: #FF6B00; text-decoration: none;">${email}</a>
+            </td>
+          </tr>
+        </table>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="color: #999; font-size: 12px; margin: 0;">
+            This email was sent from ChopNow newsletter subscription form<br/>
+            Received at: ${new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' })}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const subject = "[ChopNow Newsletter] New subscription";
+
+  return sendEmail(COMPANY_EMAILS, subject, htmlContent, email);
 };
 
 // Helper function to send emails (DRY)

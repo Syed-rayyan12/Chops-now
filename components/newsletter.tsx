@@ -1,8 +1,69 @@
 "use client"
 
-import { Send } from "lucide-react"
+import { useEffect, useState, type FormEvent } from "react"
+import { Loader2, Send } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { submitNewsletterSubscription } from "@/lib/api/newsletter.api"
+import { useAuth } from "@/contexts/auth-context"
 
 export function Newsletter() {
+  const { toast } = useToast()
+  const { user } = useAuth()
+  const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email)
+    }
+  }, [user])
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (isSubmitting) return
+
+    if (!email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter a valid email address to subscribe.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const result = await submitNewsletterSubscription({
+        email: email.trim(),
+      })
+
+      if (result.success) {
+        toast({
+          title: "Subscribed!",
+          description: `Subscription request sent for ${email.trim()}.`,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Newsletter submission error:", error)
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <section className=" py-32 relative">
       <img
@@ -26,16 +87,30 @@ London
         <p className="text-[16px] font-ubuntu mb-8 px-44 max-sm:px-0">
          Get fresh updates, exclusive offers, and cultural food stories delivered straight to you
         </p>
-        <div className="flex max-sm:flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex max-sm:flex-col gap-4">
           <input
             type="email"
             placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="border border-primary/40 rounded-[10px] w-full px-4 py-2 mr-4 bg-white text-foreground"
+            required
           />
-          <button className="bg-primary rounded-[10px] text-white px-6 py-3 hover:bg-primary/90 transition-colors">
-            Subscribe
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-primary rounded-[10px] text-white px-6 py-3 hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Subscribing...
+              </>
+            ) : (
+              "Subscribe"
+            )}
           </button>
-        </div>
+        </form>
       </div>
     </section>
   )

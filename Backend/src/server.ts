@@ -10,6 +10,7 @@ import menuCategoryRoutes from "./routes/menuCategory";
 import paymentRoutes from "./routes/payment";
 import notificationRoutes from "./routes/notification";
 import contactRoutes from "./routes/contact";
+import newsletterRoutes from "./routes/newsletter";
 import oauthRoutes from "./routes/oauth";
 
 console.log("🔥 server.ts is running...");
@@ -65,6 +66,7 @@ app.use("/api/rider", riderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/oauth", oauthRoutes);
 
 // Menu category and items routes
