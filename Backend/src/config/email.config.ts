@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
 
 // Company email addresses - emails will be sent to all of these
 export const COMPANY_EMAILS = [
-  'pr.muslim.82@gmail.com', // For testing - replace with client emails later
+  process.env.EMAIL_USER || 'pr.muslim.82@gmail.com',
 ];
 
 export interface ContactFormData {
