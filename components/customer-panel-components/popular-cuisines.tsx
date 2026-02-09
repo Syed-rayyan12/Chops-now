@@ -6,7 +6,7 @@ import { motion, easeOut } from "framer-motion"
 import { Star } from "lucide-react"
 
 const popularCuisines = [
-  { id: 1, name: "Funzo", image: "/restaurant-1.jpeg", restaurantCount: 45, rating: "4.8" },
+  { id: 1, name: "Funzo Place", image: "/restaurant-1.jpeg", restaurantCount: 45, rating: "4.8" },
   { id: 2, name: "Bwibo", image: "/restaurant-2.jpeg", restaurantCount: 38, rating: "4.8" },
   { id: 3, name: "Mombasa", image: "/restaurant-3.jpeg", restaurantCount: 32, rating: "4.8" },
   { id: 4, name: "Safari", image: "/restaurant-4.jpeg", restaurantCount: 28, rating: "4.8" },
