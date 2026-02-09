@@ -20,11 +20,10 @@ console.log("🔥 server.ts is running...");
 dotenv.config();
 const app = express();
 
-// CORS configuration - allow production frontend and local development
+// CORS configuration - allow production frontend only
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // Local development
       "https://www.chopnow.co.uk",
       "https://chopnow.co.uk"
     ],
