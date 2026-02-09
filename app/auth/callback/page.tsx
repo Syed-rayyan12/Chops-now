@@ -56,8 +56,10 @@ function GoogleCallbackContent() {
         console.log('Backend data:', backendData)
 
         // Check if this is a new user (needs profile completion)
-        const isNewUser = backendData.isNewUser || false
+        const isNewUser = backendData.isNewUser || backendData.needsSetup || false
+        const requiresOTPVerification = backendData.requiresOTPVerification || false
         console.log('Is new user:', isNewUser)
+        console.log('Requires OTP verification:', requiresOTPVerification)
 
         // Store token and email based on role
         if (roleInfo.role === 'RESTAURANT') {
@@ -68,24 +70,24 @@ function GoogleCallbackContent() {
             localStorage.setItem('restaurantSlug', backendData.user.slug)
             localStorage.setItem('restaurantData', JSON.stringify(backendData.user))
           }
-          // Set flag for OTP verification if new user
-          if (isNewUser) {
+          // Set flag for OTP verification ONLY if brand new account
+          if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
           }
         } else if (roleInfo.role === 'RIDER') {
           localStorage.setItem('riderToken', backendData.token)
           localStorage.setItem('riderEmail', backendData.user.email)
           localStorage.setItem('riderData', JSON.stringify(backendData.user))
-          // Set flag for OTP verification if new user
-          if (isNewUser) {
+          // Set flag for OTP verification ONLY if brand new account
+          if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
           }
         } else {
           // USER role
           localStorage.setItem('token', backendData.token)
           localStorage.setItem('userEmail', backendData.user.email)
-          // Set flag for OTP verification if new user
-          if (isNewUser) {
+          // Set flag for OTP verification ONLY if brand new account
+          if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
           }
         }
