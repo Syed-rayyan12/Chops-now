@@ -122,6 +122,7 @@ router.post("/google", async (req, res) => {
         return res.status(200).json({ 
           success: true,
           isNewUser: true,
+          requiresOTPVerification: true,
           user: {
             id: restaurant.id,
             email: restaurant.ownerEmail,
@@ -148,7 +149,9 @@ router.post("/google", async (req, res) => {
 
       return res.status(200).json({ 
         success: true,
-        isNewUser: needsSetup, // Redirect to setup if profile incomplete
+        isNewUser: false,
+        needsSetup: needsSetup,
+        requiresOTPVerification: false,
         user: {
           id: restaurant.id,
           email: restaurant.ownerEmail,
@@ -290,6 +293,7 @@ router.post("/google", async (req, res) => {
         return res.status(200).json({ 
           success: true,
           isNewUser: true,
+          requiresOTPVerification: true,
           user: {
             id: rider.id,
             email: rider.email,
@@ -316,7 +320,9 @@ router.post("/google", async (req, res) => {
 
       return res.status(200).json({ 
         success: true,
-        isNewUser: needsSetup, // Redirect to setup if profile incomplete
+        isNewUser: false,
+        needsSetup: needsSetup,
+        requiresOTPVerification: false,
         user: {
           id: rider.id,
           email: rider.email,
@@ -336,6 +342,8 @@ router.post("/google", async (req, res) => {
     });
 
     let isNewUser = false;
+    let requiresOTPVerification = false;
+    let needsSetup = false;
 
     if (!user) {
       // Generate OTP for email verification
@@ -359,6 +367,7 @@ router.post("/google", async (req, res) => {
       });
 
       isNewUser = true;
+      requiresOTPVerification = true;
       console.log(`✅ New USER created via Google OAuth:`, user.email);
 
       // Send OTP email
@@ -377,19 +386,22 @@ router.post("/google", async (req, res) => {
     } else {
       console.log(`✅ Existing USER logged in via Google:`, user.email);
       // Check if profile is complete (phone and address required)
-      const needsSetup = !user.phone || !user.address;
-      isNewUser = needsSetup;
+      needsSetup = !user.phone || !user.address;
+      isNewUser = false;
+      requiresOTPVerification = false;
     }
 
     // Generate JWT token
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
-    // Return user data and token with isNewUser flag
+    // Return user data and token with flags
     const { password: _pw, ...userWithoutPassword } = user;
     
     res.status(200).json({ 
       success: true,
-      isNewUser, // Will be true if new user or if phone/address are missing
+      isNewUser,
+      needsSetup,
+      requiresOTPVerification,
       user: userWithoutPassword, 
       token 
     });
