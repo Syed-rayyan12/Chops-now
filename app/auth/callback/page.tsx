@@ -56,10 +56,11 @@ function GoogleCallbackContent() {
         console.log('Backend data:', backendData)
 
         // Check if this is a new user (needs profile completion)
-        const isNewUser = backendData.isNewUser || backendData.needsSetup || false
+        const isNewUser = backendData.isNewUser || false
         const requiresOTPVerification = backendData.requiresOTPVerification || false
-        console.log('Is new user:', isNewUser)
-        console.log('Requires OTP verification:', requiresOTPVerification)
+        console.log('🔍 Is new user:', isNewUser)
+        console.log('🔍 Requires OTP verification:', requiresOTPVerification)
+        console.log('🔍 Needs setup:', backendData.needsSetup)
 
         // Store token and email based on role
         if (roleInfo.role === 'RESTAURANT') {
@@ -95,8 +96,11 @@ function GoogleCallbackContent() {
         // Determine redirect based on role and profile completion
         let redirectUrl = roleInfo.redirect
 
-        if (isNewUser) {
-          // New users need to complete their profile
+        // Check if user needs to go to setup page (either new user or incomplete profile)
+        const needsProfileSetup = isNewUser || backendData.needsSetup
+
+        if (needsProfileSetup) {
+          // Users need to complete their profile
           if (roleInfo.role === 'RESTAURANT') {
             redirectUrl = '/restaurant-setup'
           } else if (roleInfo.role === 'RIDER') {
@@ -108,6 +112,7 @@ function GoogleCallbackContent() {
 
         // Redirect to appropriate page
         console.log('🔄 Redirecting to:', redirectUrl)
+        console.log('🔧 Needs profile setup:', needsProfileSetup)
         router.push(redirectUrl)
       } catch (err: any) {
         console.error('❌ Google OAuth Error:', err)
