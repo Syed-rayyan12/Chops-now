@@ -3,10 +3,13 @@
 // ============================================
 
 const getBaseUrl = () => {
-  if (!process.env.NEXT_PUBLIC_API_URL) {
-    throw new Error('NEXT_PUBLIC_API_URL must be set in .env.local or deployment platform!');
+  // Use environment variable for production or fallback to localhost
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
   }
-  return process.env.NEXT_PUBLIC_API_URL;
+  
+  // Fallback to localhost for development
+  return "http://localhost:4000/api";
 };
 
 export const API_CONFIG = {

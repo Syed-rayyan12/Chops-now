@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
+import { OTPModal } from "../otp-modal"
+
 
 export default function RiderSignup() {
   const router = useRouter()
@@ -37,6 +39,8 @@ export default function RiderSignup() {
     password?: string
     address?: string
   }>({})
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
 
   const handleAddressClick = async () => {
     if (isGettingLocation) return
@@ -190,17 +194,27 @@ export default function RiderSignup() {
 
       if (!res.ok) throw new Error(data.message || "Something went wrong")
 
-      // ✅ Show success toast (will be dismissed before redirect)
-      toast({
-        title: "Success!",
-        description: "Account created successfully. Redirecting to login...",
-        duration: 2000,
-      })
+      // ✅ Check if OTP verification is required
+      if (data.requiresVerification) {
+        setUserEmail(formData.email)
+        setShowOTPModal(true)
+        toast({
+          title: "OTP Sent!",
+          description: "Please check your email for the verification code.",
+          duration: 4000,
+        })
+      } else {
+        // Old flow (if OTP is not required)
+        toast({
+          title: "Success!",
+          description: "Account created successfully. Redirecting to login...",
+          duration: 2000,
+        })
 
-      // ✅ Redirect to login page after short delay
-      setTimeout(() => {
-        router.push("/user-signIn")
-      }, 2000)
+        setTimeout(() => {
+          router.push("/user-signIn")
+        }, 2000)
+      }
     } catch (err: any) {
       setError(err.message)
       toast({
@@ -214,10 +228,31 @@ export default function RiderSignup() {
     }
   }
 
+  const handleOTPVerified = () => {
+    setShowOTPModal(false)
+    toast({
+      title: "Email Verified! ✓",
+      description: "You can now sign in to your account.",
+      duration: 3000,
+    })
+    setTimeout(() => {
+      router.push("/user-signIn")
+    }, 1500)
+  }
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-[#e9e9e9] relative">
       {/* ✅ Render Toaster */}
       <Toaster />
+
+      {/* ✅ OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={userEmail}
+        role="USER"
+        onVerified={handleOTPVerified}
+      />
 
       <Card className="w-full max-w-md max-sm:mx-4 bg-white px-6 py-6">
         <CardHeader className="text-center space-y-4 py-6 px-6">

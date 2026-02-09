@@ -8,36 +8,42 @@ datasource db {
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
-  firstName      String
-  lastName       String
-  email          String    @unique
-  password       String
-  phone          String?   @unique
-  address        String?
-  role           Role
-  latitude       Float?
-  longitude      Float?
-  createdAt      DateTime  @default(now())
-  addresses      Address[]
-  cartItems      CartItem[]
-  customerOrders Order[]   @relation("CustomerOrders")
+  id              Int       @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  email           String    @unique
+  password        String
+  phone           String?   @unique
+  address         String?
+  role            Role
+  latitude        Float?
+  longitude       Float?
+  otp             String?
+  otpExpiry       DateTime?
+  isEmailVerified Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  addresses       Address[]
+  cartItems       CartItem[]
+  customerOrders  Order[]   @relation("CustomerOrders")
 }
 
 model Restaurant {
-  id             Int                      @id @default(autoincrement())
-  name           String
-  slug           String                   @unique
-  phone          String
-  address        String
-  latitude       Float?
-  longitude      Float?
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
-  deletedAt      DateTime?
-  ownerEmail     String                   @unique
-  ownerFirstName String
-  ownerLastName  String
+  id              Int                      @id @default(autoincrement())
+  name            String
+  slug            String                   @unique
+  phone           String
+  address         String
+  latitude        Float?
+  longitude       Float?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  deletedAt       DateTime?
+  ownerEmail      String                   @unique
+  ownerFirstName  String
+  ownerLastName   String
+  otp             String?
+  otpExpiry       DateTime?
+  isEmailVerified Boolean                  @default(false)
   coverImage     String?
   cuisineType    String?
   deliveryFee    Float                    @default(0)
@@ -83,6 +89,9 @@ model Rider {
   latitude                         Float?
   longitude                        Float?
   lastLocationUpdate               DateTime?
+  otp                              String?
+  otpExpiry                        DateTime?
+  isEmailVerified                  Boolean              @default(false)
   createdAt                        DateTime             @default(now())
   orders                           Order[]
   earnings                         Earning[]

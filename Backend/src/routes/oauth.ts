@@ -77,6 +77,10 @@ router.post("/google", async (req, res) => {
         const restaurantName = `${firstName}'s Restaurant`;
         const slug = `${firstName.toLowerCase()}-restaurant-${Date.now()}`;
         
+        // Generate OTP for email verification
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        
         restaurant = await prisma.restaurant.create({
           data: {
             name: restaurantName,
@@ -86,22 +90,26 @@ router.post("/google", async (req, res) => {
             ownerEmail: email,
             ownerFirstName: firstName,
             ownerLastName: lastName,
+            otp,
+            otpExpiry,
+            isEmailVerified: false,
           },
         });
 
         console.log(`✅ New restaurant created via Google OAuth:`, restaurant.ownerEmail);
 
-        // Send welcome email
+        // Send OTP email
         try {
-          const { sendWelcomeEmail } = await import('../config/email.config');
-          await sendWelcomeEmail({
+          const { sendOTPEmail } = await import('../config/email.config');
+          await sendOTPEmail({
             email: restaurant.ownerEmail,
-            firstName: restaurant.ownerFirstName,
+            name: `${restaurant.ownerFirstName} ${restaurant.ownerLastName}`,
+            otp,
             role: 'RESTAURANT'
           });
-          console.log('✅ Welcome email sent to restaurant owner');
+          console.log('✅ OTP email sent to restaurant owner');
         } catch (emailError) {
-          console.error('⚠️ Failed to send welcome email:', emailError);
+          console.error('⚠️ Failed to send OTP email:', emailError);
         }
 
         // Return with isNewUser flag
@@ -199,6 +207,10 @@ router.post("/google", async (req, res) => {
           address: null
         });
         
+        // Generate OTP for email verification
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        
         // Create new rider
         try {
           rider = await prisma.rider.create({
@@ -209,6 +221,9 @@ router.post("/google", async (req, res) => {
               phone: '', // Will be updated in profile
               password: '', // No password for OAuth users
               address: null,
+              otp,
+              otpExpiry,
+              isEmailVerified: false,
               // Don't include image field - it doesn't exist in database yet
             },
             select: {
@@ -234,6 +249,8 @@ router.post("/google", async (req, res) => {
               latitude: true,
               longitude: true,
               lastLocationUpdate: true,
+              otp: true,
+              otpExpiry: true,
               // Exclude image field as it doesn't exist in database yet
             }
           });
@@ -249,17 +266,18 @@ router.post("/google", async (req, res) => {
           throw createError;
         }
 
-        // Send welcome email
+        // Send OTP email
         try {
-          const { sendWelcomeEmail } = await import('../config/email.config');
-          await sendWelcomeEmail({
+          const { sendOTPEmail } = await import('../config/email.config');
+          await sendOTPEmail({
             email: rider.email,
-            firstName: rider.firstName,
+            name: `${rider.firstName} ${rider.lastName}`,
+            otp,
             role: 'RIDER'
           });
-          console.log('✅ Welcome email sent to rider');
+          console.log('✅ OTP email sent to rider');
         } catch (emailError) {
-          console.error('⚠️ Failed to send welcome email:', emailError);
+          console.error('⚠️ Failed to send OTP email:', emailError);
         }
 
         // Return with isNewUser flag
@@ -320,6 +338,10 @@ router.post("/google", async (req, res) => {
     let isNewUser = false;
 
     if (!user) {
+      // Generate OTP for email verification
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      
       // Create new user from Google data
       user = await prisma.user.create({
         data: {
@@ -330,23 +352,27 @@ router.post("/google", async (req, res) => {
           role: "USER",
           phone: null,
           address: null,
+          otp,
+          otpExpiry,
+          isEmailVerified: false,
         },
       });
 
       isNewUser = true;
       console.log(`✅ New USER created via Google OAuth:`, user.email);
 
-      // Send welcome email
+      // Send OTP email
       try {
-        const { sendWelcomeEmail } = await import('../config/email.config');
-        await sendWelcomeEmail({
+        const { sendOTPEmail } = await import('../config/email.config');
+        await sendOTPEmail({
           email: user.email,
-          firstName: user.firstName,
+          name: `${user.firstName} ${user.lastName}`,
+          otp,
           role: 'USER'
         });
-        console.log('✅ Welcome email sent to Google user');
+        console.log('✅ OTP email sent to Google user');
       } catch (emailError) {
-        console.error('⚠️ Failed to send welcome email:', emailError);
+        console.error('⚠️ Failed to send OTP email:', emailError);
       }
     } else {
       console.log(`✅ Existing USER logged in via Google:`, user.email);

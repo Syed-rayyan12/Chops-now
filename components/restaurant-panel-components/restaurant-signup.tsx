@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/api/config"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
+import { OTPModal } from "../otp-modal"
+
 
 export default function RestaurantSignup() {
     const router = useRouter()
@@ -36,6 +38,8 @@ export default function RestaurantSignup() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+    const [showOTPModal, setShowOTPModal] = useState(false)
+    const [userEmail, setUserEmail] = useState("")
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -212,17 +216,27 @@ export default function RestaurantSignup() {
                 throw new Error(data.message || "Something went wrong")
             }
 
-            // ✅ Don't save to localStorage - redirect to login
-            // ✅ Trigger toast
-            toast({
-                title: "Restaurant Created Successfully! Please sign in.",
-                duration: 3000,
-            })
+            // ✅ Check if OTP verification is required
+            if (data.requiresVerification) {
+                setUserEmail(formData.businessEmail)
+                setShowOTPModal(true)
+                toast({
+                    title: "OTP Sent!",
+                    description: "Please check your email for the verification code.",
+                    duration: 4000,
+                })
+            } else {
+                // Old flow (if OTP is not required)
+                toast({
+                    title: "Restaurant Created Successfully! Please sign in.",
+                    duration: 3000,
+                })
 
-            // Redirect to login page after signup
-            setTimeout(() => {
-                router.push("/restaurant-signIn")
-            }, 2000)
+                // Redirect to login page after signup
+                setTimeout(() => {
+                    router.push("/restaurant-signIn")
+                }, 2000)
+            }
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -230,10 +244,31 @@ export default function RestaurantSignup() {
         }
     }
 
+    const handleOTPVerified = () => {
+        setShowOTPModal(false)
+        toast({
+            title: "Email Verified! ✓",
+            description: "You can now sign in to your account.",
+            duration: 3000,
+        })
+        setTimeout(() => {
+            router.push("/restaurant-signIn")
+        }, 1500)
+    }
+
     return (
         <div className="flex justify-center bg-[#e9e9e9] items-center min-h-screen relative">
             {/* ✅ Render Toaster */}
             <Toaster />
+
+            {/* ✅ OTP Modal */}
+            <OTPModal
+                isOpen={showOTPModal}
+                onClose={() => setShowOTPModal(false)}
+                email={userEmail}
+                role="RESTAURANT"
+                onVerified={handleOTPVerified}
+            />
 
             <Card className="w-full max-w-md lg:max-w-sm bg-white max-sm:mx-4 p-4 ">
                 <CardHeader className="text-center space-y-4">

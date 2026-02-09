@@ -55,6 +55,10 @@ function GoogleCallbackContent() {
         console.log('✅ Google OAuth successful')
         console.log('Backend data:', backendData)
 
+        // Check if this is a new user (needs profile completion)
+        const isNewUser = backendData.isNewUser || false
+        console.log('Is new user:', isNewUser)
+
         // Store token and email based on role
         if (roleInfo.role === 'RESTAURANT') {
           localStorage.setItem('restaurantToken', backendData.token)
@@ -64,19 +68,27 @@ function GoogleCallbackContent() {
             localStorage.setItem('restaurantSlug', backendData.user.slug)
             localStorage.setItem('restaurantData', JSON.stringify(backendData.user))
           }
+          // Set flag for OTP verification if new user
+          if (isNewUser) {
+            localStorage.setItem('requiresOTPVerification', 'true')
+          }
         } else if (roleInfo.role === 'RIDER') {
           localStorage.setItem('riderToken', backendData.token)
           localStorage.setItem('riderEmail', backendData.user.email)
           localStorage.setItem('riderData', JSON.stringify(backendData.user))
+          // Set flag for OTP verification if new user
+          if (isNewUser) {
+            localStorage.setItem('requiresOTPVerification', 'true')
+          }
         } else {
           // USER role
           localStorage.setItem('token', backendData.token)
           localStorage.setItem('userEmail', backendData.user.email)
+          // Set flag for OTP verification if new user
+          if (isNewUser) {
+            localStorage.setItem('requiresOTPVerification', 'true')
+          }
         }
-
-        // Check if this is a new user (needs profile completion)
-        const isNewUser = backendData.isNewUser || false
-        console.log('Is new user:', isNewUser)
 
         // Determine redirect based on role and profile completion
         let redirectUrl = roleInfo.redirect

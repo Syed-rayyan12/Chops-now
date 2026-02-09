@@ -11,6 +11,7 @@ import paymentRoutes from "./routes/payment";
 import notificationRoutes from "./routes/notification";
 import contactRoutes from "./routes/contact";
 import newsletterRoutes from "./routes/newsletter";
+import otpRoutes from "./routes/otp";
 import oauthRoutes from "./routes/oauth";
 
 console.log("🔥 server.ts is running...");
@@ -19,10 +20,11 @@ console.log("🔥 server.ts is running...");
 dotenv.config();
 const app = express();
 
-// CORS configuration - allow production frontend
+// CORS configuration - allow production frontend and local development
 app.use(
   cors({
     origin: [
+      "http://localhost:3000", // Local development
       "https://www.chopnow.co.uk",
       "https://chopnow.co.uk"
     ],
@@ -67,6 +69,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/otp", otpRoutes);
 app.use("/api/oauth", oauthRoutes);
 
 // Menu category and items routes

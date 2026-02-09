@@ -118,6 +118,10 @@ router.post("/signup", async (req, res) => {
     // Hash the provided password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
     console.log("🔐 Password hashed, creating restaurant...");
 
     // ✅ Generate unique slug from business name
@@ -134,6 +138,9 @@ router.post("/signup", async (req, res) => {
         password: hashedPassword,
         phone: businessPhone,
         role: "RESTAURANT",
+        otp,
+        otpExpiry,
+        isEmailVerified: false,
       },
     });
 
@@ -149,6 +156,9 @@ router.post("/signup", async (req, res) => {
         ownerFirstName: firstName,
         ownerLastName: lastName,
         ownerEmail: businessEmail,
+        otp,
+        otpExpiry,
+        isEmailVerified: false,
         // Optional display fields
         description: description || "",
         image: image || "/placeholder.svg",
@@ -170,20 +180,28 @@ router.post("/signup", async (req, res) => {
 
     console.log("✅ Restaurant created successfully:", restaurant.id);
 
-    // Generate token using restaurant id, email, and role
-    const token = generateToken({ id: restaurant.id, email: restaurant.ownerEmail, role: "RESTAURANT" });
-
-    // Send welcome email
+    // Send OTP email and admin notification
     try {
-      const { sendWelcomeEmail } = await import('../config/email.config');
-      await sendWelcomeEmail({
+      const { sendOTPEmail, sendAdminSignupNotification } = await import('../config/email.config');
+      
+      // Send OTP to restaurant
+      await sendOTPEmail({
         email: businessEmail,
-        firstName: firstName,
+        name: `${firstName} ${lastName}`,
+        otp,
         role: 'RESTAURANT'
       });
-      console.log('✅ Welcome email sent to restaurant');
+      console.log('✅ OTP email sent to restaurant');
+
+      // Send notification to admin
+      await sendAdminSignupNotification({
+        email: businessEmail,
+        name: `${firstName} ${lastName}`,
+        role: 'RESTAURANT'
+      });
+      console.log('✅ Admin notification sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send welcome email:', emailError);
+      console.error('⚠️ Failed to send emails:', emailError);
       // Don't fail signup if email fails
     }
 
@@ -203,7 +221,8 @@ router.post("/signup", async (req, res) => {
 
     res.json({
       restaurant: restaurantResponse,
-      token,
+      message: "Signup successful! Please check your email for OTP verification.",
+      requiresVerification: true,
       role: "RESTAURANT"
     });
   } catch (err: any) {

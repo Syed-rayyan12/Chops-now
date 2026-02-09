@@ -76,6 +76,10 @@ router.post("/signup", async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
     // Use formatted sort code from validation
     const finalSortCode = req.body.sortCode || sortCode
     
@@ -100,29 +104,43 @@ router.post("/signup", async (req, res) => {
         accountNumber,
         sortCode: finalSortCode,
         deliveryPartnerAgreementAccepted: !!deliveryPartnerAgreementAccepted,
+        otp,
+        otpExpiry,
+        isEmailVerified: false,
       },
     });
 
-    // Generate JWT
-    const token = jwt.sign({ id: rider.id, role: "RIDER" }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    // Send welcome email
+    // Send OTP email and admin notification
     try {
-      const { sendWelcomeEmail } = await import('../config/email.config');
-      await sendWelcomeEmail({
+      const { sendOTPEmail, sendAdminSignupNotification } = await import('../config/email.config');
+      
+      // Send OTP to rider
+      await sendOTPEmail({
         email: rider.email,
-        firstName: rider.firstName,
+        name: `${rider.firstName} ${rider.lastName}`,
+        otp,
         role: 'RIDER'
       });
-      console.log('✅ Welcome email sent to rider');
+      console.log('✅ OTP email sent to rider');
+
+      // Send notification to admin
+      await sendAdminSignupNotification({
+        email: rider.email,
+        name: `${rider.firstName} ${rider.lastName}`,
+        role: 'RIDER'
+      });
+      console.log('✅ Admin notification sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send welcome email:', emailError);
+      console.error('⚠️ Failed to send emails:', emailError);
       // Don't fail signup if email fails
     }
 
-    res.status(201).json({ rider, token });
+    const { password: _pw, otp: _otp, otpExpiry: _otpExpiry, ...riderWithoutSensitive } = rider;
+    res.status(201).json({ 
+      rider: riderWithoutSensitive,
+      message: "Signup successful! Please check your email for OTP verification.",
+      requiresVerification: true
+    });
   } catch (err: any) {
     console.error("Signup error:", err);
     res.status(500).json({ message: "Signup failed", error: err.message });

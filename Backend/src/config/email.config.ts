@@ -1,29 +1,21 @@
-import nodemailer from 'nodemailer';
 import sendgridMail from '@sendgrid/mail';
 
 console.log('📧 Email Config:', {
   emailUser: process.env.EMAIL_USER,
-  passwordSet: !!process.env.EMAIL_PASSWORD,
   usingSendGrid: !!process.env.SENDGRID_API_KEY,
 });
 
-// If SendGrid API key is present, configure SendGrid
-if (process.env.SENDGRID_API_KEY) {
+// Configure SendGrid
+if (!process.env.SENDGRID_API_KEY) {
+  console.error('⚠️ SENDGRID_API_KEY not found in environment variables!');
+} else {
   sendgridMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('✅ SendGrid configured successfully');
 }
-
-// Create transporter using Gmail SMTP (fallback)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
 
 // Company email addresses - emails will be sent to all of these
 export const COMPANY_EMAILS = [
-  process.env.EMAIL_USER || 'pr.muslim.82@gmail.com',
+  process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
 ];
 
 export interface ContactFormData {
@@ -87,24 +79,17 @@ export const sendContactEmail = async (data: ContactFormData) => {
   };
   console.log('📤 Sending email to:', COMPANY_EMAILS);
 
-  // If SendGrid key is present, use SendGrid SDK (preferred)
-  if (process.env.SENDGRID_API_KEY) {
-    const msg = {
-      to: COMPANY_EMAILS,
-      from: process.env.EMAIL_USER || 'no-reply@chopnow.example',
-      replyTo: email,
-      subject: mailOptions.subject,
-      html: htmlContent,
-    };
+  // Use SendGrid SDK
+  const msg = {
+    to: COMPANY_EMAILS,
+    from: process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
+    replyTo: email,
+    subject: mailOptions.subject,
+    html: htmlContent,
+  };
 
-    const result = await sendgridMail.send(msg as any);
-    console.log('✅ SendGrid response:', result && result[0] && result[0].statusCode);
-    return result;
-  }
-
-  // Fallback to nodemailer
-  const result = await transporter.sendMail(mailOptions as any);
-  console.log('✅ Nodemailer sent:', result.messageId);
+  const result = await sendgridMail.send(msg as any);
+  console.log('✅ SendGrid email sent:', result && result[0] && result[0].statusCode);
   return result;
 };
 
@@ -182,32 +167,20 @@ export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscripti
   return sendEmail(COMPANY_EMAILS, "[ChopNow Newsletter] New subscription", companyHtml, email);
 };
 
-// Helper function to send emails (DRY)
+// Helper function to send emails using SendGrid only
 const sendEmail = async (to: string | string[], subject: string, html: string, replyTo?: string) => {
-  console.log('📤 Sending email to:', to);
+  console.log('📤 Sending email via SendGrid to:', to);
 
-  if (process.env.SENDGRID_API_KEY) {
-    const msg = {
-      to: Array.isArray(to) ? to : [to],
-      from: process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
-      replyTo: replyTo,
-      subject,
-      html,
-    };
-    const result = await sendgridMail.send(msg as any);
-    console.log('✅ SendGrid sent');
-    return result;
-  }
-
-  const mailOptions = {
-    from: `"ChopNow" <${process.env.EMAIL_USER}>`,
+  const msg = {
     to: Array.isArray(to) ? to : [to],
-    replyTo,
+    from: process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
+    replyTo: replyTo,
     subject,
     html,
   };
-  const result = await transporter.sendMail(mailOptions as any);
-  console.log('✅ Nodemailer sent:', result.messageId);
+  
+  const result = await sendgridMail.send(msg as any);
+  console.log('✅ SendGrid email sent:', result && result[0] && result[0].statusCode);
   return result;
 };
 
@@ -531,4 +504,104 @@ export const sendRiderStatusEmail = async (data: {
     : 'Rider Application Update';
 
   return sendEmail(email, subject, html);
+};
+
+// OTP Verification Email
+export const sendOTPEmail = async (data: {
+  email: string;
+  name: string;
+  otp: string;
+  role: 'USER' | 'RESTAURANT' | 'RIDER';
+}) => {
+  const { email, name, otp, role } = data;
+
+  const roleText = role === 'USER' ? 'Customer' : role === 'RESTAURANT' ? 'Restaurant Partner' : 'Rider';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Verify Your Email</h1>
+        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Complete your ${roleText} registration</p>
+      </div>
+      <div style="background: #ffffff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">Hi ${name},</p>
+        <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
+          Thank you for registering with ChopNow! To complete your registration, please verify your email address using the OTP below:
+        </p>
+        
+        <div style="background: #f9f9f9; padding: 30px; border-radius: 8px; text-align: center; margin: 25px 0;">
+          <p style="margin: 0 0 10px 0; color: #555; font-size: 14px; font-weight: bold;">Your OTP Code:</p>
+          <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); display: inline-block; padding: 20px 40px; border-radius: 8px; margin: 10px 0;">
+            <p style="margin: 0; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px;">${otp}</p>
+          </div>
+          <p style="margin: 15px 0 0 0; color: #999; font-size: 12px;">This code will expire in 10 minutes</p>
+        </div>
+
+        <div style="background: #fff8f0; padding: 20px; border-radius: 8px; border-left: 4px solid #FF6B00; margin: 25px 0;">
+          <p style="margin: 0; color: #555; font-size: 14px;">
+            <strong>⚠️ Security Note:</strong><br/>
+            Never share this OTP with anyone. ChopNow staff will never ask for your OTP.
+          </p>
+        </div>
+
+        <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 25px 0 0 0;">
+          If you didn't request this verification, please ignore this email.
+        </p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
+          <p style="color: #999; font-size: 12px; margin: 0;">
+            Need help? Contact us at support@chopnow.co.uk<br/>
+            © ${new Date().getFullYear()} ChopNow. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendEmail(email, '🔐 Verify Your Email - ChopNow', html);
+};
+
+// Admin notification for new signup
+export const sendAdminSignupNotification = async (data: {
+  email: string;
+  name: string;
+  role: 'USER' | 'RESTAURANT' | 'RIDER';
+}) => {
+  const { email, name, role } = data;
+
+  const roleText = role === 'USER' ? 'Customer' : role === 'RESTAURANT' ? 'Restaurant Partner' : 'Rider';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 20px; border-radius: 10px 10px 0 0;">
+        <h2 style="color: white; margin: 0; font-size: 24px;">👤 New ${roleText} Signup</h2>
+      </div>
+      <div style="background: #ffffff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 10px 10px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333; width: 120px;">Name:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">${name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333;">Email:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">
+              <a href="mailto:${email}" style="color: #FF6B00; text-decoration: none;">${email}</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #333;">Role:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">${roleText}</td>
+          </tr>
+        </table>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="color: #999; font-size: 12px; margin: 0;">
+            New signup notification from ChopNow platform<br/>
+            Received at: ${new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' })}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendEmail(COMPANY_EMAILS, `[ChopNow] New ${roleText} Signup - ${name}`, html, email);
 };

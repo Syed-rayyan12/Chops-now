@@ -11,6 +11,7 @@ import { Loader2, Store, MapPin, StoreIcon } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
+import { OTPModal } from "@/components/otp-modal"
 
 export default function RestaurantSetupPage() {
   const router = useRouter()
@@ -19,6 +20,8 @@ export default function RestaurantSetupPage() {
   const [email, setEmail] = useState("")
   const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [formData, setFormData] = useState({
     restaurantName: "",
     phone: "",
@@ -32,6 +35,13 @@ export default function RestaurantSetupPage() {
     const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('restaurantEmail')
     if (userEmail) {
       setEmail(userEmail)
+      
+      // Check if this is a new Google signup that needs OTP verification
+      const isNewGoogleUser = localStorage.getItem('requiresOTPVerification')
+      if (isNewGoogleUser === 'true') {
+        setShowOTPModal(true)
+        localStorage.removeItem('requiresOTPVerification') // Clear flag after showing modal
+      }
     }
     // Don't redirect if no email - callback might still be setting it up
   }, [router])
@@ -70,6 +80,19 @@ export default function RestaurantSetupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Check if email is verified
+    if (!isEmailVerified) {
+      toast({
+        title: "Email Verification Required",
+        description: "Please verify your email before completing your profile",
+        variant: "destructive",
+        duration: 3000,
+      })
+      setShowOTPModal(true)
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -130,8 +153,27 @@ export default function RestaurantSetupPage() {
     }
   }
 
+  const handleOTPVerified = () => {
+    setShowOTPModal(false)
+    setIsEmailVerified(true)
+    toast({
+      title: "Email Verified! ✓",
+      description: "You can now complete your restaurant profile",
+      duration: 3000,
+    })
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      {/* OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={email}
+        role="RESTAURANT"
+        onVerified={handleOTPVerified}
+      />
+      
       <Card className="w-full max-w-2xl p-4 bg-white rounded-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

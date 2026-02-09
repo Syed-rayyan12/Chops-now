@@ -10,6 +10,7 @@ import { Loader2, Bike, MapPin } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
+import { OTPModal } from "@/components/otp-modal"
 
 export default function RiderSetupPage() {
   const router = useRouter()
@@ -18,6 +19,8 @@ export default function RiderSetupPage() {
   const [email, setEmail] = useState("")
   const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -30,6 +33,13 @@ export default function RiderSetupPage() {
     const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('riderEmail')
     if (userEmail) {
       setEmail(userEmail)
+      
+      // Check if this is a new Google signup that needs OTP verification
+      const isNewGoogleUser = localStorage.getItem('requiresOTPVerification')
+      if (isNewGoogleUser === 'true') {
+        setShowOTPModal(true)
+        localStorage.removeItem('requiresOTPVerification') // Clear flag after showing modal
+      }
     }
     // Don't redirect if no email - callback might still be setting it up
   }, [router])
@@ -68,6 +78,19 @@ export default function RiderSetupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Check if email is verified
+    if (!isEmailVerified) {
+      toast({
+        title: "Email Verification Required",
+        description: "Please verify your email before completing your profile",
+        variant: "destructive",
+        duration: 3000,
+      })
+      setShowOTPModal(true)
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -127,8 +150,27 @@ export default function RiderSetupPage() {
     }
   }
 
+  const handleOTPVerified = () => {
+    setShowOTPModal(false)
+    setIsEmailVerified(true)
+    toast({
+      title: "Email Verified! ✓",
+      description: "You can now complete your rider profile",
+      duration: 3000,
+    })
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      {/* OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={email}
+        role="RIDER"
+        onVerified={handleOTPVerified}
+      />
+      
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

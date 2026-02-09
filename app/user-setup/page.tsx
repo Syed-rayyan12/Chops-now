@@ -11,6 +11,7 @@ import { API_CONFIG } from "@/lib/api/config"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 import Link from "next/link"
+import { OTPModal } from "@/components/otp-modal"
 
 export default function UserSetupPage() {
   const router = useRouter()
@@ -19,6 +20,8 @@ export default function UserSetupPage() {
   const [email, setEmail] = useState("")
   const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -31,6 +34,14 @@ export default function UserSetupPage() {
     const userEmail = localStorage.getItem('userEmail')
     if (userEmail) {
       setEmail(userEmail)
+      
+      // Check if this is a new Google signup that needs OTP verification
+      // We'll show OTP modal if user just came from Google OAuth callback
+      const isNewGoogleUser = localStorage.getItem('requiresOTPVerification')
+      if (isNewGoogleUser === 'true') {
+        setShowOTPModal(true)
+        localStorage.removeItem('requiresOTPVerification') // Clear flag after showing modal
+      }
     }
     // Don't redirect if no email - callback might still be setting it up
   }, [router])
@@ -73,6 +84,19 @@ export default function UserSetupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Check if email is verified
+    if (!isEmailVerified) {
+      toast({
+        title: "Email Verification Required",
+        description: "Please verify your email before completing your profile",
+        variant: "destructive",
+        duration: 3000,
+      })
+      setShowOTPModal(true)
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -128,8 +152,27 @@ export default function UserSetupPage() {
     }
   }
 
+  const handleOTPVerified = () => {
+    setShowOTPModal(false)
+    setIsEmailVerified(true)
+    toast({
+      title: "Email Verified! ✓",
+      description: "You can now complete your profile",
+      duration: 3000,
+    })
+  }
+
   return (
     <div className="min-h-screen bg-[#e9e9e9] flex items-center justify-center p-4">
+      {/* OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={email}
+        role="USER"
+        onVerified={handleOTPVerified}
+      />
+      
       <Card className="w-full max-w-2xl bg-white p-4">
         <CardHeader className="text-center space-y-4 pb-4">
           <Link href="/">
