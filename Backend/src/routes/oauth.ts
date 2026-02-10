@@ -27,6 +27,12 @@ router.post("/google", async (req, res) => {
     const validRoles = ["USER", "RESTAURANT", "RIDER"];
     const userRole = validRoles.includes(role) ? role : "USER";
 
+    console.log('🔑 OAuth Request Details:');
+    console.log('- Role:', userRole);
+    console.log('- Code (first 20 chars):', code.substring(0, 20) + '...');
+    console.log('- Redirect URI:', redirectUri);
+    console.log('- Client ID:', GOOGLE_CLIENT_ID?.substring(0, 20) + '...');
+
     // Exchange code for tokens with Google
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -43,8 +49,23 @@ router.post("/google", async (req, res) => {
     const tokens = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      console.error("❌ Google token exchange failed:", tokens);
-      return res.status(400).json({ message: tokens.error_description || 'Failed to exchange code for token' });
+      console.error("❌ Google token exchange failed:");
+      console.error('- Status:', tokenResponse.status);
+      console.error('- Error:', tokens.error);
+      console.error('- Description:', tokens.error_description);
+      console.error('- Redirect URI used:', redirectUri);
+      console.error('\n⚠️ Common causes:');
+      console.error('1. Redirect URI mismatch (must match exactly in Google Console)');
+      console.error('2. Authorization code already used or expired');
+      console.error('3. Client ID/Secret mismatch');
+      return res.status(400).json({ 
+        message: `OAuth Error: ${tokens.error_description || 'Failed to exchange code for token'}`,
+        details: {
+          error: tokens.error,
+          redirectUri: redirectUri,
+          hint: 'Check that the redirect URI in Google Cloud Console matches exactly: ' + redirectUri
+        }
+      });
     }
 
     // Get user info from Google

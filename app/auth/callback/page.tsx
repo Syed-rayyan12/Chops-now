@@ -9,9 +9,16 @@ function GoogleCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
     const handleGoogleCallback = async () => {
+      // Prevent double processing
+      if (isProcessing) {
+        console.log('⏸️ Already processing OAuth callback, skipping...')
+        return
+      }
+      
       const code = searchParams.get('code')
       const stateParam = searchParams.get('state')
       
@@ -19,6 +26,9 @@ function GoogleCallbackContent() {
         setError("No authorization code received")
         return
       }
+
+      // Mark as processing to prevent double calls
+      setIsProcessing(true)
 
       // Parse state to get role and redirect URL
       let roleInfo = { role: 'USER', redirect: '/customer-panel' }
@@ -33,6 +43,7 @@ function GoogleCallbackContent() {
       try {
         console.log('🔄 Exchanging Google code for token...')
         console.log('Role:', roleInfo.role, 'Redirect:', roleInfo.redirect)
+        console.log('Redirect URI:', `${window.location.origin}/auth/callback`)
         
         // Send code to backend for token exchange
         const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/oauth/google`, {
@@ -130,7 +141,7 @@ function GoogleCallbackContent() {
     }
 
     handleGoogleCallback()
-  }, [searchParams, router])
+  }, [searchParams, router, isProcessing])
 
   if (error) {
     return (
