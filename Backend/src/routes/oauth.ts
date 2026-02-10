@@ -98,10 +98,7 @@ router.post("/google", async (req, res) => {
         const restaurantName = `${firstName}'s Restaurant`;
         const slug = `${firstName.toLowerCase()}-restaurant-${Date.now()}`;
         
-        // Generate OTP for email verification
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-        
+        // OAuth users don't need OTP - Google already verified email
         restaurant = await prisma.restaurant.create({
           data: {
             name: restaurantName,
@@ -111,27 +108,11 @@ router.post("/google", async (req, res) => {
             ownerEmail: email,
             ownerFirstName: firstName,
             ownerLastName: lastName,
-            otp,
-            otpExpiry,
-            isEmailVerified: false,
+            isEmailVerified: true, // Google already verified
           },
         });
 
         console.log(`✅ New restaurant created via Google OAuth:`, restaurant.ownerEmail);
-
-        // Send OTP email
-        try {
-          const { sendOTPEmail } = await import('../config/email.config');
-          await sendOTPEmail({
-            email: restaurant.ownerEmail,
-            name: `${restaurant.ownerFirstName} ${restaurant.ownerLastName}`,
-            otp,
-            role: 'RESTAURANT'
-          });
-          console.log('✅ OTP email sent to restaurant owner');
-        } catch (emailError) {
-          console.error('⚠️ Failed to send OTP email:', emailError);
-        }
 
         // Return with isNewUser flag
         const token = jwt.sign({ 
@@ -143,7 +124,8 @@ router.post("/google", async (req, res) => {
         return res.status(200).json({ 
           success: true,
           isNewUser: true,
-          requiresOTPVerification: true,
+          needsSetup: true, // New user needs to complete profile
+          requiresOTPVerification: false, // Google already verified email
           user: {
             id: restaurant.id,
             email: restaurant.ownerEmail,
@@ -231,9 +213,7 @@ router.post("/google", async (req, res) => {
           address: null
         });
         
-        // Generate OTP for email verification
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        // OAuth users don't need OTP - Google already verified email
         
         // Create new rider
         try {
@@ -245,9 +225,7 @@ router.post("/google", async (req, res) => {
               phone: '', // Will be updated in profile
               password: '', // No password for OAuth users
               address: null,
-              otp,
-              otpExpiry,
-              isEmailVerified: false,
+              isEmailVerified: true, // Google already verified
               // Don't include image field - it doesn't exist in database yet
             },
             select: {
@@ -273,8 +251,6 @@ router.post("/google", async (req, res) => {
               latitude: true,
               longitude: true,
               lastLocationUpdate: true,
-              otp: true,
-              otpExpiry: true,
               // Exclude image field as it doesn't exist in database yet
             }
           });
@@ -290,20 +266,6 @@ router.post("/google", async (req, res) => {
           throw createError;
         }
 
-        // Send OTP email
-        try {
-          const { sendOTPEmail } = await import('../config/email.config');
-          await sendOTPEmail({
-            email: rider.email,
-            name: `${rider.firstName} ${rider.lastName}`,
-            otp,
-            role: 'RIDER'
-          });
-          console.log('✅ OTP email sent to rider');
-        } catch (emailError) {
-          console.error('⚠️ Failed to send OTP email:', emailError);
-        }
-
         // Return with isNewUser flag
         const token = jwt.sign({ 
           id: rider.id, 
@@ -314,7 +276,8 @@ router.post("/google", async (req, res) => {
         return res.status(200).json({ 
           success: true,
           isNewUser: true,
-          requiresOTPVerification: true,
+          needsSetup: true, // New user needs to complete profile
+          requiresOTPVerification: false, // Google already verified email
           user: {
             id: rider.id,
             email: rider.email,
@@ -367,9 +330,7 @@ router.post("/google", async (req, res) => {
     let needsSetup = false;
 
     if (!user) {
-      // Generate OTP for email verification
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      // OAuth users don't need OTP - Google already verified email
       
       // Create new user from Google data
       user = await prisma.user.create({
@@ -381,29 +342,14 @@ router.post("/google", async (req, res) => {
           role: "USER",
           phone: null,
           address: null,
-          otp,
-          otpExpiry,
-          isEmailVerified: false,
+          isEmailVerified: true, // Google already verified
         },
       });
 
       isNewUser = true;
-      requiresOTPVerification = true;
+      requiresOTPVerification = false; // Google already verified
+      needsSetup = true; // New user needs to complete profile
       console.log(`✅ New USER created via Google OAuth:`, user.email);
-
-      // Send OTP email
-      try {
-        const { sendOTPEmail } = await import('../config/email.config');
-        await sendOTPEmail({
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          otp,
-          role: 'USER'
-        });
-        console.log('✅ OTP email sent to Google user');
-      } catch (emailError) {
-        console.error('⚠️ Failed to send OTP email:', emailError);
-      }
     } else {
       console.log(`✅ Existing USER logged in via Google:`, user.email);
       // Check if profile is complete (phone and address required)

@@ -114,9 +114,11 @@ function GoogleCallbackContent() {
 
         // Check if user needs to go to setup page (either new user or incomplete profile)
         const needsProfileSetup = isNewUser || backendData.needsSetup
+        console.log('🔍 Needs profile setup:', needsProfileSetup, '(isNewUser:', isNewUser, 'needsSetup:', backendData.needsSetup, ')')
 
         if (needsProfileSetup) {
           // Users need to complete their profile
+          console.log('✅ Redirecting to setup page for', roleInfo.role)
           if (roleInfo.role === 'RESTAURANT') {
             redirectUrl = '/restaurant-setup'
           } else if (roleInfo.role === 'RIDER') {
@@ -124,6 +126,8 @@ function GoogleCallbackContent() {
           } else if (roleInfo.role === 'USER') {
             redirectUrl = '/user-setup'
           }
+        } else {
+          console.log('✅ Profile complete, redirecting to dashboard')
         }
 
         // Redirect to appropriate page
