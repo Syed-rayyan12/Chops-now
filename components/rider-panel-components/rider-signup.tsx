@@ -190,8 +190,6 @@ export default function RiderSignup() {
     setError(null)
     setFieldErrors({})
 
-    setLoading(true)
-
     // Step 2: Validate formats
     const nameRegex = /^[A-Za-z\s]{2,}$/
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -249,13 +247,16 @@ export default function RiderSignup() {
         insurance: formData.insurance ? formData.insurance.name : null,
       }
 
+      console.log("📤 Sending rider signup request...")
       const res = await fetch(`${API_CONFIG.BASE_URL}/rider/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
+      console.log("📥 Rider signup response status:", res.status)
       const data = await res.json()
+      console.log("📦 Rider signup response data:", data)
 
       if (!res.ok) {
         // Handle backend validation errors
@@ -270,16 +271,23 @@ export default function RiderSignup() {
       }
 
       // ✅ Check if OTP verification is required
-      if (data.requiresVerification) {
+      console.log("🔍 Checking requiresVerification:", data.requiresVerification)
+      if (data.requiresVerification === true) {
+        console.log("✅ OTP verification required, showing modal...")
+        setLoading(false) // Reset loading before showing modal
         setUserEmail(formData.email)
+        console.log("📧 Set user email to:", formData.email)
         setShowOTPModal(true)
+        console.log("🔓 OTP Modal should now be open")
         toast({
-          title: "OTP Sent!",
+          title: "Account Created Successfully!",
           description: "Please check your email for the verification code.",
-          duration: 4000,
+          duration: 5000,
         })
+        return // Don't execute finally block
       } else {
         // Old flow (if OTP is not required)
+        console.log("ℹ️ No OTP verification required")
         toast({
           title: "Rider Created Successfully! Please login.",
           duration: 3000,

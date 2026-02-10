@@ -19,6 +19,9 @@ export function OTPModal({ isOpen, onClose, email, role, onVerified }: OTPModalP
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResending, setIsResending] = useState(false)
 
+  // Debug logging
+  console.log("🔍 OTPModal Props:", { isOpen, email, role })
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
