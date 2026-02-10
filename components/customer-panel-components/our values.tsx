@@ -37,7 +37,7 @@ const ourValues = () => {
           <h2 className='font-fredoka-one font-extrabold text-5xl max-sm:text-2xl max-lg:text-4xl text-foreground mb-4'>
             Our Core Values
           </h2>
-          <div className="bg-primary h-1 w-24 mx-auto mb-4"></div>
+          <div className="bg-primary h-2 w-24 mx-auto mb-4"></div>
           <p className='text-xl text-foreground max-w-3xl mx-auto font-ubuntu leading-relaxed'>
             Guided by culture, community, and care.
           </p>
