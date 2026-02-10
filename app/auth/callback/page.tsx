@@ -23,7 +23,9 @@ function GoogleCallbackContent() {
       const stateParam = searchParams.get('state')
       
       if (!code) {
-        setError("No authorization code received")
+        console.log('⚠️ No authorization code - user may have pressed back button')
+        // Redirect to home instead of showing error
+        router.push('/')
         return
       }
 
@@ -44,6 +46,9 @@ function GoogleCallbackContent() {
         console.log('🔄 Exchanging Google code for token...')
         console.log('Role:', roleInfo.role, 'Redirect:', roleInfo.redirect)
         console.log('Redirect URI:', `${window.location.origin}/auth/callback`)
+        
+        // Clear the URL immediately to prevent reuse on back button
+        window.history.replaceState({}, document.title, '/auth/callback')
         
         // Send code to backend for token exchange
         const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/oauth/google`, {
