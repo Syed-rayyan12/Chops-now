@@ -50,6 +50,11 @@ router.post("/send", async (req: Request, res: Response) => {
     } else if (role === "RESTAURANT") {
       user = await prisma.restaurant.findUnique({ where: { ownerEmail: email } });
       if (user) {
+        // Update both User and Restaurant tables for restaurants
+        await prisma.user.update({
+          where: { email },
+          data: { otp, otpExpiry },
+        });
         await prisma.restaurant.update({
           where: { ownerEmail: email },
           data: { otp, otpExpiry },
@@ -165,6 +170,15 @@ router.post("/verify", async (req: Request, res: Response) => {
         },
       });
     } else if (role === "RESTAURANT") {
+      // Update both User and Restaurant tables for restaurants
+      await prisma.user.update({
+        where: { email },
+        data: {
+          isEmailVerified: true,
+          otp: null,
+          otpExpiry: null,
+        },
+      });
       await prisma.restaurant.update({
         where: { ownerEmail: email },
         data: {

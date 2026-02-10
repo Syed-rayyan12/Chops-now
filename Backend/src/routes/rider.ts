@@ -170,6 +170,15 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
+    // ✅ Check if email is verified
+    if (!rider.isEmailVerified) {
+      return res.status(403).json({ 
+        message: "Please verify your email before logging in. Check your inbox for the verification code.",
+        requiresVerification: true,
+        email: rider.email
+      });
+    }
+
     // Generate JWT
     const token = jwt.sign({ id: rider.id, role: "RIDER" }, JWT_SECRET, {
       expiresIn: "7d",

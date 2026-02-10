@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { loginRestaurant, getRestaurantProfile } from "@/lib/api/restaurant.api"
+import { OTPModal } from "../otp-modal"
 
 interface RiderLoginProps {
   onLogin: () => void
@@ -25,6 +26,8 @@ export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -73,20 +76,54 @@ export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
       
     } catch (err: any) {
       setError(err.message || "Login failed")
-      toast({
-        title: "Login Failed",
-        description: err.message || "Please check your credentials",
-        variant: "destructive",
-      })
+      
+      // Check if email verification is required
+      if (err.statusCode === 403 || err.message?.includes("verify your email")) {
+        setUserEmail(formData.email)
+        setShowOTPModal(true)
+        toast({
+          title: "Email Verification Required",
+          description: err.message || "Please verify your email before logging in.",
+          duration: 4000,
+        })
+      } else {
+        toast({
+          title: "Login Failed",
+          description: err.message || "Please check your credentials",
+          variant: "destructive",
+        })
+      }
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleOTPVerified = () => {
+    setShowOTPModal(false)
+    toast({
+      title: "Email Verified! ✓",
+      description: "You can now sign in to your account.",
+      duration: 3000,
+    })
+    // Automatically attempt login again after verification
+    setTimeout(() => {
+      handleLogin({ preventDefault: () => {} } as any)
+    }, 1000)
   }
 
   return (
     <div className="min-h-screen flex items-center bg-[#e9e9e9] justify-center p-4 relative">
       {/* ✅ Render Toaster */}
       <Toaster />
+
+      {/* ✅ OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={userEmail}
+        role="RESTAURANT"
+        onVerified={handleOTPVerified}
+      />
 
       <Card className="w-full max-w-md lg:max-w-sm bg-white p-4">
         <CardHeader className="text-center py-6 px-6">

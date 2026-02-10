@@ -10,6 +10,7 @@ import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { STORAGE_KEYS, API_CONFIG } from "@/lib/api/config"
+import { OTPModal } from "../otp-modal"
 
 export function RiderLogin() {
   const router = useRouter()
@@ -24,6 +25,8 @@ export function RiderLogin() {
     password: ""
   })
   const [loading, setLoading] = useState(false)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -52,7 +55,20 @@ export function RiderLogin() {
       const data = await res.json()
       console.log("Response data:", data)
 
-      if (!res.ok) throw new Error(data.message || "Login failed")
+      if (!res.ok) {
+        // Check if email verification is required
+        if (res.status === 403 && data.requiresVerification) {
+          setUserEmail(data.email || formData.email)
+          setShowOTPModal(true)
+          toast({
+            title: "Email Verification Required",
+            description: data.message,
+            duration: 4000,
+          })
+          return
+        }
+        throw new Error(data.message || "Login failed")
+      }
 
       console.log("✅ Login successful, token received:", data.token ? "YES" : "NO")
       console.log("✅ Email received:", data.email)
@@ -89,10 +105,32 @@ export function RiderLogin() {
     }
   }
 
+  const handleOTPVerified = () => {
+    setShowOTPModal(false)
+    toast({
+      title: "Email Verified! ✓",
+      description: "You can now sign in to your account.",
+      duration: 3000,
+    })
+    // Automatically attempt login again after verification
+    setTimeout(() => {
+      handleLogin({ preventDefault: () => {} } as any)
+    }, 1000)
+  }
+
   return (
     <div className="min-h-screen bg-[#e9e9e9] flex items-center justify-center p-4 relative">
       {/* ✅ Toaster */}
       <Toaster />
+      
+      {/* ✅ OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={userEmail}
+        role="RIDER"
+        onVerified={handleOTPVerified}
+      />
 
       <Card className="w-full max-w-md lg:max-w-sm bg-white px-6 py-6">
         <CardHeader className="text-center py-4">
