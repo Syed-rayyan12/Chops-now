@@ -35,10 +35,13 @@ export default function RiderSetupPage() {
       setEmail(userEmail)
       
       // Check if this is a new Google signup that needs OTP verification
-      const isNewGoogleUser = localStorage.getItem('requiresOTPVerification')
-      if (isNewGoogleUser === 'true') {
+      const requiresOTP = localStorage.getItem('requiresOTPVerification')
+      if (requiresOTP === 'true') {
         setShowOTPModal(true)
         localStorage.removeItem('requiresOTPVerification') // Clear flag after showing modal
+      } else {
+        // If no OTP required (Google OAuth), mark as verified
+        setIsEmailVerified(true)
       }
     }
     // Don't redirect if no email - callback might still be setting it up

@@ -36,11 +36,13 @@ export default function UserSetupPage() {
       setEmail(userEmail)
       
       // Check if this is a new Google signup that needs OTP verification
-      // We'll show OTP modal if user just came from Google OAuth callback
-      const isNewGoogleUser = localStorage.getItem('requiresOTPVerification')
-      if (isNewGoogleUser === 'true') {
+      const requiresOTP = localStorage.getItem('requiresOTPVerification')
+      if (requiresOTP === 'true') {
         setShowOTPModal(true)
         localStorage.removeItem('requiresOTPVerification') // Clear flag after showing modal
+      } else {
+        // If no OTP required (Google OAuth), mark as verified
+        setIsEmailVerified(true)
       }
     }
     // Don't redirect if no email - callback might still be setting it up
