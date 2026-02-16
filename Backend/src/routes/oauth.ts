@@ -7,8 +7,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
-console.log("✅ OAuth routes loaded");
-
 // Google OAuth - Exchange code for token and create/login user
 router.post("/google", async (req, res) => {
   try {
@@ -19,19 +17,12 @@ router.post("/google", async (req, res) => {
     }
 
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      console.error("❌ Google OAuth credentials not configured");
       return res.status(500).json({ message: "OAuth not configured properly" });
     }
 
     // Validate role
     const validRoles = ["USER", "RESTAURANT", "RIDER"];
     const userRole = validRoles.includes(role) ? role : "USER";
-
-    console.log('🔑 OAuth Request Details:');
-    console.log('- Role:', userRole);
-    console.log('- Code (first 20 chars):', code.substring(0, 20) + '...');
-    console.log('- Redirect URI:', redirectUri);
-    console.log('- Client ID:', GOOGLE_CLIENT_ID?.substring(0, 20) + '...');
 
     // Exchange code for tokens with Google
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -49,15 +40,6 @@ router.post("/google", async (req, res) => {
     const tokens = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      console.error("❌ Google token exchange failed:");
-      console.error('- Status:', tokenResponse.status);
-      console.error('- Error:', tokens.error);
-      console.error('- Description:', tokens.error_description);
-      console.error('- Redirect URI used:', redirectUri);
-      console.error('\n⚠️ Common causes:');
-      console.error('1. Redirect URI mismatch (must match exactly in Google Console)');
-      console.error('2. Authorization code already used or expired');
-      console.error('3. Client ID/Secret mismatch');
       return res.status(400).json({ 
         message: `OAuth Error: ${tokens.error_description || 'Failed to exchange code for token'}`,
         details: {
@@ -76,11 +58,8 @@ router.post("/google", async (req, res) => {
     const googleUser = await userInfoResponse.json();
 
     if (!userInfoResponse.ok) {
-      console.error("❌ Failed to get user info from Google");
       return res.status(400).json({ message: 'Failed to get user information' });
     }
-
-    console.log('✅ Google user info received:', { email: googleUser.email, role: userRole });
 
     const firstName = googleUser.given_name || googleUser.email.split('@')[0];
     const lastName = googleUser.family_name || '';
@@ -112,8 +91,6 @@ router.post("/google", async (req, res) => {
           },
         });
 
-        console.log(`✅ New restaurant created via Google OAuth:`, restaurant.ownerEmail);
-
         // Return with isNewUser flag
         const token = jwt.sign({ 
           id: restaurant.id, 
@@ -137,15 +114,12 @@ router.post("/google", async (req, res) => {
           token 
         };
         
-        console.log('🔍 Returning NEW RESTAURANT response:', JSON.stringify(response, null, 2));
         return res.status(200).json(response);
-      } else {
-        console.log(`✅ Existing restaurant logged in via Google:`, restaurant.ownerEmail);
       }
 
       // Check if profile is complete (phone and address required)
-      const needsSetup = !restaurant.phone || !restaurant.address;
-      console.log(`🔍 Existing restaurant login - phone: "${restaurant.phone}", address: "${restaurant.address}", needsSetup: ${needsSetup}`);
+      // Empty strings and null both mean incomplete
+      const needsSetup = !restaurant.phone || restaurant.phone.trim() === '' || !restaurant.address || restaurant.address.trim() === '';
 
       // Generate JWT token with restaurant data (for existing users)
       const token = jwt.sign({ 
@@ -173,12 +147,10 @@ router.post("/google", async (req, res) => {
         token 
       };
       
-      console.log('🔍 Returning EXISTING RESTAURANT response:', JSON.stringify(response, null, 2));
       return res.status(200).json(response);
     }
 
     if (userRole === "RIDER") {
-      console.log('🔍 Processing RIDER OAuth...', { email, firstName, lastName });
       
       // Check if rider already exists
       let rider = await prisma.rider.findFirst({
@@ -211,15 +183,6 @@ router.post("/google", async (req, res) => {
       });
 
       if (!rider) {
-        console.log('📝 Creating new rider with data:', {
-          email,
-          firstName,
-          lastName,
-          phone: '',
-          password: '',
-          address: null
-        });
-        
         // OAuth users don't need OTP - Google already verified email
         
         // Create new rider
@@ -261,15 +224,7 @@ router.post("/google", async (req, res) => {
               // Exclude image field as it doesn't exist in database yet
             }
           });
-
-          console.log(`✅ New rider created via Google OAuth:`, rider.email);
         } catch (createError: any) {
-          console.error('❌ Prisma error creating rider:', createError);
-          console.error('❌ Error details:', {
-            code: createError.code,
-            meta: createError.meta,
-            message: createError.message
-          });
           throw createError;
         }
 
@@ -296,15 +251,12 @@ router.post("/google", async (req, res) => {
           token 
         };
         
-        console.log('🔍 Returning NEW RIDER response:', JSON.stringify(response, null, 2));
         return res.status(200).json(response);
-      } else {
-        console.log(`✅ Existing rider logged in via Google:`, rider.email);
       }
 
       // Check if profile is complete (phone and address required)
-      const needsSetup = !rider.phone || !rider.address;
-      console.log(`🔍 Existing rider login - phone: "${rider.phone}", address: "${rider.address}", needsSetup: ${needsSetup}`);
+      // Empty strings and null both mean incomplete
+      const needsSetup = !rider.phone || rider.phone.trim() === '' || !rider.address || rider.address.trim() === '';
 
       // Generate JWT token with rider data (for existing users)
       const token = jwt.sign({ 
@@ -329,7 +281,6 @@ router.post("/google", async (req, res) => {
         token 
       };
       
-      console.log('🔍 Returning EXISTING RIDER response:', JSON.stringify(response, null, 2));
       return res.status(200).json(response);
     }
 
@@ -363,11 +314,10 @@ router.post("/google", async (req, res) => {
       isNewUser = true;
       requiresOTPVerification = false; // Google already verified
       needsSetup = true; // New user needs to complete profile
-      console.log(`✅ New USER created via Google OAuth:`, user.email);
     } else {
-      console.log(`✅ Existing USER logged in via Google:`, user.email);
       // Check if profile is complete (phone and address required)
-      needsSetup = !user.phone || !user.address;
+      // Empty strings and null both mean incomplete
+      needsSetup = !user.phone || (typeof user.phone === 'string' && user.phone.trim() === '') || !user.address || (typeof user.address === 'string' && user.address.trim() === '');
       isNewUser = false;
       requiresOTPVerification = false;
     }
@@ -387,7 +337,6 @@ router.post("/google", async (req, res) => {
       token 
     });
   } catch (err: any) {
-    console.error("❌ Google OAuth error:", err);
     res.status(500).json({ 
       success: false,
       message: "Google authentication failed", 

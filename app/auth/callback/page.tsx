@@ -15,7 +15,6 @@ function GoogleCallbackContent() {
     const handleGoogleCallback = async () => {
       // Prevent double processing
       if (isProcessing) {
-        console.log('⏸️ Already processing OAuth callback, skipping...')
         return
       }
       
@@ -23,8 +22,6 @@ function GoogleCallbackContent() {
       const stateParam = searchParams.get('state')
       
       if (!code) {
-        console.log('⚠️ No authorization code - user may have pressed back button')
-        // Redirect to home instead of showing error
         router.push('/')
         return
       }
@@ -39,14 +36,10 @@ function GoogleCallbackContent() {
           roleInfo = JSON.parse(decodeURIComponent(stateParam))
         }
       } catch (e) {
-        console.warn('Failed to parse state parameter, using defaults')
+        // Use defaults
       }
 
       try {
-        console.log('🔄 Exchanging Google code for token...')
-        console.log('Role:', roleInfo.role, 'Redirect:', roleInfo.redirect)
-        console.log('Redirect URI:', `${window.location.origin}/auth/callback`)
-        
         // Clear the URL immediately to prevent reuse on back button
         window.history.replaceState({}, document.title, '/auth/callback')
         
@@ -64,77 +57,55 @@ function GoogleCallbackContent() {
         const backendData = await backendResponse.json()
 
         if (!backendResponse.ok) {
-          console.error('❌ Backend error:', backendData)
           throw new Error(backendData.message || 'Backend authentication failed')
         }
-
-        console.log('✅ Google OAuth successful')
-        console.log('🔍 Backend response:', JSON.stringify(backendData, null, 2))
 
         // Check if this is a new user (needs profile completion)
         const isNewUser = backendData.isNewUser === true
         const requiresOTPVerification = backendData.requiresOTPVerification === true
         const needsSetup = backendData.needsSetup === true
-        
-        console.log('📊 User Status Flags:')
-        console.log('   - isNewUser:', isNewUser)
-        console.log('   - needsSetup:', needsSetup)
-        console.log('   - requiresOTPVerification:', requiresOTPVerification)
-        console.log('   - Role:', roleInfo.role)
 
         // Store token and email based on role
-        console.log('💾 Storing credentials for role:', roleInfo.role)
-        
         if (roleInfo.role === 'RESTAURANT') {
           localStorage.setItem('restaurantToken', backendData.token)
           localStorage.setItem('restaurantEmail', backendData.user.email)
-          console.log('   - Saved restaurantToken and restaurantEmail')
           
           // If restaurant data is returned (has slug), store it
           if (backendData.user.slug) {
             localStorage.setItem('restaurantSlug', backendData.user.slug)
             localStorage.setItem('restaurantData', JSON.stringify(backendData.user))
-            console.log('   - Saved restaurant profile data')
           }
           
           // Set flag for OTP verification ONLY if brand new account AND requires it
           if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
-            console.log('   - Set OTP verification flag')
           } else {
             // Ensure flag is removed for OAuth users
             localStorage.removeItem('requiresOTPVerification')
-            console.log('   - Removed OTP flag (Google OAuth verified)')
           }
         } else if (roleInfo.role === 'RIDER') {
           localStorage.setItem('riderToken', backendData.token)
           localStorage.setItem('riderEmail', backendData.user.email)
           localStorage.setItem('riderData', JSON.stringify(backendData.user))
-          console.log('   - Saved riderToken, riderEmail, and riderData')
           
           // Set flag for OTP verification ONLY if brand new account AND requires it
           if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
-            console.log('   - Set OTP verification flag')
           } else {
             // Ensure flag is removed for OAuth users
             localStorage.removeItem('requiresOTPVerification')
-            console.log('   - Removed OTP flag (Google OAuth verified)')
           }
         } else {
           // USER role
           localStorage.setItem('token', backendData.token)
           localStorage.setItem('userEmail', backendData.user.email)
-          console.log('   - Saved token and userEmail')
           
           // Set flag for OTP verification ONLY if brand new account AND requires it
           if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
-            console.log('   - Set OTP verification flag')
           } else {
             // Ensure flag is removed for OAuth users
             localStorage.removeItem('requiresOTPVerification')
-            console.log('   - Removed OTP flag (Google OAuth verified)')
           }
         }
 
@@ -143,35 +114,21 @@ function GoogleCallbackContent() {
 
         // Check if user needs to go to setup page (either new user or incomplete profile)
         const needsProfileSetup = isNewUser || needsSetup
-        
-        console.log('🔍 Profile Setup Decision:')
-        console.log('   - isNewUser:', isNewUser)
-        console.log('   - needsSetup:', needsSetup)
-        console.log('   - needsProfileSetup (combined):', needsProfileSetup)
-        console.log('   - Default redirect:', roleInfo.redirect)
 
         if (needsProfileSetup) {
           // Users need to complete their profile
-          console.log('🎯 REDIRECTING TO SETUP PAGE')
           if (roleInfo.role === 'RESTAURANT') {
             redirectUrl = '/restaurant-setup'
-            console.log('   → Restaurant setup page')
           } else if (roleInfo.role === 'RIDER') {
             redirectUrl = '/rider-setup'
-            console.log('   → Rider setup page')
           } else if (roleInfo.role === 'USER') {
             redirectUrl = '/user-setup'
-            console.log('   → User setup page')
           }
-        } else {
-          console.log('✅ Profile complete, redirecting to dashboard:', redirectUrl)
         }
 
         // Redirect to appropriate page
-        console.log('🚀 FINAL REDIRECT:', redirectUrl)
         router.push(redirectUrl)
       } catch (err: any) {
-        console.error('❌ Google OAuth Error:', err)
         setError(err.message)
         
         // Redirect to appropriate signin based on role

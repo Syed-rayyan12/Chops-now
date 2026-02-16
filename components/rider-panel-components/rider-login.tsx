@@ -14,9 +14,7 @@ import { OTPModal } from "../otp-modal"
 
 export function RiderLogin() {
   const router = useRouter()
-  const { toast } = useToast() // ✅ useToast for showing toasts
-
-  console.log("API_CONFIG.BASE_URL:", API_CONFIG.BASE_URL)
+  const { toast } = useToast()
 
   const [showPassword, setShowPassword] = useState(false)
  
@@ -40,8 +38,6 @@ export function RiderLogin() {
 
     try {
       const apiUrl = `${API_CONFIG.BASE_URL}/rider/login`
-      console.log("Making API call to:", apiUrl)
-      console.log("API_CONFIG.BASE_URL:", API_CONFIG.BASE_URL)
       
       const res = await fetch(apiUrl, {
         method: "POST",
@@ -49,11 +45,7 @@ export function RiderLogin() {
         body: JSON.stringify(formData),
       })
 
-      console.log("Response status:", res.status)
-      console.log("Response headers:", Object.fromEntries(res.headers.entries()))
-
       const data = await res.json()
-      console.log("Response data:", data)
 
       if (!res.ok) {
         // Check if email verification is required
@@ -70,30 +62,22 @@ export function RiderLogin() {
         throw new Error(data.message || "Login failed")
       }
 
-      console.log("✅ Login successful, token received:", data.token ? "YES" : "NO")
-      console.log("✅ Email received:", data.email)
-
       if (data.token && data.email) {
-        // Save token to localStorage under rider token key
-        console.log("💾 Saving token to:", STORAGE_KEYS.RIDER_TOKEN)
+        // Save token to localStorage
         localStorage.setItem(STORAGE_KEYS.RIDER_TOKEN, data.token)
-        console.log("✅ Token saved successfully")
 
         toast({
           title: "Rider Login Successful!",
           duration: 2000,
         });
 
-        console.log("🚀 Redirecting to /rider-dashboard in 1 second...")
         setTimeout(() => {
           router.push("/rider-dashboard");
         }, 1000);
       } else {
-        console.error("❌ Missing token or email in response:", data)
         throw new Error("Invalid response from server")
       }
     } catch (err: any) {
-      console.error("Login error:", err)
       toast({
         title: "Login Failed",
         description: err.message,
