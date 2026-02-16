@@ -128,7 +128,7 @@ export function Header({ collapsed, setCollapsed, notifications }: DashboardHead
                 {/* Sidebar content */}
                 <SheetContent
                   side="left"
-                  className="w-72 max-w-[85vw] bg-white p-4 border-r z-50"
+                  className="w-72 max-w-[85vw] bg-white p-5 border-r z-50"
                 >
                    <Link href="/admin-dashboard">
                       <img
