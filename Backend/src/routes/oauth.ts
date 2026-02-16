@@ -87,9 +87,20 @@ router.post("/google", async (req, res) => {
             ownerEmail: email,
             ownerFirstName: firstName,
             ownerLastName: lastName,
-            isEmailVerified: true, // Google already verified
+            isEmailVerified: false, // Require OTP verification even for OAuth
           },
         });
+
+        // Send OTP for verification
+        try {
+          await fetch(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/otp/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, role: 'RESTAURANT' })
+          });
+        } catch (otpError) {
+          // Continue even if OTP fails
+        }
 
         // Return with isNewUser flag
         const token = jwt.sign({ 
@@ -101,8 +112,8 @@ router.post("/google", async (req, res) => {
         const response = { 
           success: true,
           isNewUser: true,
-          needsSetup: true, // New user needs to complete profile
-          requiresOTPVerification: false, // Google already verified email
+          needsSetup: true,
+          requiresOTPVerification: true, // Require OTP even for OAuth
           user: {
             id: restaurant.id,
             email: restaurant.ownerEmail,
@@ -228,6 +239,17 @@ router.post("/google", async (req, res) => {
           throw createError;
         }
 
+        // Send OTP for verification
+        try {
+          await fetch(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/otp/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, role: 'RIDER' })
+          });
+        } catch (otpError) {
+          // Continue even if OTP fails
+        }
+
         // Return with isNewUser flag
         const token = jwt.sign({ 
           id: rider.id, 
@@ -238,8 +260,8 @@ router.post("/google", async (req, res) => {
         const response = { 
           success: true,
           isNewUser: true,
-          needsSetup: true, // New user needs to complete profile
-          requiresOTPVerification: false, // Google already verified email
+          needsSetup: true,
+          requiresOTPVerification: true, // Require OTP even for OAuth
           user: {
             id: rider.id,
             email: rider.email,
@@ -307,13 +329,24 @@ router.post("/google", async (req, res) => {
           role: "USER",
           phone: null,
           address: null,
-          isEmailVerified: true, // Google already verified
+          isEmailVerified: false, // Require OTP verification even for OAuth
         },
       });
 
+      // Send OTP for verification
+      try {
+        await fetch(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/otp/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, role: 'USER' })
+        });
+      } catch (otpError) {
+        // Continue even if OTP fails
+      }
+
       isNewUser = true;
-      requiresOTPVerification = false; // Google already verified
-      needsSetup = true; // New user needs to complete profile
+      requiresOTPVerification = true; // Require OTP even for OAuth
+      needsSetup = true;
     } else {
       // Check if profile is complete (phone and address required)
       // Empty strings and null both mean incomplete

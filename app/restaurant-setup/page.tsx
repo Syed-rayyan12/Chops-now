@@ -32,28 +32,13 @@ export default function RestaurantSetupPage() {
   })
 
   useEffect(() => {
-    // Get email from localStorage or callback will have set it
+    // Get email from localStorage
     const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('restaurantEmail')
     if (userEmail) {
       setEmail(userEmail)
-      
-      // Check if user came from Google OAuth
-      const isFromOAuth = localStorage.getItem('isOAuthRestaurant') === 'true'
-      
-      if (isFromOAuth) {
-        // Google OAuth - email already verified by Google
-        setIsEmailVerified(true)
-        setIsOAuthUser(true)
-        // Clean up OAuth flag
-        localStorage.removeItem('isOAuthRestaurant')
-      } else {
-        // Regular signup - check if OTP is required
-        const requiresOTP = localStorage.getItem('requiresOTPVerification')
-        if (requiresOTP === 'true') {
-          setShowOTPModal(true)
-          localStorage.removeItem('requiresOTPVerification')
-        }
-      }
+      // Google OAuth users are already verified (no requiresOTPVerification flag set)
+      setIsEmailVerified(true)
+      setIsOAuthUser(true)
     }
   }, [router])
 
