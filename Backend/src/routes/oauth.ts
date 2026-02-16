@@ -121,7 +121,7 @@ router.post("/google", async (req, res) => {
           email: restaurant.ownerEmail 
         }, JWT_SECRET, { expiresIn: "7d" });
 
-        return res.status(200).json({ 
+        const response = { 
           success: true,
           isNewUser: true,
           needsSetup: true, // New user needs to complete profile
@@ -135,13 +135,17 @@ router.post("/google", async (req, res) => {
             role: 'RESTAURANT',
           }, 
           token 
-        });
+        };
+        
+        console.log('🔍 Returning NEW RESTAURANT response:', JSON.stringify(response, null, 2));
+        return res.status(200).json(response);
       } else {
         console.log(`✅ Existing restaurant logged in via Google:`, restaurant.ownerEmail);
       }
 
       // Check if profile is complete (phone and address required)
       const needsSetup = !restaurant.phone || !restaurant.address;
+      console.log(`🔍 Existing restaurant login - phone: "${restaurant.phone}", address: "${restaurant.address}", needsSetup: ${needsSetup}`);
 
       // Generate JWT token with restaurant data (for existing users)
       const token = jwt.sign({ 
@@ -150,7 +154,7 @@ router.post("/google", async (req, res) => {
         email: restaurant.ownerEmail 
       }, JWT_SECRET, { expiresIn: "7d" });
 
-      return res.status(200).json({ 
+      const response = { 
         success: true,
         isNewUser: false,
         needsSetup: needsSetup,
@@ -167,7 +171,10 @@ router.post("/google", async (req, res) => {
           address: restaurant.address,
         }, 
         token 
-      });
+      };
+      
+      console.log('🔍 Returning EXISTING RESTAURANT response:', JSON.stringify(response, null, 2));
+      return res.status(200).json(response);
     }
 
     if (userRole === "RIDER") {
@@ -273,7 +280,7 @@ router.post("/google", async (req, res) => {
           email: rider.email 
         }, JWT_SECRET, { expiresIn: "7d" });
 
-        return res.status(200).json({ 
+        const response = { 
           success: true,
           isNewUser: true,
           needsSetup: true, // New user needs to complete profile
@@ -287,13 +294,17 @@ router.post("/google", async (req, res) => {
             role: 'RIDER',
           }, 
           token 
-        });
+        };
+        
+        console.log('🔍 Returning NEW RIDER response:', JSON.stringify(response, null, 2));
+        return res.status(200).json(response);
       } else {
         console.log(`✅ Existing rider logged in via Google:`, rider.email);
       }
 
       // Check if profile is complete (phone and address required)
       const needsSetup = !rider.phone || !rider.address;
+      console.log(`🔍 Existing rider login - phone: "${rider.phone}", address: "${rider.address}", needsSetup: ${needsSetup}`);
 
       // Generate JWT token with rider data (for existing users)
       const token = jwt.sign({ 
@@ -302,7 +313,7 @@ router.post("/google", async (req, res) => {
         email: rider.email 
       }, JWT_SECRET, { expiresIn: "7d" });
 
-      return res.status(200).json({ 
+      const response = { 
         success: true,
         isNewUser: false,
         needsSetup: needsSetup,
@@ -316,7 +327,10 @@ router.post("/google", async (req, res) => {
           role: 'RIDER',
         }, 
         token 
-      });
+      };
+      
+      console.log('🔍 Returning EXISTING RIDER response:', JSON.stringify(response, null, 2));
+      return res.status(200).json(response);
     }
 
     // Handle USER role (default)
