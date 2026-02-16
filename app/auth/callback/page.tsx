@@ -70,43 +70,37 @@ function GoogleCallbackContent() {
           localStorage.setItem('restaurantToken', backendData.token)
           localStorage.setItem('restaurantEmail', backendData.user.email)
           
+          // Mark as OAuth user (Google verified)
+          localStorage.setItem('isOAuthRestaurant', 'true')
+          
           // If restaurant data is returned (has slug), store it
           if (backendData.user.slug) {
             localStorage.setItem('restaurantSlug', backendData.user.slug)
             localStorage.setItem('restaurantData', JSON.stringify(backendData.user))
           }
           
-          // Set flag for OTP verification ONLY if brand new account AND requires it
-          if (requiresOTPVerification) {
-            localStorage.setItem('requiresOTPVerification', 'true')
-          } else {
-            // Ensure flag is removed for OAuth users
-            localStorage.removeItem('requiresOTPVerification')
-          }
+          // OAuth users never need OTP - explicitly remove flag
+          localStorage.removeItem('requiresOTPVerification')
         } else if (roleInfo.role === 'RIDER') {
           localStorage.setItem('riderToken', backendData.token)
           localStorage.setItem('riderEmail', backendData.user.email)
           localStorage.setItem('riderData', JSON.stringify(backendData.user))
           
-          // Set flag for OTP verification ONLY if brand new account AND requires it
-          if (requiresOTPVerification) {
-            localStorage.setItem('requiresOTPVerification', 'true')
-          } else {
-            // Ensure flag is removed for OAuth users
-            localStorage.removeItem('requiresOTPVerification')
-          }
+          // Mark as OAuth user (Google verified)
+          localStorage.setItem('isOAuthRider', 'true')
+          
+          // OAuth users never need OTP - explicitly remove flag
+          localStorage.removeItem('requiresOTPVerification')
         } else {
           // USER role
           localStorage.setItem('token', backendData.token)
           localStorage.setItem('userEmail', backendData.user.email)
           
-          // Set flag for OTP verification ONLY if brand new account AND requires it
-          if (requiresOTPVerification) {
-            localStorage.setItem('requiresOTPVerification', 'true')
-          } else {
-            // Ensure flag is removed for OAuth users
-            localStorage.removeItem('requiresOTPVerification')
-          }
+          // Mark as OAuth user (Google verified)
+          localStorage.setItem('isOAuthUser', 'true')
+          
+          // OAuth users never need OTP - explicitly remove flag
+          localStorage.removeItem('requiresOTPVerification')
         }
 
         // Determine redirect based on role and profile completion

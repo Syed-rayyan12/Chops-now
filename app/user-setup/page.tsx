@@ -36,16 +36,22 @@ export default function UserSetupPage() {
     if (userEmail) {
       setEmail(userEmail)
       
-      // Check if this is a new Google signup that needs OTP verification
-      const requiresOTP = localStorage.getItem('requiresOTPVerification')
-      if (requiresOTP === 'true') {
-        // Regular signup - needs OTP
-        setShowOTPModal(true)
-        localStorage.removeItem('requiresOTPVerification')
-      } else {
-        // Google OAuth - email already verified, no OTP needed
+      // Check if user came from Google OAuth
+      const isFromOAuth = localStorage.getItem('isOAuthUser') === 'true'
+      
+      if (isFromOAuth) {
+        // Google OAuth - email already verified by Google
         setIsEmailVerified(true)
         setIsOAuthUser(true)
+        // Clean up OAuth flag
+        localStorage.removeItem('isOAuthUser')
+      } else {
+        // Regular signup - check if OTP is required
+        const requiresOTP = localStorage.getItem('requiresOTPVerification')
+        if (requiresOTP === 'true') {
+          setShowOTPModal(true)
+          localStorage.removeItem('requiresOTPVerification')
+        }
       }
     }
   }, [router])
