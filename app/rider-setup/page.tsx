@@ -21,6 +21,7 @@ export default function RiderSetupPage() {
   const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null)
   const [showOTPModal, setShowOTPModal] = useState(false)
   const [isEmailVerified, setIsEmailVerified] = useState(false)
+  const [isOAuthUser, setIsOAuthUser] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -37,14 +38,15 @@ export default function RiderSetupPage() {
       // Check if this is a new Google signup that needs OTP verification
       const requiresOTP = localStorage.getItem('requiresOTPVerification')
       if (requiresOTP === 'true') {
+        // Regular signup - needs OTP
         setShowOTPModal(true)
-        localStorage.removeItem('requiresOTPVerification') // Clear flag after showing modal
+        localStorage.removeItem('requiresOTPVerification')
       } else {
-        // If no OTP required (Google OAuth), mark as verified
+        // Google OAuth - email already verified, no OTP needed
         setIsEmailVerified(true)
+        setIsOAuthUser(true)
       }
     }
-    // Don't redirect if no email - callback might still be setting it up
   }, [router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,8 +84,8 @@ export default function RiderSetupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Check if email is verified
-    if (!isEmailVerified) {
+    // OAuth users are already verified, skip OTP check
+    if (!isOAuthUser && !isEmailVerified) {
       toast({
         title: "Email Verification Required",
         description: "Please verify your email before completing your profile",
@@ -165,14 +167,16 @@ export default function RiderSetupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      {/* OTP Modal */}
-      <OTPModal
-        isOpen={showOTPModal}
-        onClose={() => setShowOTPModal(false)}
-        email={email}
-        role="RIDER"
-        onVerified={handleOTPVerified}
-      />
+      {/* OTP Modal - Only for non-OAuth users */}
+      {!isOAuthUser && (
+        <OTPModal
+          isOpen={showOTPModal}
+          onClose={() => setShowOTPModal(false)}
+          email={email}
+          role="RIDER"
+          onVerified={handleOTPVerified}
+        />
+      )}
       
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
