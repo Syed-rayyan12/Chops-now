@@ -9,6 +9,9 @@ import { OurPeople } from '@/components/customer-panel-components/our-people';
 import { BeYourselfSection } from '@/components/customer-panel-components/be-yourself-section';
 import ReadOurLatestNews from '@/components/customer-panel-components/read-our-latest-news';
 import { Newsletter } from '@/components/newsletter';
+import { JobCategories } from '@/components/customer-panel-components/job-categories';
+import { WhyJoinChopNow } from '@/components/customer-panel-components/why-join-chopnow';
+import { ApplicationProcess } from '@/components/customer-panel-components/application-process';
 
 export default function CareerPage() {
   return (
@@ -23,6 +26,7 @@ career here feeds a movement. Join us!"
         inlineImageSrc="/lines.svg"
         inlineImageAlt="Lines decoration"
         imageOnTop={true}
+        showPartnerButtons={false}
       />
 
       <ContentWithImage
@@ -35,7 +39,9 @@ African food online in UK and experience true culinary heritage. Join us and mee
         imageSrc="/blog-0.png"
         imageAlt="Career at Chop Now"
       />
-
+      <JobCategories />
+      <WhyJoinChopNow />
+      <ApplicationProcess />
       <Performance />
       <OurPeople />
       <BeYourselfSection />

@@ -17,9 +17,12 @@ interface PageBannerProps {
 
     // Layout: when true, image appears above the heading (column-first image)
     imageOnTop?: boolean
+
+    // Control if signup buttons appear (default: true for partners page)
+    showPartnerButtons?: boolean
 }
 
-export function PageBanner({ highlightedWord, title, highlightedWord2, description, inlineImageSrc, inlineImageAlt, imageOnTop }: PageBannerProps) {
+export function PageBanner({ highlightedWord, title, highlightedWord2, description, inlineImageSrc, inlineImageAlt, imageOnTop, showPartnerButtons = true }: PageBannerProps) {
     return (
         <div className="relative w-full flex items-center justify-center h-full py-24 bg-gradient-to-r from-orange-100 to-orange-200">
             <img
@@ -66,23 +69,25 @@ export function PageBanner({ highlightedWord, title, highlightedWord2, descripti
                 <p className="text-white max-w-3xl mx-auto font-ubuntu leading-relaxed text-center px-4">
                     {description}
                 </p>
-                <div className="flex items-center max-sm:flex-col max-md:flex-col gap-4">
+                {showPartnerButtons && (
+                    <div className="flex items-center max-sm:flex-col max-md:flex-col gap-4">
 
-                    <div className="flex gap-4">
+                        <div className="flex gap-4">
 
-                        <div className="pt-8">
-                            <Link href="/restaurant-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join as a Restaurant</Link>
+                            <div className="pt-8">
+                                <Link href="/restaurant-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join as a Restaurant</Link>
+                            </div>
+
                         </div>
+                        <div className="flex gap-4">
 
-                    </div>
-                    <div className="flex gap-4">
+                            <div className="pt-8">
+                                <Link href="/rider-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Drivers</Link>
+                            </div>
 
-                        <div className="pt-8">
-                            <Link href="/rider-signup" className="text-white bg-secondary rounded-lg px-7 py-5 text-[15px]">Join As A Drivers</Link>
                         </div>
-
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )
