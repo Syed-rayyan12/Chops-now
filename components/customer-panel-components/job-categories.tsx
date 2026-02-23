@@ -1,23 +1,26 @@
 "use client";
 
-import { Briefcase, Users, TrendingUp, HeadphonesIcon, Code, Palette, BarChart, Settings } from "lucide-react";
+import { Briefcase, Users, TrendingUp, HeadphonesIcon, Wallet, Settings, Award, Package } from "lucide-react";
 
 export function JobCategories() {
   const corporateRoles = [
-    { title: "Software Engineer", icon: Code, description: "Build cutting-edge food delivery solutions" },
-    { title: "Marketing Manager", icon: TrendingUp, description: "Drive brand growth and customer acquisition" },
-    { title: "Customer Support Lead", icon: HeadphonesIcon, description: "Ensure exceptional customer experiences" },
-    { title: "Product Manager", icon: Briefcase, description: "Shape the future of our platform" },
-    { title: "UI/UX Designer", icon: Palette, description: "Create beautiful user experiences" },
-    { title: "Data Analyst", icon: BarChart, description: "Turn data into actionable insights" },
+    { title: "Restaurant Partnership Manager", icon: Briefcase, description: "Onboard and manage restaurant partnerships" },
+    { title: "Driver Recruitment Manager", icon: Users, description: "Recruit and onboard delivery drivers" },
+    { title: "Customer Support Manager", icon: HeadphonesIcon, description: "Lead customer support operations" },
+    { title: "Marketing Manager", icon: TrendingUp, description: "Promote ChopNow and drive growth" },
+    { title: "Operations Manager", icon: Settings, description: "Oversee daily platform operations" },
+    { title: "Finance Manager", icon: Wallet, description: "Handle payments and accounting" },
+    { title: "Quality Assurance Manager", icon: Award, description: "Ensure food quality and safety standards" },
+    { title: "HR Manager", icon: Users, description: "Manage employee relations and recruitment" },
   ];
 
   const serviceRoles = [
-    { title: "Operations Manager", icon: Settings, description: "Optimize daily operations and logistics" },
-    { title: "Quality Assurance Specialist", icon: Users, description: "Maintain our high-quality standards" },
-    { title: "Training Coordinator", icon: Users, description: "Develop and deliver training programs" },
-    { title: "Area Supervisor", icon: Briefcase, description: "Oversee regional operations" },
-    { title: "Logistics Coordinator", icon: TrendingUp, description: "Streamline delivery operations" },
+    { title: "Customer Service Representative", icon: HeadphonesIcon, description: "Support customers with queries and issues" },
+    { title: "Delivery Operations Coordinator", icon: Package, description: "Coordinate delivery logistics" },
+    { title: "Training Coordinator", icon: Award, description: "Train drivers and staff members" },
+    { title: "Area Supervisor", icon: Briefcase, description: "Supervise operations in specific zones" },
+    { title: "Warehouse Manager", icon: Package, description: "Manage inventory and warehouse operations" },
+    { title: "Logistics Coordinator", icon: TrendingUp, description: "Optimize delivery routes and schedules" },
   ];
 
   return (

@@ -314,3 +314,43 @@ enum NotificationType {
   PAYMENT
   DELIVERY
 }
+
+model Job {
+  id                String        @id @default(cuid())
+  title             String
+  department        String
+  jobType           String
+  location          String
+  salaryRange       String?
+  description       String        @db.Text
+  requirements      String        @db.Text
+  responsibilities  String        @db.Text
+  status            String        @default("active")
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  applications      Application[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Application {
+  id             String   @id @default(cuid())
+  jobId          String
+  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  fullName       String
+  email          String
+  phone          String
+  resumeUrl      String?
+  coverLetter    String?  @db.Text
+  linkedIn       String?
+  expectedSalary String?
+  availableDate  String?
+  status         String   @default("new")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([jobId])
+  @@index([status])
+  @@index([createdAt])
+}

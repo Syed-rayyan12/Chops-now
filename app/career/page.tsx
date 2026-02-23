@@ -12,6 +12,7 @@ import { Newsletter } from '@/components/newsletter';
 import { JobCategories } from '@/components/customer-panel-components/job-categories';
 import { WhyJoinChopNow } from '@/components/customer-panel-components/why-join-chopnow';
 import { ApplicationProcess } from '@/components/customer-panel-components/application-process';
+import { JobListings } from '@/components/customer-panel-components/job-listings';
 
 export default function CareerPage() {
   return (
@@ -40,6 +41,7 @@ African food online in UK and experience true culinary heritage. Join us and mee
         imageAlt="Career at Chop Now"
       />
       <JobCategories />
+      <JobListings />
       <WhyJoinChopNow />
       <ApplicationProcess />
       <Performance />
