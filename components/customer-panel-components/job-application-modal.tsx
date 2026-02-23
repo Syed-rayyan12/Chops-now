@@ -46,7 +46,7 @@ export function JobApplicationModal({
         const formDataResume = new FormData();
         formDataResume.append("file", resumeFile);
         
-        const uploadResponse = await fetch(`${API_CONFIG.BASE_URL}/upload`, {
+        const uploadResponse = await fetch(`${API_CONFIG.BASE_URL}/resume-upload`, {
           method: "POST",
           body: formDataResume,
         });

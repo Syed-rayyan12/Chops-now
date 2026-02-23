@@ -53,8 +53,8 @@ const upload = multer({
   },
 });
 
-// POST upload file
-router.post("/upload", upload.single("file"), (req, res) => {
+// POST upload resume file
+router.post("/resume-upload", upload.single("file"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file provided" });
