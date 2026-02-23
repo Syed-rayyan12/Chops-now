@@ -22,7 +22,7 @@ export default function About() {
         imageAlt="Our Mission"
         title="A Taste of Nigerian Food in UK with Authenticity"
         description="Our journey began with a simple, powerful craving: for the true, soul-warming taste of home. ChopNow
-African food delivery was born to bridge that gap, connecting you with the finest food delivery from
+African foods delivery was born to bridge that gap, connecting you with the finest food delivery from
 African restaurants in UK.
 We proudly partner with dedicated ChopNow restaurant partners to bring the rich, authentic flavours
 of West African cuisine in UK directly to your table, satisfying hearts and homesick souls.
