@@ -12,7 +12,9 @@ import {
   ShoppingCart,
   Star,
   HomeIcon,
-  Bike
+  Bike,
+  Briefcase,
+  FileText
 } from "lucide-react"
 
 import {
@@ -25,6 +27,8 @@ const navigation = [
   { href: "/admin-dashboard/users", name: "User Management", icon: ChefHat },
   { href: "/admin-dashboard/restaurants", name: "Restaurant Management", icon: CreditCard },
   { href: "/admin-dashboard/riders", name: "Rider Management", icon: Bike },
+  { href: "/admin-dashboard/jobs", name: "Job Management", icon: Briefcase },
+  { href: "/admin-dashboard/applications", name: "Applications", icon: FileText },
   { href: "/admin-dashboard/admin-accounts", name: "Admin Accounts", icon: Users },
   { href: "/admin-dashboard/analytics", name: "Analytics", icon: Star },
 ]
