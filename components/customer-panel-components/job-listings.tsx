@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Clock, Briefcase } from "lucide-react";
 import { JobApplicationModal } from "./job-application-modal";
+import { API_CONFIG } from "@/lib/api/config";
 
 interface Job {
   id: string;
@@ -28,7 +29,7 @@ export function JobListings() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch("/api/jobs");
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs`);
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {

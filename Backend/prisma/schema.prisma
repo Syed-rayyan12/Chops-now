@@ -342,8 +342,6 @@ model Application {
   email          String
   phone          String
   resumeUrl      String?
-  coverLetter    String?  @db.Text
-  linkedIn       String?
   expectedSalary String?
   availableDate  String?
   status         String   @default("new")

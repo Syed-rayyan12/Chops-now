@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
+import { API_CONFIG } from "@/lib/api/config";
 
 interface Job {
   id: string;
@@ -27,7 +28,7 @@ export default function AdminJobsPage() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch("/api/jobs");
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/all`);
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {
@@ -41,7 +42,7 @@ export default function AdminJobsPage() {
     if (!confirm("Are you sure you want to delete this job?")) return;
 
     try {
-      const response = await fetch(`/api/jobs/${id}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${id}`, {
         method: "DELETE",
       });
 
@@ -61,7 +62,7 @@ export default function AdminJobsPage() {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
 
     try {
-      const response = await fetch(`/api/jobs/${id}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

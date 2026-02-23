@@ -13,6 +13,9 @@ import contactRoutes from "./routes/contact";
 import newsletterRoutes from "./routes/newsletter";
 import otpRoutes from "./routes/otp";
 import oauthRoutes from "./routes/oauth";
+import jobsRoutes from "./routes/jobs";
+import applicationsRoutes from "./routes/applications";
+import uploadRoutes from "./routes/upload";
 
 console.log("🔥 server.ts is running...");
 
@@ -25,7 +28,9 @@ app.use(
   cors({
     origin: [
       "https://www.chopnow.co.uk",
-      "https://chopnow.co.uk"
+      "https://chopnow.co.uk",
+      "http://localhost:3000", // Development
+      "http://localhost:3001", // Development (alternative port)
     ],
     credentials: true,
   })
@@ -70,6 +75,9 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/oauth", oauthRoutes);
+app.use("/api", jobsRoutes);
+app.use("/api", applicationsRoutes);
+app.use("/api", uploadRoutes);
 
 // Menu category and items routes
 app.use("/api", menuCategoryRoutes);

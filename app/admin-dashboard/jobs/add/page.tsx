@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { API_CONFIG } from "@/lib/api/config";
 
 export default function AddJobPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function AddJobPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/jobs", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Upload, Loader2 } from "lucide-react";
+import { API_CONFIG } from "@/lib/api/config";
 
 interface Job {
   id: string;
@@ -23,8 +24,6 @@ export function JobApplicationModal({
     fullName: "",
     email: "",
     phone: "",
-    coverLetter: "",
-    linkedIn: "",
     expectedSalary: "",
     availableDate: "",
   });
@@ -47,7 +46,7 @@ export function JobApplicationModal({
         const formDataResume = new FormData();
         formDataResume.append("file", resumeFile);
         
-        const uploadResponse = await fetch("/api/upload", {
+        const uploadResponse = await fetch(`${API_CONFIG.BASE_URL}/upload`, {
           method: "POST",
           body: formDataResume,
         });
@@ -61,7 +60,7 @@ export function JobApplicationModal({
       }
 
       // Submit application
-      const response = await fetch("/api/applications", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/applications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -84,8 +83,6 @@ export function JobApplicationModal({
           fullName: "",
           email: "",
           phone: "",
-          coverLetter: "",
-          linkedIn: "",
           expectedSalary: "",
           availableDate: "",
         });
@@ -226,35 +223,7 @@ export function JobApplicationModal({
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 font-ubuntu">
-                Cover Letter (Optional)
-              </label>
-              <textarea
-                name="coverLetter"
-                value={formData.coverLetter}
-                onChange={handleChange}
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-ubuntu"
-                placeholder="Tell us why you're a great fit for this role..."
-              />
-            </div>
-
             <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-ubuntu">
-                  LinkedIn Profile (Optional)
-                </label>
-                <input
-                  type="url"
-                  name="linkedIn"
-                  value={formData.linkedIn}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-ubuntu"
-                  placeholder="https://linkedin.com/in/..."
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 font-ubuntu">
                   Expected Salary (Optional)

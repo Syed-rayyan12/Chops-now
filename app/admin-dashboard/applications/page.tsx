@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, FileText, Calendar, User, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, FileText, Calendar, Loader2 } from "lucide-react";
+import { API_CONFIG } from "@/lib/api/config";
 
 interface Application {
   id: string;
@@ -10,8 +11,6 @@ interface Application {
   email: string;
   phone: string;
   resumeUrl?: string;
-  coverLetter?: string;
-  linkedIn?: string;
   expectedSalary?: string;
   availableDate?: string;
   status: string;
@@ -33,7 +32,7 @@ export default function AdminApplicationsPage() {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch("/api/applications");
+      const response = await fetch(`${API_CONFIG.BASE_URL}/applications`);
       const data = await response.json();
       setApplications(data.applications || []);
     } catch (error) {
@@ -45,7 +44,7 @@ export default function AdminApplicationsPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/applications/${id}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/applications/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -170,19 +169,6 @@ export default function AdminApplicationsPage() {
                     {application.phone}
                   </a>
                 </div>
-                {application.linkedIn && (
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <a
-                      href={application.linkedIn}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-orange-600"
-                    >
-                      LinkedIn Profile
-                    </a>
-                  </div>
-                )}
                 {application.expectedSalary && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -196,15 +182,6 @@ export default function AdminApplicationsPage() {
                   </div>
                 )}
               </div>
-
-              {application.coverLetter && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">Cover Letter:</h4>
-                  <p className="text-gray-700 text-sm whitespace-pre-wrap">
-                    {application.coverLetter}
-                  </p>
-                </div>
-              )}
 
               {application.resumeUrl && (
                 <div className="mt-4">
