@@ -170,6 +170,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
+
     // ✅ Check if email is verified
     if (!rider.isEmailVerified) {
       return res.status(403).json({ 
@@ -596,8 +597,21 @@ router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any
       return res.status(400).json({ message: "Order already assigned to another rider" });
     }
 
-    // NEW FLOW: Rider gets 100% of delivery fee
-    const riderPayout = Number(order.deliveryFee);
+    // RIDER PAYOUT CALCULATION
+    // No distance → Fixed £2.50
+    // Distance exists → £0.50 per KM only (no base pay)
+    const FIXED_PAYOUT = 2.50;
+    const PER_KM_RATE = 0.50;
+
+    let riderPayout: number;
+    if (!order.distanceKm || Number(order.distanceKm) <= 0) {
+      riderPayout = FIXED_PAYOUT;
+    } else {
+      riderPayout = Number(order.distanceKm) * PER_KM_RATE;
+    }
+    riderPayout = Math.round(riderPayout * 100) / 100;
+
+    console.log(`💰 Rider payout: £${riderPayout} | Distance: ${order.distanceKm || 'N/A'} km`);
 
     const updatedOrder = await prisma.order.update({
       where: { id: parseInt(orderId) },
