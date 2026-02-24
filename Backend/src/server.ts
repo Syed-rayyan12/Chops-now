@@ -64,6 +64,20 @@ app.get("/test", (req, res) => {
   res.send("✅ Express works");
 });
 
+app.get("/health", (req, res) => {
+  console.log("🏥 /health route was called");
+  res.json({
+    status: "OK",
+    version: "2.0.0-jobs-and-applications",
+    timestamp: new Date().toISOString(),
+    routes: {
+      jobs: true,
+      applications: true,
+      upload: true
+    }
+  });
+});
+
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
