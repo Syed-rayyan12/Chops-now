@@ -48,6 +48,13 @@ next-env.d.ts
 *.swo
 *~
 
+# test files
+test-*.ps1
+test-*.sh
+test-*.js
+test-*.ts
+!**/__tests__/**
+
 # OS
 .DS_Store
 Thumbs.db
