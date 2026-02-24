@@ -93,6 +93,28 @@ router.post("/applications", async (req, res) => {
       },
     });
 
+    // Create admin notification for new application
+    try {
+      await (prisma as any).notification.create({
+        data: {
+          type: "SYSTEM_ALERT",
+          title: "New Job Application",
+          message: `${fullName} applied for ${job.title} (${job.department})`,
+          recipientRole: "ADMIN",
+          recipientId: null,
+          metadata: JSON.stringify({
+            applicationId: application.id,
+            jobId: job.id,
+            jobTitle: job.title,
+            applicantName: fullName,
+            applicantEmail: email,
+          }),
+        },
+      });
+    } catch (notifError) {
+      console.error("Failed to create notification (non-blocking):", notifError);
+    }
+
     return res.status(201).json({ application });
   } catch (error) {
     console.error("Error creating application:", error);

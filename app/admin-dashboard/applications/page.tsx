@@ -186,9 +186,8 @@ export default function AdminApplicationsPage() {
               {application.resumeUrl && (
                 <div className="mt-4">
                   <a
-                    href={application.resumeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://nodejs-production-c43f.up.railway.app'}${application.resumeUrl}`}
+                    download
                     className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     <FileText className="w-4 h-4" />
