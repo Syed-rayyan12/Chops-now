@@ -17,9 +17,9 @@ export default function PartnersPage() {
       <Header />
 
       <PageBanner
-        title="Drivers &"
+        title="Drivers"
         highlightedWord="Restaurants"
-        highlightedWord2="Of"
+        highlightedWord2="&"
         inlineImageSrc="/lines.svg"
         inlineImageAlt="Decorative lines"
         imageOnTop={true}
