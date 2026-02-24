@@ -118,7 +118,7 @@ export function Header() {
               Offers
             </Link> */}
              <Link href="/partners" className="text-foreground font-ubuntu hover:text-primary transition-colors">
-              Partners & Careers
+              Drivers & Restaurants
             </Link>
             <Link href="/blog" className="text-foreground font-ubuntu hover:text-primary transition-colors">
               Blogs
