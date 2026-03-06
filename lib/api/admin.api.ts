@@ -116,6 +116,15 @@ export const getAdminRiders = (params?: { search?: string; status?: string }) =>
   });
 };
 
+export const getAdminRiderDetails = (id: string) => {
+  return apiRequest<{ rider: any }>(`/admin/riders/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
+    },
+  });
+};
+
 // ============================================
 // Dashboard Stats
 // ============================================

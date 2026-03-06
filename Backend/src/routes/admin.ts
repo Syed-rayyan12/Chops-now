@@ -765,6 +765,159 @@ router.get("/riders", authenticate(["ADMIN"]), async (req, res) => {
   }
 });
 
+// GET single rider details for admin panel
+router.get("/riders/:id", authenticate(["ADMIN"]), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Extract numeric ID from RDR-XXX format
+    const numericId = parseInt(id.replace("RDR-", ""));
+    if (isNaN(numericId)) {
+      return res.status(400).json({ message: "Invalid rider ID" });
+    }
+
+    const rider = await prisma.rider.findUnique({
+      where: { id: numericId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        vehicle: true,
+        insurance: true,
+        insuranceExpiryReminder: true,
+        accountNumber: true,
+        sortCode: true,
+        idDocument: true,
+        proofOfAddress: true,
+        selfie: true,
+        image: true,
+        isOnline: true,
+        isEmailVerified: true,
+        deliveryPartnerAgreementAccepted: true,
+        latitude: true,
+        longitude: true,
+        lastLocationUpdate: true,
+        createdAt: true,
+      },
+    });
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found" });
+    }
+
+    // Get order stats
+    const orders = await prisma.order.findMany({
+      where: { riderId: numericId },
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        amount: true,
+        riderPayout: true,
+        deliveryFee: true,
+        tip: true,
+        createdAt: true,
+        deliveredAt: true,
+        restaurant: {
+          select: { name: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const deliveredOrders = orders.filter((o) => o.status === "DELIVERED");
+    const totalEarnings = deliveredOrders.reduce(
+      (sum, o) => sum + parseFloat(o.riderPayout?.toString() || "0"),
+      0
+    );
+
+    // Get ratings
+    const ratings = await prisma.rating.findMany({
+      where: { riderId: numericId },
+      select: { score: true, comment: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
+    const avgRating =
+      ratings.length > 0
+        ? ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length
+        : 0;
+
+    // Online sessions
+    const onlineSessions = await prisma.riderOnlineSession.findMany({
+      where: { riderId: numericId },
+      orderBy: { startedAt: "desc" },
+      take: 10,
+    });
+
+    // Determine status
+    let status = "offline";
+    if (rider.isOnline) {
+      const hasActiveOrder = orders.some((o) => o.status === "PICKED_UP");
+      status = hasActiveOrder ? "busy" : "online";
+    }
+
+    res.json({
+      rider: {
+        id: `RDR-${rider.id.toString().padStart(3, "0")}`,
+        numericId: rider.id,
+        firstName: rider.firstName,
+        lastName: rider.lastName,
+        name: `${rider.firstName} ${rider.lastName}`,
+        email: rider.email,
+        phone: rider.phone || "N/A",
+        address: rider.address || "N/A",
+        vehicle: rider.vehicle || "N/A",
+        insurance: rider.insurance || null,
+        insuranceExpiryReminder: rider.insuranceExpiryReminder || null,
+        accountNumber: rider.accountNumber ? `****${rider.accountNumber.slice(-4)}` : "N/A",
+        sortCode: rider.sortCode || "N/A",
+        idDocument: rider.idDocument || null,
+        proofOfAddress: rider.proofOfAddress || null,
+        selfie: rider.selfie || null,
+        image: rider.image || null,
+        isOnline: rider.isOnline,
+        isEmailVerified: rider.isEmailVerified,
+        deliveryPartnerAgreementAccepted: rider.deliveryPartnerAgreementAccepted,
+        latitude: rider.latitude,
+        longitude: rider.longitude,
+        lastLocationUpdate: rider.lastLocationUpdate,
+        status,
+        joinDate: rider.createdAt.toISOString().split("T")[0],
+        createdAt: rider.createdAt.toISOString(),
+        stats: {
+          totalDeliveries: deliveredOrders.length,
+          totalOrders: orders.length,
+          totalEarnings: parseFloat(totalEarnings.toFixed(2)),
+          avgRating: parseFloat(avgRating.toFixed(1)),
+          totalRatings: ratings.length,
+        },
+        recentOrders: orders.slice(0, 10).map((o) => ({
+          id: o.id,
+          code: o.code,
+          status: o.status,
+          amount: parseFloat(o.amount?.toString() || "0"),
+          riderPayout: parseFloat(o.riderPayout?.toString() || "0"),
+          deliveryFee: parseFloat(o.deliveryFee?.toString() || "0"),
+          tip: parseFloat(o.tip?.toString() || "0"),
+          restaurant: o.restaurant?.name || "N/A",
+          createdAt: o.createdAt.toISOString(),
+          deliveredAt: o.deliveredAt?.toISOString() || null,
+        })),
+        recentRatings: ratings,
+        recentSessions: onlineSessions.slice(0, 5),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching rider details:", error);
+    res.status(500).json({ message: "Failed to fetch rider details" });
+  }
+});
+
 // GET - Comprehensive analytics for admin dashboard
 router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
   try {
