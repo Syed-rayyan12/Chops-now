@@ -1,11 +1,38 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 import prisma from "../config/db";
 import { authenticate } from "../middlewares/auth";
+import { uploadToR2, deleteFromR2 } from "../config/r2";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
+
+// Multer memory storage for rider file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only images (JPEG, PNG, GIF, WebP) and PDF files are allowed"));
+    }
+  },
+});
+
+// Multer fields for rider signup documents
+const signupUpload = upload.fields([
+  { name: "idDocument", maxCount: 1 },
+  { name: "proofOfAddress", maxCount: 1 },
+  { name: "selfie", maxCount: 1 },
+  { name: "insurance", maxCount: 1 },
+]);
+
+// Single image upload for profile
+const profileImageUpload = upload.single("image");
 
 console.log("✅ auth.ts loaded");
 
@@ -14,8 +41,8 @@ router.get("/ping", (req, res) => {
   res.send("Auth router working ✅");
 });
 
-// Signup Route
-router.post("/signup", async (req, res) => {
+// Signup Route — accepts multipart/form-data with document files
+router.post("/signup", signupUpload, async (req, res) => {
   try {
 
     const {
@@ -28,11 +55,7 @@ router.post("/signup", async (req, res) => {
       address,
       latitude,
       longitude,
-      idDocument,
-      proofOfAddress,
-      selfie,
       vehicle,
-      insurance,
       insuranceExpiryReminder,
       accountNumber,
       sortCode,
@@ -83,6 +106,30 @@ router.post("/signup", async (req, res) => {
     // Use formatted sort code from validation
     const finalSortCode = req.body.sortCode || sortCode
     
+    // Upload document files to R2
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    let idDocumentUrl: string | null = null;
+    let proofOfAddressUrl: string | null = null;
+    let selfieUrl: string | null = null;
+    let insuranceUrl: string | null = null;
+
+    if (files?.idDocument?.[0]) {
+      const f = files.idDocument[0];
+      idDocumentUrl = await uploadToR2(f.buffer, f.originalname, "rider-documents");
+    }
+    if (files?.proofOfAddress?.[0]) {
+      const f = files.proofOfAddress[0];
+      proofOfAddressUrl = await uploadToR2(f.buffer, f.originalname, "rider-documents");
+    }
+    if (files?.selfie?.[0]) {
+      const f = files.selfie[0];
+      selfieUrl = await uploadToR2(f.buffer, f.originalname, "rider-documents");
+    }
+    if (files?.insurance?.[0]) {
+      const f = files.insurance[0];
+      insuranceUrl = await uploadToR2(f.buffer, f.originalname, "rider-documents");
+    }
+    
     // Create rider with only firstName/lastName (no legacy name field)
     const rider = await prisma.rider.create({
       data: {
@@ -95,11 +142,11 @@ router.post("/signup", async (req, res) => {
         address,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
-        idDocument,
-        proofOfAddress,
-        selfie,
+        idDocument: idDocumentUrl,
+        proofOfAddress: proofOfAddressUrl,
+        selfie: selfieUrl,
         vehicle,
-        insurance,
+        insurance: insuranceUrl,
         insuranceExpiryReminder,
         accountNumber,
         sortCode: finalSortCode,
@@ -280,6 +327,7 @@ router.get("/me", authenticate(["RIDER"]), async (req: any, res: any) => {
         selfie: true,
         insurance: true,
         insuranceExpiryReminder: true,
+        image: true,
         isOnline: true,
         createdAt: true,
       },
@@ -294,8 +342,8 @@ router.get("/me", authenticate(["RIDER"]), async (req: any, res: any) => {
   }
 });
 
-// PUT - Update rider profile
-router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any) => {
+// PUT - Update rider profile (supports image file upload via FormData)
+router.put("/update-profile", authenticate(["RIDER"]), profileImageUpload, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
     const {
@@ -307,8 +355,33 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
       vehicle,
       accountNumber,
       sortCode,
-      image
     } = req.body;
+
+    // Handle image upload to R2
+    let imageUrl: string | undefined = undefined;
+    if (req.file) {
+      // Upload new image to R2
+      imageUrl = await uploadToR2(req.file.buffer, req.file.originalname, "rider-profiles");
+      
+      // Delete old image from R2 if it exists
+      const existingRider = await prisma.rider.findUnique({
+        where: { id: riderId },
+        select: { image: true },
+      });
+      if (existingRider?.image && existingRider.image.includes("r2.dev")) {
+        await deleteFromR2(existingRider.image);
+      }
+    } else if (req.body.image === "null" || req.body.image === "") {
+      // Explicit removal
+      const existingRider = await prisma.rider.findUnique({
+        where: { id: riderId },
+        select: { image: true },
+      });
+      if (existingRider?.image && existingRider.image.includes("r2.dev")) {
+        await deleteFromR2(existingRider.image);
+      }
+      imageUrl = "";
+    }
 
     const updatedRider = await prisma.rider.update({
       where: { id: riderId },
@@ -321,7 +394,7 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
         vehicle,
         accountNumber,
         sortCode,
-        ...(image !== undefined && { image })
+        ...(imageUrl !== undefined && { image: imageUrl || null }),
       },
       select: {
         id: true,
@@ -333,7 +406,7 @@ router.put("/update-profile", authenticate(["RIDER"]), async (req: any, res: any
         vehicle: true,
         accountNumber: true,
         sortCode: true,
-        // Exclude image field - doesn't exist in database yet
+        image: true,
         createdAt: true,
       }
     });

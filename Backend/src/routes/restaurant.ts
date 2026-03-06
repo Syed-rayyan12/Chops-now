@@ -6,25 +6,13 @@ import { generateToken } from "../utils/jwt";
 import { authenticate, AuthRequest } from "../middlewares/auth";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
+import { uploadToR2 } from "../config/r2";
 
 const router = Router();
 
-// --- Multer setup for restaurant image uploads ---
-const uploadsDir = path.join(process.cwd(), "uploads", "restaurants");
-fs.mkdirSync(uploadsDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, unique + ext);
-  },
-});
-
+// --- Multer setup with memory storage for R2 uploads ---
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter: (_req: any, file: any, cb: any) => {
     const allowed = ["image/png", "image/jpeg", "image/webp", "image/jpg"];
@@ -33,13 +21,18 @@ const upload = multer({
   },
 });
 
-// Helper to turn relative upload paths into absolute URLs for the frontend
+// Helper to resolve image URLs - R2 URLs are already absolute
 function assetUrl(req: Request, rel?: string | null) {
   if (!rel) return rel ?? undefined;
-  if (!rel.startsWith("/uploads")) return rel; // leave non-upload URLs untouched
-  const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol;
-  const host = req.get("host");
-  return `${proto}://${host}${rel}`;
+  // R2 and other absolute URLs pass through unchanged
+  if (rel.startsWith('http://') || rel.startsWith('https://')) return rel;
+  // Legacy local uploads
+  if (rel.startsWith("/uploads")) {
+    const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol;
+    const host = req.get("host");
+    return `${proto}://${host}${rel}`;
+  }
+  return rel;
 }
 
 // ✅ Helper function to generate slug from business name
@@ -713,12 +706,14 @@ router.patch(
   const _featured = toBoolean(featured);
   if (_featured !== undefined) data.featured = _featured;
 
-      // If files were uploaded, set the image URLs
+      // If files were uploaded, upload to R2
       if (files?.image && files.image[0]) {
-        data.image = `/uploads/restaurants/${files.image[0].filename}`;
+        const file = files.image[0];
+        data.image = await uploadToR2(file.buffer, file.originalname, 'restaurants');
       }
       if (files?.coverImage && files.coverImage[0]) {
-        data.coverImage = `/uploads/restaurants/${files.coverImage[0].filename}`;
+        const file = files.coverImage[0];
+        data.coverImage = await uploadToR2(file.buffer, file.originalname, 'restaurants');
       }
 
       console.log("🔄 Updating with data:", data);
