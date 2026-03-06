@@ -377,7 +377,7 @@ export function RiderManagement() {
 
       {/* Rider Detail Dialog */}
       <Dialog open={riderDialogOpen} onOpenChange={setRiderDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="max-w-4xl max-h-[90vh] p-6 overflow-y-auto  bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold font-ubuntu text-foreground">
               Rider Details
