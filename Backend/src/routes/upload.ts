@@ -1,30 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
+import { uploadToR2 } from "../config/r2";
 
 const router = Router();
-
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), "uploads", "resumes");
-    
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename
-    const timestamp = Date.now();
-    const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${timestamp}_${originalName}`;
-    cb(null, filename);
-  },
-});
 
 // File filter - only allow PDF, DOC, DOCX
 const fileFilter = (req: any, file: any, cb: any) => {
@@ -44,9 +23,9 @@ const fileFilter = (req: any, file: any, cb: any) => {
   }
 };
 
-// Configure upload
+// Configure upload with memory storage for R2
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max
@@ -54,14 +33,14 @@ const upload = multer({
 });
 
 // POST upload resume file
-router.post("/resume-upload", upload.single("file"), (req, res) => {
+router.post("/resume-upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file provided" });
     }
 
-    // Return the file URL
-    const url = `/uploads/resumes/${req.file.filename}`;
+    // Upload to R2
+    const url = await uploadToR2(req.file.buffer, req.file.originalname, "resumes");
     
     return res.status(200).json({ url });
   } catch (error) {

@@ -238,20 +238,35 @@ export default function RiderSignup() {
     setLoading(true)
 
     try {
-      // Convert file fields to null if not provided (can't send File objects as JSON)
-      const payload = {
-        ...formData,
-        idDocument: formData.idDocument ? formData.idDocument.name : null,
-        proofOfAddress: formData.proofOfAddress ? formData.proofOfAddress.name : null,
-        selfie: formData.selfie ? formData.selfie.name : null,
-        insurance: formData.insurance ? formData.insurance.name : null,
-      }
+      // Build FormData to send files + text fields together
+      const payload = new FormData();
+      
+      // Text fields
+      payload.append("firstName", formData.firstName);
+      payload.append("lastName", formData.lastName);
+      payload.append("email", formData.email);
+      payload.append("phone", formData.phone);
+      payload.append("password", formData.password);
+      if (formData.personalDetails) payload.append("personalDetails", formData.personalDetails);
+      if (formData.address) payload.append("address", formData.address);
+      if (formData.latitude != null) payload.append("latitude", String(formData.latitude));
+      if (formData.longitude != null) payload.append("longitude", String(formData.longitude));
+      if (formData.vehicle) payload.append("vehicle", formData.vehicle);
+      if (formData.insuranceExpiryReminder) payload.append("insuranceExpiryReminder", formData.insuranceExpiryReminder);
+      if (formData.accountNumber) payload.append("accountNumber", formData.accountNumber);
+      if (formData.sortCode) payload.append("sortCode", formData.sortCode);
+      payload.append("deliveryPartnerAgreementAccepted", String(formData.deliveryPartnerAgreementAccepted));
+
+      // File fields
+      if (formData.idDocument) payload.append("idDocument", formData.idDocument);
+      if (formData.proofOfAddress) payload.append("proofOfAddress", formData.proofOfAddress);
+      if (formData.selfie) payload.append("selfie", formData.selfie);
+      if (formData.insurance) payload.append("insurance", formData.insurance);
 
       console.log("📤 Sending rider signup request...")
       const res = await fetch(`${API_CONFIG.BASE_URL}/rider/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       })
 
       const data = await res.json()

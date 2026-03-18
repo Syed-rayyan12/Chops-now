@@ -3,39 +3,24 @@ import prisma from '../config/db';
 import { authenticate, AuthRequest } from '../middlewares/auth';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
+import { uploadToR2, deleteFromR2 } from '../config/r2';
 
 const router = express.Router();
 
-// Helper to get absolute URL for assets using request host/proto
-const assetUrl = (req: Request, relativePath: string | null | undefined): string | null => {
-  if (!relativePath) return null;
-  if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
-    return relativePath;
+// Helper to resolve image URLs - R2 URLs are already absolute
+const resolveImageUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  // R2 URLs are already absolute
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
   }
-  const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol;
-  const host = req.get("host");
-  const normalized = relativePath.replace(/\\/g, '/').replace(/^\/?/, '/');
-  return `${proto}://${host}${normalized}`;
+  // Legacy local uploads - return as-is (will need migration)
+  return url;
 };
 
-// Configure multer for menu item images
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/menu-items';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'item-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer with memory storage for R2 uploads
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -71,7 +56,7 @@ router.get('/restaurant/:slug/categories', async (req: Request, res: Response) =
       orderBy: { displayOrder: 'asc' }
     });
 
-    // Convert image paths to absolute URLs
+    // Convert image paths to URLs
     const categoriesWithUrls = categories.map((category: any) => ({
       ...category,
       menuItems: (category.menuItems as any[]).map((item: any) => {
@@ -79,9 +64,9 @@ router.get('/restaurant/:slug/categories', async (req: Request, res: Response) =
         if (item.image) {
           try {
             const imagePaths = JSON.parse(item.image);
-            images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => assetUrl(req, p)) : [assetUrl(req, item.image)];
+            images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => resolveImageUrl(p)) : [resolveImageUrl(item.image)];
           } catch {
-            images = [assetUrl(req, item.image)];
+            images = [resolveImageUrl(item.image)];
           }
         }
         return {
@@ -259,9 +244,9 @@ router.get('/restaurant/:slug/categories/:categoryId/items', async (req: Request
       if (item.image) {
         try {
           const imagePaths = JSON.parse(item.image);
-          images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => assetUrl(req, p)) : [assetUrl(req, item.image)];
+          images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => resolveImageUrl(p)) : [resolveImageUrl(item.image)];
         } catch {
-          images = [assetUrl(req, item.image)];
+          images = [resolveImageUrl(item.image)];
         }
       }
       return {
@@ -319,16 +304,25 @@ router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RES
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    const item = await prisma.menuItem.create({      data: {
+    // Upload images to R2
+    let imageUrls: string[] = [];
+    if (req.files && (req.files as Express.Multer.File[]).length > 0) {
+      const files = req.files as Express.Multer.File[];
+      for (const file of files) {
+        const url = await uploadToR2(file.buffer, file.originalname, 'menu-items');
+        imageUrls.push(url);
+      }
+    }
+
+    const item = await prisma.menuItem.create({
+      data: {
         restaurantId: restaurant.id,
         categoryId: parseInt(categoryId),
         name,
         description,
         price: parseFloat(price),
         category: category || menuCategory.name,
-        image: req.files && (req.files as Express.Multer.File[]).length > 0 
-          ? JSON.stringify((req.files as Express.Multer.File[]).map(f => f.path)) 
-          : null,
+        image: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null,
         isAvailable: isAvailable !== undefined ? isAvailable === 'true' || isAvailable === true : true,
         allergyInfo,
         isVegetarian: isVegetarian === 'true' || isVegetarian === true,
@@ -338,14 +332,14 @@ router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RES
       }
     });
 
-    // Parse images array and convert to URLs
+    // Parse images array
     let images: (string | null)[] = [];
     if (item.image) {
       try {
         const imagePaths = JSON.parse(item.image);
-        images = Array.isArray(imagePaths) ? imagePaths.map(p => assetUrl(req, p)) : [assetUrl(req, item.image)];
+        images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => resolveImageUrl(p)) : [resolveImageUrl(item.image)];
       } catch {
-        images = [assetUrl(req, item.image)];
+        images = [resolveImageUrl(item.image)];
       }
     }
 
@@ -404,6 +398,31 @@ router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authentic
       return res.status(404).json({ message: 'Menu item not found' });
     }
 
+    // Upload new images to R2 if provided
+    let newImageData: Record<string, any> = {};
+    if (req.files && (req.files as Express.Multer.File[]).length > 0) {
+      const files = req.files as Express.Multer.File[];
+      const imageUrls: string[] = [];
+      for (const file of files) {
+        const url = await uploadToR2(file.buffer, file.originalname, 'menu-items');
+        imageUrls.push(url);
+      }
+      newImageData.image = JSON.stringify(imageUrls);
+
+      // Clean up old images from R2
+      if (item.image) {
+        try {
+          const oldPaths = JSON.parse(item.image);
+          const oldUrls = Array.isArray(oldPaths) ? oldPaths : [item.image];
+          for (const oldUrl of oldUrls) {
+            if (oldUrl && oldUrl.startsWith('https://')) {
+              await deleteFromR2(oldUrl);
+            }
+          }
+        } catch {}
+      }
+    }
+
     const updated = await prisma.menuItem.update({
       where: { id: parseInt(itemId) },
       data: {
@@ -411,9 +430,7 @@ router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authentic
         ...(description !== undefined && { description }),
         ...(price && { price: parseFloat(price) }),
         ...(category && { category }),
-        ...((req.files && (req.files as Express.Multer.File[]).length > 0) && { 
-          image: JSON.stringify((req.files as Express.Multer.File[]).map(f => f.path))
-        }),
+        ...newImageData,
         ...(isAvailable !== undefined && { isAvailable: isAvailable === 'true' || isAvailable === true }),
         ...(allergyInfo !== undefined && { allergyInfo }),
         ...(isVegetarian !== undefined && { isVegetarian: isVegetarian === 'true' || isVegetarian === true }),
@@ -423,14 +440,14 @@ router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authentic
       }
     });
 
-    // Parse images array and convert to URLs
+    // Parse images array
     let images: (string | null)[] = [];
     if (updated.image) {
       try {
         const imagePaths = JSON.parse(updated.image);
-        images = Array.isArray(imagePaths) ? imagePaths.map(p => assetUrl(req, p)) : [assetUrl(req, updated.image)];
+        images = Array.isArray(imagePaths) ? imagePaths.map((p: string) => resolveImageUrl(p)) : [resolveImageUrl(updated.image)];
       } catch {
-        images = [assetUrl(req, updated.image)];
+        images = [resolveImageUrl(updated.image)];
       }
     }
 

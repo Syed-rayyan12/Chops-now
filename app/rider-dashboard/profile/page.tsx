@@ -23,7 +23,7 @@ type EditForm = {
   vehicle: string
   accountNumber: string
   sortCode: string
-  image?: string | null
+  imageFile?: File | null
 }
 
 export default function RiderProfilePage() {
@@ -83,7 +83,7 @@ export default function RiderProfilePage() {
         vehicle: profileData.rider.vehicle || "",
         accountNumber: profileData.rider.accountNumber || "",
         sortCode: profileData.rider.sortCode || "",
-        image: profileData.rider.image || null,
+        imageFile: null,
       })
     } catch (error: any) {
       console.error("Failed to load profile:", error)
@@ -130,46 +130,16 @@ export default function RiderProfilePage() {
         return
       }
       
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const img = new Image()
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          const MAX_WIDTH = 800
-          const MAX_HEIGHT = 800
-          let width = img.width
-          let height = img.height
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width
-              width = MAX_WIDTH
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height
-              height = MAX_HEIGHT
-            }
-          }
-
-          canvas.width = width
-          canvas.height = height
-          const ctx = canvas.getContext('2d')
-          ctx?.drawImage(img, 0, 0, width, height)
-
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
-          setImagePreview(compressedBase64)
-          setEditForm({ ...editForm, image: compressedBase64 })
-        }
-        img.src = event.target?.result as string
-      }
-      reader.readAsDataURL(file)
+      // Store the file for FormData upload, and create a local preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setImagePreview(previewUrl)
+      setEditForm({ ...editForm, imageFile: file })
     }
   }
 
   const handleRemoveImage = () => {
     setImagePreview(null)
-    setEditForm({ ...editForm, image: null })
+    setEditForm({ ...editForm, imageFile: null })
   }
 
   const handleSaveProfile = async () => {
@@ -178,13 +148,30 @@ export default function RiderProfilePage() {
       const token = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.RIDER_TOKEN) || localStorage.getItem("riderToken") : ""
       if (!token) throw new Error("Not authenticated")
 
+      // Build FormData for file + text upload
+      const formPayload = new FormData()
+      formPayload.append("firstName", editForm.firstName)
+      formPayload.append("lastName", editForm.lastName)
+      formPayload.append("email", editForm.email)
+      formPayload.append("phone", editForm.phone)
+      formPayload.append("address", editForm.address)
+      formPayload.append("vehicle", editForm.vehicle)
+      formPayload.append("accountNumber", editForm.accountNumber)
+      formPayload.append("sortCode", editForm.sortCode)
+
+      if (editForm.imageFile) {
+        formPayload.append("image", editForm.imageFile)
+      } else if (imagePreview === null && rider?.image) {
+        // User removed image
+        formPayload.append("image", "null")
+      }
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/rider/update-profile`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(editForm)
+        body: formPayload
       })
 
       if (!response.ok) throw new Error("Failed to update profile")
