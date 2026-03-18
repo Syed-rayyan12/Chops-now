@@ -49,9 +49,7 @@ export const getAdminRestaurants = (params?: { search?: string; status?: string 
   const queryString = queryParams.toString();
   return apiRequest<any[]>(`/admin/restaurants${queryString ? `?${queryString}` : ""}`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
@@ -67,9 +65,7 @@ export const getAdminUsers = (params?: { search?: string; status?: string }) => 
   const queryString = queryParams.toString();
   return apiRequest<any[]>(`/admin/users${queryString ? `?${queryString}` : ""}`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
@@ -110,18 +106,14 @@ export const getAdminRiders = (params?: { search?: string; status?: string }) =>
   const queryString = queryParams.toString();
   return apiRequest<any[]>(`/admin/riders${queryString ? `?${queryString}` : ""}`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
 export const getAdminRiderDetails = (id: string) => {
   return apiRequest<{ rider: any }>(`/admin/riders/${id}`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
@@ -137,9 +129,7 @@ export const getAdminStats = () => {
     totalRevenue: number;
   }>("/admin/stats", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
@@ -147,9 +137,7 @@ export const getAdminRecentOrders = (limit?: number) => {
   const queryString = limit ? `?limit=${limit}` : "";
   return apiRequest<any[]>(`/admin/recent-orders${queryString}`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
@@ -163,9 +151,7 @@ export const getAdminOrders = (params?: { search?: string; status?: string; sort
   const queryString = queryParams.toString();
   return apiRequest<{ orders: any[]; stats: any }>(`/admin/orders${queryString ? `?${queryString}` : ""}`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
@@ -205,9 +191,7 @@ export const getAdminAnalytics = () => {
   });
 };
 
-// ============================================
-// Admin Account Management
-// ============================================
+// =tokenKey: STORAGE_KEYS.ADMIN_TOKEN==========================================
 
 export interface CreateAdminPayload {
   firstName: string;
@@ -233,35 +217,27 @@ export const adminAccounts = {
   getAll: () =>
     apiRequest<AdminAccount[]>("/admin/accounts", {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-      },
+      tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
     }),
 
   create: (data: CreateAdminPayload) =>
     apiRequest<AdminAccount>("/admin/accounts", {
       method: "POST",
       body: JSON.stringify(data),
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-      },
+      tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
     }),
 
   update: (id: number, data: UpdateAdminPayload) =>
     apiRequest<AdminAccount>(`/admin/accounts/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-      },
+      tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
     }),
 
   delete: (id: number) =>
     apiRequest<{ message: string }>(`/admin/accounts/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-      },
+      tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
     }),
 };
 

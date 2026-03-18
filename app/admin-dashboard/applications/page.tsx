@@ -110,7 +110,7 @@ export default function AdminApplicationsPage() {
           >
             New ({applications.filter((a) => a.status === "new").length})
           </button>
-          <button
+          {/* <button
             onClick={() => setFilter("reviewed")}
             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
               filter === "reviewed"
@@ -119,7 +119,7 @@ export default function AdminApplicationsPage() {
             }`}
           >
             Reviewed ({applications.filter((a) => a.status === "reviewed").length})
-          </button>
+          </button> */}
         </div>
       </div>
 
