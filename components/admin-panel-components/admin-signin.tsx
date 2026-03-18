@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,23 @@ import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { loginAdmin } from "@/lib/api/admin.api"
+import { STORAGE_KEYS } from "@/lib/api/config"
+
+function parseJwt(token: string) {
+  try {
+    const base64Url = token.split(".")[1]
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return null
+  }
+}
 
 export default function AdminSignIn() {
   const router = useRouter()
@@ -22,6 +39,23 @@ export default function AdminSignIn() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Redirect to dashboard if already logged in with a valid token
+  useEffect(() => {
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)
+    if (token) {
+      const payload = parseJwt(token)
+      if (payload?.exp && Date.now() < payload.exp * 1000) {
+        router.push("/admin-dashboard")
+        return
+      }
+      // Token is expired or malformed — clear it
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN)
+      localStorage.removeItem("adminUser")
+    }
+    setCheckingAuth(false)
+  }, [router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -39,9 +73,9 @@ export default function AdminSignIn() {
       const data = await loginAdmin(formData)
 
       if (data.token) {
-        localStorage.setItem("adminToken", data.token)
-        if (data.admin) {
-          localStorage.setItem("adminUser", JSON.stringify(data.admin))
+        localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, data.token)
+        if (data.user) {
+          localStorage.setItem("adminUser", JSON.stringify(data.user))
         }
 
         toast({
@@ -51,13 +85,18 @@ export default function AdminSignIn() {
 
         setTimeout(() => {
           router.push("/admin-dashboard")
-        }, 3000)
+        }, 1500)
       }
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show nothing while checking existing auth
+  if (checkingAuth) {
+    return null
   }
 
   return (

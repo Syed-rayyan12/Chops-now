@@ -39,19 +39,14 @@ export function EarningsSection() {
   const fetchEarnings = async () => {
     try {
       const riderToken = localStorage.getItem('riderToken')
-      
       if (!riderToken) return
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/rider/earnings`, {
-        headers: {
-          'Authorization': `Bearer ${riderToken}`,
-        },
+      const { apiRequest } = await import("@/lib/api/client")
+      const { STORAGE_KEYS } = await import("@/lib/api/config")
+      const data = await apiRequest<{ earnings: Earnings }>("/rider/earnings", {
+        tokenKey: STORAGE_KEYS.RIDER_TOKEN,
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        setEarnings(data.earnings)
-      }
+      setEarnings(data.earnings)
     } catch (error) {
       console.error('Error fetching earnings:', error)
     } finally {

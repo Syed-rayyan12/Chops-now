@@ -58,18 +58,11 @@ export function RiderHeader({ collapsed, setCollapsed, notifications, onSignOut 
   useEffect(() => {
     const fetchRiderData = async () => {
       try {
-        const token =
-          localStorage.getItem(STORAGE_KEYS.RIDER_TOKEN) ||
-          localStorage.getItem("riderToken")
-
+        const token = localStorage.getItem(STORAGE_KEYS.RIDER_TOKEN)
         if (token) {
-          const response = await fetch(`${API_CONFIG.BASE_URL}/rider/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          if (response.ok) {
-            const data = await response.json()
-            setRider(data.rider)
-          }
+          const { riderStatus } = await import("@/lib/api/rider.api")
+          const data = await riderStatus.getProfile()
+          setRider(data.rider)
         }
       } catch (error) {
         console.error("Failed to load rider data:", error)

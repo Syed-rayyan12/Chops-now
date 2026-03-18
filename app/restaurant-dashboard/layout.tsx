@@ -192,24 +192,16 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
       const token = localStorage.getItem("restaurantToken")
       if (!token) return
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/notification`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // Map API notifications to component format
-        const mappedNotifications = data.notifications?.map((notif: any) => ({
-          id: notif.id.toString(),
-          type: notif.type?.toLowerCase() || "order",
-          message: notif.message || notif.title,
-          time: formatTimeAgo(notif.createdAt),
-          status: notif.isRead ? "read" : "unread",
-        })) || []
-        setNotifications(mappedNotifications)
-      }
+      const { getNotifications } = await import("@/lib/api/notification.api")
+      const data = await getNotifications()
+      const mappedNotifications = data.notifications?.map((notif: any) => ({
+        id: notif.id.toString(),
+        type: notif.type?.toLowerCase() || "order",
+        message: notif.message || notif.title,
+        time: formatTimeAgo(notif.createdAt),
+        status: (notif.isRead ? "read" : "unread") as NotificationStatus,
+      })) || []
+      setNotifications(mappedNotifications)
     } catch (error) {
       console.error("Failed to load notifications:", error)
     }

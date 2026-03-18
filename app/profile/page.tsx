@@ -14,6 +14,7 @@ import { User, MapPin, Clock, Edit2, Loader2, DollarSign, Package, Upload, X } f
 import { Header } from "@/components/customer-panel-components/header"
 import { Footer } from "@/components/customer-panel-components/footer"
 import { getUserProfile, updateUserProfile, getUserAddresses, getUserOrders } from "@/lib/api/user.api"
+import { STORAGE_KEYS } from "@/lib/api/config"
 import { toast } from "@/components/ui/use-toast"
 import { Ubuntu } from "next/font/google"
 
@@ -60,7 +61,7 @@ export default function ProfilePage() {
   const loadProfileData = async () => {
     setIsLoading(true)
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : ""
+      const token = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.USER_TOKEN) : ""
       if (!token) {
         router.push("/user-signIn")
         return

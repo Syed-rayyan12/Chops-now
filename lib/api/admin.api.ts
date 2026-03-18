@@ -16,9 +16,10 @@ export interface AdminLoginPayload {
 
 export interface AdminAuthResponse {
   token: string;
-  role?: string;
-  admin?: {
+  user?: {
     id: number;
+    firstName: string;
+    lastName: string;
     email: string;
     role: string;
   };
@@ -185,13 +186,13 @@ export interface AnalyticsResponse {
 export const getAdminAnalytics = () => {
   return apiRequest<AnalyticsResponse>("/admin/analytics", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN)}`,
-    },
+    tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
   });
 };
 
-// =tokenKey: STORAGE_KEYS.ADMIN_TOKEN==========================================
+// ============================================
+// Admin Account Management
+// ============================================
 
 export interface CreateAdminPayload {
   firstName: string;
