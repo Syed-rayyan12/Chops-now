@@ -968,24 +968,22 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
       : "0.0";
 
     // ==========================================
-    // ACTIVE USERS (Users who have placed at least one order)
+    // ACTIVE USERS (Total registered users with role USER)
     // ==========================================
-    const activeUsers = await prisma.order.groupBy({
-      by: ['customerId']
+    const activeUsersCount = await prisma.user.count({
+      where: { role: "USER" }
     });
-    const activeUsersCount = activeUsers.length;
 
-    const lastMonthActiveUsers = await prisma.order.groupBy({
-      by: ['customerId'],
+    const lastMonthUsersCount = await prisma.user.count({
       where: {
+        role: "USER",
         createdAt: {
-          gte: lastMonthStart,
           lt: lastMonthEnd
         }
       }
     });
-    const usersChange = lastMonthActiveUsers.length > 0
-      ? ((activeUsersCount - lastMonthActiveUsers.length) / lastMonthActiveUsers.length * 100).toFixed(1)
+    const usersChange = lastMonthUsersCount > 0
+      ? ((activeUsersCount - lastMonthUsersCount) / lastMonthUsersCount * 100).toFixed(1)
       : "0.0";
 
     // ==========================================
@@ -1030,10 +1028,10 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
       const revenue = monthOrders.reduce((sum, order) => sum + Number(order.amount), 0);
       const ordersCount = monthOrders.length;
       
-      // Get active users for this month
-      const monthActiveUsers = await prisma.order.groupBy({
-        by: ['customerId'],
+      // Get users registered in this month
+      const monthNewUsers = await prisma.user.count({
         where: {
+          role: "USER",
           createdAt: {
             gte: monthDate,
             lt: nextMonth
@@ -1045,7 +1043,7 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
         name: monthDate.toLocaleString('en-US', { month: 'short' }),
         revenue: Number(revenue.toFixed(2)),
         orders: ordersCount,
-        users: monthActiveUsers.length
+        users: monthNewUsers
       });
     }
 
