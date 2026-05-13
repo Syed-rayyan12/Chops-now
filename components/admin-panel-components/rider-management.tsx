@@ -344,7 +344,7 @@ export function RiderManagement() {
                               >
                                 <Eye className="w-4 h-4 hover:text-white" />
                               </Button>
-                              <DropdownMenu>
+                              {/* <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
@@ -361,7 +361,7 @@ export function RiderManagement() {
                                   <DropdownMenuItem>View Documents</DropdownMenuItem>
                                   <DropdownMenuItem className="text-red-600">Suspend Rider</DropdownMenuItem>
                                 </DropdownMenuContent>
-                              </DropdownMenu>
+                              </DropdownMenu> */}
                             </div>
                           </TableCell>
                         </TableRow>
