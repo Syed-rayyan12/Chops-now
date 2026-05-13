@@ -9,19 +9,31 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { User, MapPin, Phone, Store, Clock, CreditCard, CheckCircle, ChefHat, Truck, XCircle } from "lucide-react"
 
+interface OrderItem {
+  id: number
+  title: string
+  qty: number
+  unitPrice: number
+  total: number
+}
+
 interface Order {
   id: string
+  orderId?: string
   customer: string
   customerEmail: string
+  customerPhone?: string
   restaurant: string
-  items: string[]
+  items: OrderItem[] | string[]
   amount: number
   status: string
-  paymentStatus: string
-  orderTime: string
-  deliveryTime: string | null
-  address: string
-  phone: string
+  paymentStatus?: string
+  time?: string
+  orderTime?: string
+  deliveryTime?: string | null
+  deliveryAddress?: string
+  address?: string
+  phone?: string
 }
 
 interface OrderDetailsModalProps {
@@ -90,7 +102,7 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
                 </div>
                 <div>
                   <p className="font-ubuntu text-[17px] text-[#717171]">Delivery Address</p>
-                  <p className="text-sm text-primary">{order.address}</p>
+                  <p className="text-sm text-primary">{order.deliveryAddress || order.address || 'N/A'}</p>
                 </div>
               </div>
 
@@ -100,7 +112,7 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
                 </div>
                 <div>
                   <p className="font-ubuntu text-[17px] text-[#717171]">Phone Number</p>
-                  <p className="text-sm text-primary">{order.phone}</p>
+                  <p className="text-sm text-primary">{order.customerPhone || order.phone || 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -131,7 +143,9 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
                 </div>
                 <div>
                   <p className="font-ubuntu text-[17px] text-[#717171]">Order Time</p>
-                  <p className="text-sm text-primary">{order.orderTime}</p>
+                  <p className="text-sm text-primary">
+                    {order.time ? new Date(order.time).toLocaleString() : order.orderTime || 'N/A'}
+                  </p>
                 </div>
               </div>
 
@@ -180,17 +194,21 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white border-b border-gray-400">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 border border-gray-400 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-secondary">{index + 1}</span>
+                {order.items.map((item, index) => {
+                  const title = typeof item === 'string' ? item : item.title
+                  const qty = typeof item === 'string' ? 1 : item.qty
+                  return (
+                    <div key={index} className="flex items-center justify-between p-3 bg-white border-b border-gray-400">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 border border-gray-400 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-secondary">{index + 1}</span>
+                        </div>
+                        <span className="font-medium text-primary">{title}</span>
                       </div>
-                      <span className="font-medium text-primary">{item}</span>
+                      <span className="text-primary">{qty}x</span>
                     </div>
-                    <span className="text-primary">1x</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
             
