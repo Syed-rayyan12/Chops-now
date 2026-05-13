@@ -6,16 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 
 import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Download } from "lucide-react"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
-  Line,
-  LineChart,
   Cell,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -160,58 +158,53 @@ export function AnalyticsDashboard() {
                   <CardDescription className="text-primary">Monthly revenue and order trends</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4 max-sm:pl-0 overflow-hidden">
-                  <ChartContainer
-                    config={{
-                      revenue: {
-                        label: "Revenue (£)",
-                        color: "#F47A20",
-                      },
-                    }}
-                    className="h-[300px] w-[100%]"
-                  >
-                    <AreaChart
-                      data={analytics.revenueData}
-                      onMouseMove={(e) => setActiveLabel(e.activeLabel || null)}
-                      onMouseLeave={() => setActiveLabel(null)}
-                      margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
-                    >
-                      <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F47A20" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#F47A20" stopOpacity={0.05}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#6b7280"
-                        fontSize={12}
-                        tickLine={false}
-                      />
-                      <YAxis 
-                        stroke="#6b7280"
-                        fontSize={12}
-                        tickLine={false}
-                        tickFormatter={(value) => `£${value.toLocaleString()}`}
-                      />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />} 
-                        cursor={{ stroke: '#F47A20', strokeDasharray: '3 3', strokeWidth: 2 }} 
-                      />
-                      {activeLabel !== null && (
-                        <ReferenceLine x={activeLabel} stroke="#0F3D2E" strokeDasharray="3 3" />
-                      )}
-                      <Area
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#F47A20"
-                        strokeWidth={3}
-                        fill="url(#colorRevenue)"
-                        dot={{ fill: '#F47A20', stroke: '#F47A20', strokeWidth: 2, r: 5 }}
-                        activeDot={{ r: 7, fill: '#F47A20' }}
-                      />
-                    </AreaChart>
-                  </ChartContainer>
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={analytics.revenueData}
+                        onMouseMove={(e) => setActiveLabel(e.activeLabel || null)}
+                        onMouseLeave={() => setActiveLabel(null)}
+                        margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
+                      >
+                        <defs>
+                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#F47A20" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#F47A20" stopOpacity={0.05}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="#6b7280"
+                          fontSize={12}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          stroke="#6b7280"
+                          fontSize={12}
+                          tickLine={false}
+                          tickFormatter={(value) => `£${value.toLocaleString()}`}
+                        />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: any) => [`£${Number(value).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, 'Revenue']}
+                          cursor={{ stroke: '#F47A20', strokeDasharray: '3 3', strokeWidth: 2 }}
+                        />
+                        {activeLabel !== null && (
+                          <ReferenceLine x={activeLabel} stroke="#0F3D2E" strokeDasharray="3 3" />
+                        )}
+                        <Area
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#F47A20"
+                          strokeWidth={3}
+                          fill="url(#colorRevenue)"
+                          dot={{ fill: '#F47A20', stroke: '#F47A20', strokeWidth: 2, r: 5 }}
+                          activeDot={{ r: 7, fill: '#F47A20' }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="w-full  p-4 bg-white">
@@ -309,50 +302,45 @@ export function AnalyticsDashboard() {
                 <CardDescription className="text-primary">Order volume and patterns</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <ChartContainer
-                  config={{
-                    orders: {
-                      label: "Orders",
-                      color: "#F47A20",
-                    },
-                  }}
-                  className="h-[400px] w-[100%]"
-                >
-                  <BarChart 
-                    data={analytics.revenueData}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey="name" 
-                      stroke="#6b7280"
-                      fontSize={12}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="#6b7280"
-                      fontSize={12}
-                      tickLine={false}
-                      label={{ value: 'Orders', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
-                    />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />} 
-                      cursor={{ fill: 'rgba(244, 122, 32, 0.1)' }}
-                    />
-                    <Bar 
-                      dataKey="orders" 
-                      radius={[8, 8, 0, 0]}
-                      maxBarSize={50}
+                <div className="h-[400px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                      data={analytics.revenueData}
+                      margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
                     >
-                      {analytics.revenueData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={index % 2 === 0 ? "#F47A20" : "#0F3D2E"} 
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ChartContainer>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#6b7280"
+                        fontSize={12}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        fontSize={12}
+                        tickLine={false}
+                        label={{ value: 'Orders', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value: any) => [value, 'Orders']}
+                        cursor={{ fill: 'rgba(244, 122, 32, 0.1)' }}
+                      />
+                      <Bar 
+                        dataKey="orders" 
+                        radius={[8, 8, 0, 0]}
+                        maxBarSize={50}
+                      >
+                        {analytics.revenueData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={index % 2 === 0 ? "#F47A20" : "#0F3D2E"} 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -364,58 +352,53 @@ export function AnalyticsDashboard() {
                 <CardDescription className="text-primary">User acquisition and retention</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <ChartContainer
-                  config={{
-                    users: {
-                      label: "Active Users",
-                      color: "#0F3D2E",
-                    },
-                  }}
-                  className="h-[400px] w-[100%]"
-                >
-                  <AreaChart
-                    data={analytics.revenueData}
-                    onMouseMove={(e) => setActiveLabel(e.activeLabel || null)}
-                    onMouseLeave={() => setActiveLabel(null)}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                  >
-                    <defs>
-                      <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0F3D2E" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#0F3D2E" stopOpacity={0.05}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey="name" 
-                      stroke="#6b7280"
-                      fontSize={12}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="#6b7280"
-                      fontSize={12}
-                      tickLine={false}
-                      label={{ value: 'Users', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
-                    />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />} 
-                      cursor={{ stroke: '#0F3D2E', strokeDasharray: '3 3', strokeWidth: 2 }}
-                    />
-                    {activeLabel !== null && (
-                      <ReferenceLine x={activeLabel} stroke="#0F3D2E" strokeDasharray="3 3" strokeWidth={2} />
-                    )}
-                    <Area 
-                      type="monotone" 
-                      dataKey="users" 
-                      stroke="#0F3D2E" 
-                      strokeWidth={3}
-                      fill="url(#colorUsers)" 
-                      dot={{ fill: '#0F3D2E', r: 4 }}
-                      activeDot={{ r: 6, fill: '#0F3D2E', stroke: '#fff', strokeWidth: 2 }}
-                    />
-                  </AreaChart>
-                </ChartContainer>
+                <div className="h-[400px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={analytics.revenueData}
+                      onMouseMove={(e) => setActiveLabel(e.activeLabel || null)}
+                      onMouseLeave={() => setActiveLabel(null)}
+                      margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0F3D2E" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#0F3D2E" stopOpacity={0.05}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#6b7280"
+                        fontSize={12}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        fontSize={12}
+                        tickLine={false}
+                        label={{ value: 'Users', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value: any) => [value, 'Users']}
+                        cursor={{ stroke: '#0F3D2E', strokeDasharray: '3 3', strokeWidth: 2 }}
+                      />
+                      {activeLabel !== null && (
+                        <ReferenceLine x={activeLabel} stroke="#0F3D2E" strokeDasharray="3 3" strokeWidth={2} />
+                      )}
+                      <Area 
+                        type="monotone" 
+                        dataKey="users" 
+                        stroke="#0F3D2E" 
+                        strokeWidth={3}
+                        fill="url(#colorUsers)" 
+                        dot={{ fill: '#0F3D2E', r: 4 }}
+                        activeDot={{ r: 6, fill: '#0F3D2E', stroke: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
