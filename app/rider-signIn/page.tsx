@@ -1,20 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { RiderLogin } from "@/components/rider-panel-components/rider-login"
+import { STORAGE_KEYS } from "@/lib/api/config"
 
 const Page = () => {
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("token")
-    const riderData = localStorage.getItem("riderData")
-    
-    if (token && riderData) {
-      // Redirect to dashboard if already logged in
+    // Check if rider is already logged in
+    const token = localStorage.getItem(STORAGE_KEYS.RIDER_TOKEN)
+    if (token) {
       router.push("/rider-dashboard")
     }
   }, [router])

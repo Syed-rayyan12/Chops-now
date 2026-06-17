@@ -4,6 +4,8 @@
 import { useState } from "react"
 import { Sidebar } from "@/components/admin-panel-components/sidebar"
 import { Header } from "@/components/admin-panel-components/header"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
+import { Loader } from "@/components/ui/loader"
 
 type NotificationStatus = "unread" | "read"
 
@@ -16,6 +18,7 @@ interface Notification {
 }
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAdminAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
@@ -49,6 +52,20 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       status: "unread",
     },
   ])
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <Loader />
+      </div>
+    )
+  }
+
+  // Don't render dashboard if not authenticated (redirect happens in hook)
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="min-h-screen w-full flex">

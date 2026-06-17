@@ -5,18 +5,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getAdminRecentOrders } from "@/lib/api/admin.api"
 
 interface RecentOrder {
-  id: number;
-  code: string;
-  customer?: {
-    firstName: string;
-    lastName: string;
-  };
-  items: Array<{
-    title: string;
-    qty: number;
-  }>;
+  id: string;
+  orderId?: string;
+  customer: string;
+  customerEmail?: string;
+  restaurant?: string;
   amount: number;
-  createdAt: string;
+  status?: string;
+  items: number;
+  time?: string;
+  date?: string;
 }
 
 export function RecentSales() {
@@ -39,16 +37,16 @@ export function RecentSales() {
     }
   }
 
-  const getInitials = (firstName?: string, lastName?: string) => {
-    if (!firstName || !lastName) return "U"
-    return `${firstName[0]}${lastName[0]}`.toUpperCase()
+  const getInitials = (fullName: string) => {
+    if (!fullName) return "U"
+    const parts = fullName.trim().split(" ")
+    if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+    return parts[0]?.[0]?.toUpperCase() || "U"
   }
 
-  const getOrderItems = (items: Array<{ title: string; qty: number }>) => {
-    if (items.length === 0) return "No items"
-    if (items.length === 1) return `${items[0].title} x${items[0].qty}`
-    if (items.length === 2) return `${items[0].title}, ${items[1].title}`
-    return `${items[0].title} +${items.length - 1} more`
+  const getItemsLabel = (items: number) => {
+    if (!items || items === 0) return "No items"
+    return `${items} item${items !== 1 ? "s" : ""}`
   }
 
   if (loading) {
@@ -71,22 +69,22 @@ export function RecentSales() {
     <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       <table className="w-full">
         <tbody>
-          {orders.map((order) => (
-            <tr key={order.id} className="border-b border-gray-200 last:border-0">
+          {orders.map((order, idx) => (
+            <tr key={order.id ?? idx} className="border-b border-gray-200 last:border-0">
               <td className="py-2 pr-2 w-10">
                 <Avatar className="h-8 w-8 text-white">
                   <AvatarFallback className="bg-secondary text-[10px]">
-                    {getInitials(order.customer?.firstName, order.customer?.lastName)}
+                    {getInitials(order.customer || "")}
                   </AvatarFallback>
                 </Avatar>
               </td>
               <td className="py-2 pr-2">
                 <p className="text-xs font-medium leading-none text-primary truncate max-w-[80px]">
-                  {order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "Guest"}
+                  {order.customer || "Guest"}
                 </p>
               </td>
               <td className="py-2 pr-2 text-[11px] text-gray-400 max-w-[120px]">
-                <span className="truncate block">{getOrderItems(order.items)}</span>
+                <span className="truncate block">{getItemsLabel(order.items)}</span>
               </td>
               <td className="py-2 text-right font-medium text-primary text-xs whitespace-nowrap">
                 £{Number(order.amount).toFixed(2)}

@@ -6,16 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 
 import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Download } from "lucide-react"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
-  Line,
-  LineChart,
   Cell,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -160,15 +158,7 @@ export function AnalyticsDashboard() {
                   <CardDescription className="text-primary">Monthly revenue and order trends</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4 max-sm:pl-0 overflow-hidden">
-                  <ChartContainer
-                    config={{
-                      revenue: {
-                        label: "Revenue (£)",
-                        color: "#F47A20",
-                      },
-                    }}
-                    className="h-[300px] w-[100%]"
-                  >
+                  <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={analytics.revenueData}
@@ -195,9 +185,10 @@ export function AnalyticsDashboard() {
                           tickLine={false}
                           tickFormatter={(value) => `£${value.toLocaleString()}`}
                         />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent />} 
-                          cursor={{ stroke: '#F47A20', strokeDasharray: '3 3', strokeWidth: 2 }} 
+                        <Tooltip
+                          contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: any) => [`£${Number(value).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, 'Revenue']}
+                          cursor={{ stroke: '#F47A20', strokeDasharray: '3 3', strokeWidth: 2 }}
                         />
                         {activeLabel !== null && (
                           <ReferenceLine x={activeLabel} stroke="#0F3D2E" strokeDasharray="3 3" />
@@ -213,7 +204,7 @@ export function AnalyticsDashboard() {
                         />
                       </AreaChart>
                     </ResponsiveContainer>
-                  </ChartContainer>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="w-full  p-4 bg-white">
@@ -311,15 +302,7 @@ export function AnalyticsDashboard() {
                 <CardDescription className="text-primary">Order volume and patterns</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <ChartContainer
-                  config={{
-                    orders: {
-                      label: "Orders",
-                      color: "#F47A20",
-                    },
-                  }}
-                  className="h-[400px] w-[100%]"
-                >
+                <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart 
                       data={analytics.revenueData}
@@ -338,8 +321,9 @@ export function AnalyticsDashboard() {
                         tickLine={false}
                         label={{ value: 'Orders', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
                       />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />} 
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value: any) => [value, 'Orders']}
                         cursor={{ fill: 'rgba(244, 122, 32, 0.1)' }}
                       />
                       <Bar 
@@ -356,7 +340,7 @@ export function AnalyticsDashboard() {
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -368,15 +352,7 @@ export function AnalyticsDashboard() {
                 <CardDescription className="text-primary">User acquisition and retention</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <ChartContainer
-                  config={{
-                    users: {
-                      label: "Active Users",
-                      color: "#0F3D2E",
-                    },
-                  }}
-                  className="h-[400px] w-[100%]"
-                >
+                <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={analytics.revenueData}
@@ -403,8 +379,9 @@ export function AnalyticsDashboard() {
                         tickLine={false}
                         label={{ value: 'Users', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
                       />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />} 
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value: any) => [value, 'Users']}
                         cursor={{ stroke: '#0F3D2E', strokeDasharray: '3 3', strokeWidth: 2 }}
                       />
                       {activeLabel !== null && (
@@ -421,7 +398,7 @@ export function AnalyticsDashboard() {
                       />
                     </AreaChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { loginRestaurant, getRestaurantProfile } from "@/lib/api/restaurant.api"
+import { STORAGE_KEYS } from "@/lib/api/config"
 import { OTPModal } from "../otp-modal"
 
 interface RiderLoginProps {
@@ -21,6 +22,14 @@ interface RiderLoginProps {
 export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
   const router = useRouter()
   const { toast } = useToast() // ✅ Correct way to trigger a toast
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem(STORAGE_KEYS.RESTAURANT_TOKEN)
+    if (token) {
+      router.push("/restaurant-dashboard")
+    }
+  }, [router])
 
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: "", password: "" })

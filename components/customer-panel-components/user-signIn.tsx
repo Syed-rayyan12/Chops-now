@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,7 @@ import { Eye, EyeOff, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { API_CONFIG } from "@/lib/api/config"
+import { API_CONFIG, STORAGE_KEYS } from "@/lib/api/config"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,7 +29,13 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
   // store logged-in user
   const [user, setUser] = useState<any>(null)
 
-  // Removed auto-redirect for logged-in users - allow them to access sign-in page
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem(STORAGE_KEYS.USER_TOKEN)
+    if (token) {
+      router.push("/customer-panel")
+    }
+  }, [router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

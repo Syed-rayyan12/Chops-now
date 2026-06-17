@@ -80,6 +80,44 @@ export async function apiRequest<T>(
     // Handle errors
     if (!response.ok) {
       console.error("❌ API Error Response:", data);
+      
+      // Handle 401 Unauthorized (expired/invalid token)
+      if (response.status === 401) {
+        console.log("🔒 Unauthorized - Token expired or invalid");
+        
+        // Check which token is being used and clear it
+        if (tokenKey) {
+          console.log(`🗑️ Clearing token: ${tokenKey}`);
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(tokenKey);
+            
+            // Also clear admin user data if it's an admin token
+            if (tokenKey === "adminToken") {
+              localStorage.removeItem("adminUser");
+            }
+          }
+        }
+        
+        // Redirect to appropriate login page based on token type
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          
+          if (currentPath.includes("/admin")) {
+            console.log("🔄 Redirecting to admin login");
+            window.location.href = "/admin-signin";
+          } else if (currentPath.includes("/restaurant")) {
+            console.log("🔄 Redirecting to restaurant login");
+            window.location.href = "/restaurant-signIn";
+          } else if (currentPath.includes("/rider")) {
+            console.log("🔄 Redirecting to rider login");
+            window.location.href = "/rider-signIn";
+          } else {
+            console.log("🔄 Redirecting to user login");
+            window.location.href = "/user-signIn";
+          }
+        }
+      }
+      
       throw new ApiError(
         data?.message || `Request failed with status ${response.status}`,
         response.status,
