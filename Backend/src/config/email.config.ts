@@ -1,19 +1,13 @@
-import sendgridMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 
-console.log('📧 Email Config:', {
-  emailUser: process.env.EMAIL_USER,
-  usingSendGrid: !!process.env.SENDGRID_API_KEY,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Configure SendGrid
-if (!process.env.SENDGRID_API_KEY) {
-  console.error('⚠️ SENDGRID_API_KEY not found in environment variables!');
+if (!process.env.RESEND_API_KEY) {
+  console.error('⚠️ RESEND_API_KEY not found in environment variables!');
 } else {
-  sendgridMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('✅ SendGrid configured successfully');
+  console.log('✅ Resend configured successfully');
 }
 
-// Company email addresses - emails will be sent to all of these
 export const COMPANY_EMAILS = [
   process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
 ];
@@ -70,33 +64,13 @@ export const sendContactEmail = async (data: ContactFormData) => {
     </div>
   `;
 
-  const mailOptions = {
-    from: `"ChopNow" <${process.env.EMAIL_USER}>`,
-    to: COMPANY_EMAILS,
-    replyTo: email,
-    subject: `[ChopNow Contact] ${subject}`,
-    html: htmlContent,
-  };
-  console.log('📤 Sending email to:', COMPANY_EMAILS);
-
-  // Use SendGrid SDK
-  const msg = {
-    to: COMPANY_EMAILS,
-    from: process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
-    replyTo: email,
-    subject: mailOptions.subject,
-    html: htmlContent,
-  };
-
-  const result = await sendgridMail.send(msg as any);
-  console.log('✅ SendGrid email sent:', result && result[0] && result[0].statusCode);
-  return result;
+  console.log('📤 Sending contact email to:', COMPANY_EMAILS);
+  return sendEmail(COMPANY_EMAILS, `[ChopNow Contact] ${subject}`, htmlContent, email);
 };
 
 export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscriptionData) => {
   const { email } = data;
 
-  // Email to subscriber - Thank you message
   const subscriberHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
@@ -108,7 +82,7 @@ export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscripti
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           You've successfully subscribed to the ChopNow newsletter. Get ready for exciting updates, exclusive offers, and delicious food stories from authentic African & Caribbean cuisine!
         </p>
-        
+
         <div style="background: #fff8f0; padding: 20px; border-radius: 8px; border-left: 4px solid #FF6B00; margin: 25px 0;">
           <p style="margin: 0; color: #555; font-size: 14px;">
             <strong>What to expect:</strong><br/>
@@ -135,7 +109,6 @@ export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscripti
     </div>
   `;
 
-  // Email to company - Notification
   const companyHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); padding: 20px; border-radius: 10px 10px 0 0;">
@@ -160,31 +133,25 @@ export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscripti
     </div>
   `;
 
-  // Send confirmation email to subscriber
   await sendEmail(email, "Welcome to ChopNow Newsletter! 🎉", subscriberHtml);
-
-  // Send notification to company
   return sendEmail(COMPANY_EMAILS, "[ChopNow Newsletter] New subscription", companyHtml, email);
 };
 
-// Helper function to send emails using SendGrid only
 const sendEmail = async (to: string | string[], subject: string, html: string, replyTo?: string) => {
-  console.log('📤 Sending email via SendGrid to:', to);
+  console.log('📤 Sending email via Resend to:', to);
 
-  const msg = {
+  const result = await resend.emails.send({
+    from: `ChopNow <${process.env.EMAIL_USER || 'noreply@chopnow.co.uk'}>`,
     to: Array.isArray(to) ? to : [to],
-    from: process.env.EMAIL_USER || 'noreply@chopnow.co.uk',
-    replyTo: replyTo,
     subject,
     html,
-  };
-  
-  const result = await sendgridMail.send(msg as any);
-  console.log('✅ SendGrid email sent:', result && result[0] && result[0].statusCode);
+    ...(replyTo ? { reply_to: replyTo } : {}),
+  });
+
+  console.log('✅ Resend email sent:', result.data?.id);
   return result;
 };
 
-// Order confirmation email to customer
 export const sendOrderConfirmationEmail = async (data: {
   customerEmail: string;
   customerName: string;
@@ -219,7 +186,7 @@ export const sendOrderConfirmationEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           Your order from <strong>${restaurantName}</strong> has been confirmed and is being prepared!
         </p>
-        
+
         <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
           <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">Order Details</h3>
           <p style="margin: 0; color: #555;"><strong>Order Code:</strong> ${orderCode}</p>
@@ -279,14 +246,13 @@ export const sendOrderConfirmationEmail = async (data: {
   return sendEmail(customerEmail, `Order Confirmed - ${orderCode}`, html);
 };
 
-// Welcome email for new users
 export const sendWelcomeEmail = async (data: {
   email: string;
   firstName: string;
   role: 'USER' | 'RESTAURANT' | 'RIDER';
 }) => {
   const { email, firstName, role } = data;
-  
+
   const roleMessages = {
     USER: {
       title: 'Welcome to ChopNow! 🎉',
@@ -317,7 +283,7 @@ export const sendWelcomeEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           ${message.content}
         </p>
-        
+
         <div style="background: #fff8f0; padding: 20px; border-radius: 8px; border-left: 4px solid #FF6B00; margin: 25px 0;">
           <p style="margin: 0; color: #555; font-size: 14px;">
             ${message.cta}
@@ -337,7 +303,6 @@ export const sendWelcomeEmail = async (data: {
   return sendEmail(email, message.title, html);
 };
 
-// Restaurant approval/rejection email
 export const sendRestaurantStatusEmail = async (data: {
   email: string;
   restaurantName: string;
@@ -357,7 +322,7 @@ export const sendRestaurantStatusEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           Great news! <strong>${restaurantName}</strong> has been approved and is now live on ChopNow.
         </p>
-        
+
         <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 25px 0;">
           <p style="margin: 0; color: #555; font-size: 14px;">
             <strong>What's next?</strong><br/>
@@ -391,7 +356,7 @@ export const sendRestaurantStatusEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           Thank you for your interest in partnering with ChopNow. Unfortunately, we're unable to approve <strong>${restaurantName}</strong> at this time.
         </p>
-        
+
         ${rejectionReason ? `
           <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 25px 0;">
             <p style="margin: 0; color: #555; font-size: 14px;">
@@ -415,14 +380,13 @@ export const sendRestaurantStatusEmail = async (data: {
     </div>
   `;
 
-  const subject = approved 
+  const subject = approved
     ? `✅ ${restaurantName} - Application Approved!`
     : `Application Update - ${restaurantName}`;
 
   return sendEmail(email, subject, html);
 };
 
-// Rider approval/rejection email
 export const sendRiderStatusEmail = async (data: {
   email: string;
   riderName: string;
@@ -441,7 +405,7 @@ export const sendRiderStatusEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           Congratulations! Your rider account has been approved. You can now start accepting delivery orders.
         </p>
-        
+
         <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 25px 0;">
           <p style="margin: 0; color: #555; font-size: 14px;">
             <strong>Getting started:</strong><br/>
@@ -475,7 +439,7 @@ export const sendRiderStatusEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           Thank you for your interest in becoming a ChopNow rider. Unfortunately, we're unable to approve your application at this time.
         </p>
-        
+
         ${rejectionReason ? `
           <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 25px 0;">
             <p style="margin: 0; color: #555; font-size: 14px;">
@@ -499,14 +463,13 @@ export const sendRiderStatusEmail = async (data: {
     </div>
   `;
 
-  const subject = approved 
+  const subject = approved
     ? '✅ Your Rider Account is Approved!'
     : 'Rider Application Update';
 
   return sendEmail(email, subject, html);
 };
 
-// OTP Verification Email
 export const sendOTPEmail = async (data: {
   email: string;
   name: string;
@@ -528,7 +491,7 @@ export const sendOTPEmail = async (data: {
         <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 25px 0;">
           Thank you for registering with ChopNow! To complete your registration, please verify your email address using the OTP below:
         </p>
-        
+
         <div style="background: #f9f9f9; padding: 30px; border-radius: 8px; text-align: center; margin: 25px 0;">
           <p style="margin: 0 0 10px 0; color: #555; font-size: 14px; font-weight: bold;">Your OTP Code:</p>
           <div style="background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); display: inline-block; padding: 20px 40px; border-radius: 8px; margin: 10px 0;">
@@ -561,7 +524,6 @@ export const sendOTPEmail = async (data: {
   return sendEmail(email, '🔐 Verify Your Email - ChopNow', html);
 };
 
-// Admin notification for new signup
 export const sendAdminSignupNotification = async (data: {
   email: string;
   name: string;
