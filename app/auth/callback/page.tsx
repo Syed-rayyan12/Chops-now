@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 
 function GoogleCallbackContent() {
   const router = useRouter()
@@ -69,7 +70,8 @@ function GoogleCallbackContent() {
         if (roleInfo.role === 'RESTAURANT') {
           localStorage.setItem('restaurantToken', backendData.token)
           localStorage.setItem('restaurantEmail', backendData.user.email)
-          
+          setRoleCookie("RESTAURANT")
+
           // If restaurant data is returned (has slug), store it
           if (backendData.user.slug) {
             localStorage.setItem('restaurantSlug', backendData.user.slug)
@@ -84,7 +86,8 @@ function GoogleCallbackContent() {
           localStorage.setItem('riderToken', backendData.token)
           localStorage.setItem('riderEmail', backendData.user.email)
           localStorage.setItem('riderData', JSON.stringify(backendData.user))
-          
+          setRoleCookie("RIDER")
+
           // Set OTP flag based on backend response
           if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')
@@ -93,7 +96,8 @@ function GoogleCallbackContent() {
           // USER role
           localStorage.setItem('token', backendData.token)
           localStorage.setItem('userEmail', backendData.user.email)
-          
+          setRoleCookie("USER")
+
           // Set OTP flag based on backend response
           if (requiresOTPVerification) {
             localStorage.setItem('requiresOTPVerification', 'true')

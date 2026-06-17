@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getRestaurantOrders } from "@/lib/api/admin.api"
 import { Loader } from "@/components/ui/loader"
+import { logger } from "@/lib/logger";
 import {
   Store,
   MapPin,
@@ -62,15 +63,15 @@ export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: Restaura
     if (isOpen && restaurant?.id) {
       fetchRestaurantOrders()
     } else if (isOpen && !restaurant?.id) {
-      console.error("Cannot fetch orders: Restaurant ID is missing")
-      console.log("Restaurant object:", restaurant)
+      logger.error("Cannot fetch orders: Restaurant ID is missing")
+      logger.debug("Restaurant object:", restaurant)
     }
   }, [isOpen, restaurant?.id])
 
   const fetchRestaurantOrders = async () => {
     if (!restaurant?.id) {
-      console.error("Cannot fetch orders: Restaurant ID is undefined")
-      console.log("Restaurant:", restaurant)
+      logger.error("Cannot fetch orders: Restaurant ID is undefined")
+      logger.debug("Restaurant:", restaurant)
       setRecentOrders([])
       setLoadingOrders(false)
       return
@@ -78,18 +79,18 @@ export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: Restaura
 
     try {
       setLoadingOrders(true)
-      console.log("Restaurant object:", restaurant)
-      console.log("Fetching orders for restaurant ID:", restaurant.id)
-      console.log("Restaurant ID type:", typeof restaurant.id)
+      logger.debug("Restaurant object:", restaurant)
+      logger.debug("Fetching orders for restaurant ID:", restaurant.id)
+      logger.debug("Restaurant ID type:", typeof restaurant.id)
       
       const orders = await getRestaurantOrders(restaurant.id)
-      console.log("Fetched orders:", orders)
+      logger.debug("Fetched orders:", orders)
       setRecentOrders(orders)
     } catch (error: any) {
-      console.error("Failed to fetch restaurant orders:", error)
-      console.error("Error message:", error?.message || "Unknown error")
-      console.error("Error status:", error?.statusCode)
-      console.error("Error data:", error?.data)
+      logger.error("Failed to fetch restaurant orders:", error)
+      logger.error("Error message:", error?.message || "Unknown error")
+      logger.error("Error status:", error?.statusCode)
+      logger.error("Error data:", error?.data)
       setRecentOrders([])
     } finally {
       setLoadingOrders(false)
@@ -130,7 +131,7 @@ export function RestaurantDetailsModal({ restaurant, isOpen, onClose }: Restaura
 
   const handleStatusUpdate = (newStatus: string) => {
     setCurrentStatus(newStatus)
-    console.log(`Updating restaurant ${restaurant.id} status to ${newStatus}`)
+    logger.debug(`Updating restaurant ${restaurant.id} status to ${newStatus}`)
   }
 
   return (

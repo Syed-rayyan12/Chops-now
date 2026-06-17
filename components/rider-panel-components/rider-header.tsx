@@ -1,6 +1,7 @@
 "use client"
 
-import {   
+import { logger } from "@/lib/logger";
+import {
   Bell, Search, User, MenuIcon, Settings, LogOut, Home, ShoppingCart, CreditCard,
   HelpCircle, Star, ChefHat
 } from "lucide-react"
@@ -65,7 +66,7 @@ export function RiderHeader({ collapsed, setCollapsed, notifications, onSignOut 
           setRider(data.rider)
         }
       } catch (error) {
-        console.error("Failed to load rider data:", error)
+        logger.error("Failed to load rider data:", error)
       } finally {
         setLoading(false)
       }
@@ -85,7 +86,7 @@ export function RiderHeader({ collapsed, setCollapsed, notifications, onSignOut 
       setRealNotifications(data.notifications)
       setNotificationCount(data.unreadCount)
     } catch (error) {
-      console.error('Failed to load notifications:', error)
+      logger.error('Failed to load notifications:', error)
     }
   }
 
@@ -94,7 +95,7 @@ export function RiderHeader({ collapsed, setCollapsed, notifications, onSignOut 
       await markNotificationAsRead(id)
       loadNotifications()
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      logger.error('Failed to mark notification as read:', error)
     }
   }
 

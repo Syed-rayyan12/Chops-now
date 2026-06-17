@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, FileText, Calendar, Loader2 } from "lucide-react";
-import { API_CONFIG } from "@/lib/api/config";
+import { API_CONFIG, STORAGE_KEYS, authHeader } from "@/lib/api/config";
+import { logger } from "@/lib/logger";
 
 interface Application {
   id: string;
@@ -32,11 +33,13 @@ export default function AdminApplicationsPage() {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/applications`);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/applications`, {
+        headers: { ...authHeader(STORAGE_KEYS.ADMIN_TOKEN) },
+      });
       const data = await response.json();
       setApplications(data.applications || []);
     } catch (error) {
-      console.error("Error fetching applications:", error);
+      logger.error("Error fetching applications:", error);
     } finally {
       setLoading(false);
     }
@@ -46,7 +49,10 @@ export default function AdminApplicationsPage() {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/applications/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(STORAGE_KEYS.ADMIN_TOKEN),
+        },
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -57,7 +63,7 @@ export default function AdminApplicationsPage() {
         alert("Failed to update status");
       }
     } catch (error) {
-      console.error("Error updating application:", error);
+      logger.error("Error updating application:", error);
       alert("Failed to update status");
     }
   };

@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Upload, X } from "lucide-react"
+import { logger } from "@/lib/logger";
 
 interface AddMenuItemModalProps {
   isOpen: boolean
@@ -73,7 +74,7 @@ export function AddMenuItemModal({ isOpen, onClose }: AddMenuItemModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Adding new menu item:", { ...formData, ingredients, allergens })
+    logger.debug("Adding new menu item:", { ...formData, ingredients, allergens })
     onClose()
   }
 

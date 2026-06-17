@@ -6,6 +6,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { API_CONFIG } from "@/lib/api/config"
+import { clearRoleCookie } from "@/lib/auth-cookie"
+import { logger } from "@/lib/logger";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +51,7 @@ export function Header() {
       setNotifications(data.notifications)
       setNotificationCount(data.unreadCount)
     } catch (error) {
-      console.error('Failed to load notifications:', error)
+      logger.error('Failed to load notifications:', error)
     }
   }
 
@@ -58,7 +60,7 @@ export function Header() {
       await markNotificationAsRead(id)
       loadNotifications()
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      logger.error('Failed to mark notification as read:', error)
     }
   }
 
@@ -84,7 +86,7 @@ export function Header() {
         }
       }
     } catch (error) {
-      console.error("Failed to load restaurant profile:", error)
+      logger.error("Failed to load restaurant profile:", error)
     }
   }
 
@@ -92,6 +94,7 @@ export function Header() {
     localStorage.removeItem("restaurantToken")
     localStorage.removeItem("restaurantEmail")
     localStorage.removeItem("restaurantData")
+    clearRoleCookie()
     router.push("/restaurant-signIn")
   }
 

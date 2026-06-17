@@ -5,6 +5,7 @@ import { MapPin, Phone, Mail, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useToast } from "@/hooks/use-toast"
 import { submitContactForm } from "@/lib/api/contact.api"
+import { logger } from "@/lib/logger";
 
 export function ContactFormSection() {
   const { toast } = useToast()
@@ -59,7 +60,7 @@ export function ContactFormSection() {
         })
       }
     } catch (error) {
-      console.error("Form submission error:", error)
+      logger.error("Form submission error:", error)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

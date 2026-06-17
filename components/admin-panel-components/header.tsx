@@ -1,6 +1,7 @@
 
 "use client"
 
+import { logger } from "@/lib/logger";
 import {
   Bell,
   Search,
@@ -34,6 +35,7 @@ import {
 import { useState, useEffect } from "react"
 import { Separator } from "../ui/separator"
 import { cn } from "@/lib/utils"
+import { clearRoleCookie } from "@/lib/auth-cookie"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { getNotifications, markNotificationAsRead, type Notification as ApiNotification } from "@/lib/api/notification.api"
@@ -87,7 +89,7 @@ export function Header({ collapsed, setCollapsed, notifications }: DashboardHead
       setRealNotifications(data.notifications)
       setNotificationCount(data.unreadCount)
     } catch (error) {
-      console.error('Failed to load notifications:', error)
+      logger.error('Failed to load notifications:', error)
     }
   }
 
@@ -96,13 +98,14 @@ export function Header({ collapsed, setCollapsed, notifications }: DashboardHead
       await markNotificationAsRead(id)
       loadNotifications()
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      logger.error('Failed to mark notification as read:', error)
     }
   }
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken')
     localStorage.removeItem('adminUser')
+    clearRoleCookie()
     router.push('/admin-signin')
   }
 

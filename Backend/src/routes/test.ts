@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../config/db';
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -9,7 +10,7 @@ router.get('/db-test', async (req, res) => {
     const user = await prisma.user.findFirst();
     res.json({ message: 'Database connected!', user });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Database connection failed!' });
   }
 });

@@ -43,6 +43,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
 import { STORAGE_KEYS } from "@/lib/api/config"
+import { clearRoleCookie } from "@/lib/auth-cookie"
+import { logger } from "@/lib/logger";
 
 
 type NotificationStatus = "unread" | "read"
@@ -63,15 +65,15 @@ export default function RiderDashboardLayout({ children }: { children: React.Rea
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem(STORAGE_KEYS.RIDER_TOKEN)
-    console.log("🔐 Rider Dashboard Layout - Checking auth...")
-    console.log("Token key:", STORAGE_KEYS.RIDER_TOKEN)
-    console.log("Token found:", token ? "YES" : "NO")
+    logger.debug("🔐 Rider Dashboard Layout - Checking auth...")
+    logger.debug("Token key:", STORAGE_KEYS.RIDER_TOKEN)
+    logger.debug("Token found:", token ? "YES" : "NO")
     
     if (!token) {
-      console.log("❌ No token found, redirecting to /rider-signIn")
+      logger.debug("❌ No token found, redirecting to /rider-signIn")
       router.push("/rider-signIn")
     } else {
-      console.log("✅ Token found, allowing access to dashboard")
+      logger.debug("✅ Token found, allowing access to dashboard")
     }
   }, [router])
 
@@ -108,6 +110,7 @@ export default function RiderDashboardLayout({ children }: { children: React.Rea
 
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEYS.RIDER_TOKEN)
+    clearRoleCookie()
     toast({ title: "You have successfully logged out.", duration: 3000 })
     router.push("/rider-signIn")
   }

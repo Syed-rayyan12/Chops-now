@@ -13,7 +13,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { loginRestaurant, getRestaurantProfile } from "@/lib/api/restaurant.api"
 import { STORAGE_KEYS } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 import { OTPModal } from "../otp-modal"
+import { logger } from "@/lib/logger";
 
 interface RiderLoginProps {
   onLogin: () => void
@@ -57,6 +59,7 @@ export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
 
       // Store token and email immediately
       localStorage.setItem("restaurantToken", loginData.token)
+      setRoleCookie("RESTAURANT")
       if (loginData.email) {
         localStorage.setItem("restaurantEmail", loginData.email)
       }
@@ -75,7 +78,7 @@ export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
           }
         })
         .catch((err) => {
-          console.warn("Failed to fetch restaurant profile:", err)
+          logger.warn("Failed to fetch restaurant profile:", err)
         })
 
       // Redirect immediately without waiting for profile
@@ -186,7 +189,8 @@ export function RestaurantSignIn({ onLogin }: RiderLoginProps) {
             </div>
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 rounded-lg cursor-pointer"
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary/90 rounded-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>

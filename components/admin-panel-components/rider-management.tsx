@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAdminRiders, getAdminRiderDetails } from "@/lib/api/admin.api"
 
+import { logger } from "@/lib/logger";
 import {
   Search,
   Filter,
@@ -120,7 +121,7 @@ export function RiderManagement() {
       const data = await getAdminRiderDetails(riderId);
       setSelectedRider(data.rider);
     } catch (err) {
-      console.error("Error fetching rider details:", err);
+      logger.error("Error fetching rider details:", err);
       setSelectedRider(null);
     } finally {
       setRiderLoading(false);

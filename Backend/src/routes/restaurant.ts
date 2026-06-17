@@ -7,6 +7,7 @@ import { authenticate, AuthRequest } from "../middlewares/auth";
 import multer from "multer";
 import path from "path";
 import { uploadToR2 } from "../config/r2";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -72,7 +73,6 @@ async function getUniqueSlug(baseSlug: string): Promise<string> {
 
 router.post("/signup", async (req, res) => {
   try {
-    console.log("🍽️ Restaurant signup request received:", req.body);
     const {
       firstName,
       lastName,
@@ -141,12 +141,12 @@ router.post("/signup", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    console.log("🔐 Password hashed, creating restaurant...");
+    logger.debug("🔐 Password hashed, creating restaurant...");
 
     // ✅ Generate unique slug from business name
     const baseSlug = generateSlug(businessName);
     const slug = await getUniqueSlug(baseSlug);
-    console.log(`📝 Generated slug: ${slug}`);
+    logger.debug(`📝 Generated slug: ${slug}`);
 
     // Create a user account for the restaurant owner (credentials live in User table)
     const userAccount = await prisma.user.create({
@@ -197,7 +197,7 @@ router.post("/signup", async (req, res) => {
       },
     });
 
-    console.log("✅ Restaurant created successfully:", restaurant.id);
+    logger.debug("✅ Restaurant created successfully:", restaurant.id);
 
     // Send OTP email and admin notification
     try {
@@ -210,7 +210,7 @@ router.post("/signup", async (req, res) => {
         otp,
         role: 'RESTAURANT'
       });
-      console.log('✅ OTP email sent to restaurant');
+      logger.debug('✅ OTP email sent to restaurant');
 
       // Send notification to admin
       await sendAdminSignupNotification({
@@ -218,9 +218,9 @@ router.post("/signup", async (req, res) => {
         name: `${firstName} ${lastName}`,
         role: 'RESTAURANT'
       });
-      console.log('✅ Admin notification sent');
+      logger.debug('✅ Admin notification sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send emails:', emailError);
+      logger.error('⚠️ Failed to send emails:', emailError);
       // Don't fail signup if email fails
     }
 
@@ -245,7 +245,7 @@ router.post("/signup", async (req, res) => {
       role: "RESTAURANT"
     });
   } catch (err: any) {
-    console.error("Restaurant signup error:", err);
+    logger.error("Restaurant signup error:", err);
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
 });
@@ -323,7 +323,7 @@ router.post("/complete-profile", authenticate(["RESTAURANT"]), async (req: any, 
       },
     });
 
-    console.log(`✅ Restaurant profile completed:`, updatedRestaurant.ownerEmail);
+    logger.debug(`✅ Restaurant profile completed:`, updatedRestaurant.ownerEmail);
 
     res.status(200).json({
       success: true,
@@ -331,7 +331,7 @@ router.post("/complete-profile", authenticate(["RESTAURANT"]), async (req: any, 
       restaurant: updatedRestaurant,
     });
   } catch (error: any) {
-    console.error("Error completing restaurant profile:", error);
+    logger.error("Error completing restaurant profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -381,7 +381,7 @@ router.get("/profile", authenticate(["RESTAURANT"]), async (req: any, res) => {
 
     return res.json(profileData);
   } catch (err: any) {
-    console.error("Failed to fetch restaurant profile:", err);
+    logger.error("Failed to fetch restaurant profile:", err);
     return res.status(500).json({ message: "Failed to fetch profile", error: err.message });
   }
 });
@@ -477,7 +477,7 @@ router.put("/profile", authenticate(["RESTAURANT"]), async (req: any, res) => {
     // If email was the owner's email, sync it to localStorage on frontend
     return res.json(profileData);
   } catch (err: any) {
-    console.error("Failed to update restaurant profile:", err);
+    logger.error("Failed to update restaurant profile:", err);
     return res.status(500).json({ message: "Failed to update profile", error: err.message });
   }
 });
@@ -581,7 +581,7 @@ router.get("/", async (req, res) => {
 
   res.json({ restaurants: formattedRestaurants });
   } catch (err: any) {
-    console.error("Failed to fetch restaurants:", err);
+    logger.error("Failed to fetch restaurants:", err);
     res.status(500).json({ message: "Failed to fetch restaurants", error: err.message });
   }
 });
@@ -633,11 +633,11 @@ router.get("/:slug", async (req, res) => {
       menuItems: restaurant.menuItems
     };
 
-    console.log(`📍 Restaurant ${restaurant.name} location:`, { latitude: restaurant.latitude, longitude: restaurant.longitude });
+    logger.debug(`📍 Restaurant ${restaurant.name} location:`, { latitude: restaurant.latitude, longitude: restaurant.longitude });
 
     res.json({ restaurant: formattedRestaurant });
   } catch (err: any) {
-    console.error("Failed to fetch restaurant:", err);
+    logger.error("Failed to fetch restaurant:", err);
     res.status(500).json({ message: "Failed to fetch restaurant", error: err.message });
   }
 });
@@ -653,25 +653,22 @@ router.patch(
   async (req: any, res: any) => {
     try {
       const { slug } = req.params;
-      console.log("🔵 PATCH /restaurant/:slug - slug:", slug);
-      console.log("🔵 Authenticated user:", req.user);
 
       // Find the restaurant to get its id
       const target = await prisma.restaurant.findUnique({ where: { slug }, select: { id: true, deletedAt: true } });
       if (!target) {
-        console.log("❌ Restaurant not found for slug:", slug);
+        logger.debug("❌ Restaurant not found for slug:", slug);
         return res.status(404).json({ message: "Restaurant not found" });
       }
 
       // Prevent updates to soft-deleted restaurants
       if (target.deletedAt) {
-        console.log("❌ Cannot update a deleted (archived) restaurant", slug);
+        logger.debug("❌ Cannot update a deleted (archived) restaurant", slug);
         return res.status(410).json({ message: "Restaurant has been deleted" });
       }
 
       // Ensure the authenticated restaurant matches the target
       if (!req.user || req.user.role !== "RESTAURANT" || req.user.id !== target.id) {
-        console.log("❌ Forbidden - user:", req.user, "target:", target);
         return res.status(403).json({ message: "Forbidden" });
       }
 
@@ -690,8 +687,6 @@ router.patch(
         address,
         featured,
       } = req.body as Record<string, unknown>;
-
-      console.log("📦 Update payload (body):", req.body);
 
       // Files are available on req.files
       const files = req.files as Record<string, Express.Multer.File[]> | undefined;
@@ -742,7 +737,7 @@ router.patch(
         data.coverImage = await uploadToR2(file.buffer, file.originalname, 'restaurants');
       }
 
-      console.log("🔄 Updating with data:", data);
+      logger.debug("🔄 Updating with data:", data);
 
       const restaurant = await prisma.restaurant.update({
         where: { slug },
@@ -777,10 +772,10 @@ router.patch(
         coverImage: assetUrl(req as any, restaurant.coverImage || restaurant.image || "/placeholder.svg"),
       };
 
-      console.log("✅ Update successful:", { image: withUrls.image, coverImage: withUrls.coverImage });
+      logger.debug("✅ Update successful:", { image: withUrls.image, coverImage: withUrls.coverImage });
       return res.json({ restaurant: withUrls });
     } catch (err: any) {
-      console.error("❌ Update restaurant error:", err);
+      logger.error("❌ Update restaurant error:", err);
       return res.status(400).json({ message: "Failed to update", error: err.message });
     }
   }
@@ -793,7 +788,7 @@ router.delete(
   async (req: any, res: any) => {
     try {
       const { slug } = req.params;
-      console.log("🗑️ DELETE /restaurant/:slug - slug:", slug);
+      logger.debug("🗑️ DELETE /restaurant/:slug - slug:", slug);
 
       const target = await prisma.restaurant.findUnique({
         where: { slug },
@@ -825,7 +820,7 @@ router.delete(
 
       return res.json({ message: "Restaurant archived (soft deleted)" });
     } catch (err: any) {
-      console.error("❌ Soft delete restaurant error:", err);
+      logger.error("❌ Soft delete restaurant error:", err);
       return res.status(400).json({ message: "Failed to delete restaurant", error: err.message });
     }
   }
@@ -890,7 +885,7 @@ router.get(
 
       res.json({ orders });
     } catch (error: any) {
-      console.error("Get restaurant orders error:", error);
+      logger.error("Get restaurant orders error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -962,7 +957,7 @@ router.patch(
 
       res.json({ order: updatedOrder });
     } catch (error: any) {
-      console.error("Update order error:", error);
+      logger.error("Update order error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1031,7 +1026,7 @@ router.patch(
 
       res.json({ order: updatedOrder });
     } catch (error: any) {
-      console.error("Accept order error:", error);
+      logger.error("Accept order error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1072,7 +1067,7 @@ router.patch(
         return res.status(400).json({ message: "Order must be preparing to mark ready" });
       }
 
-      console.log(`📦 Marking order ${order.code} as READY_FOR_PICKUP`);
+      logger.debug(`📦 Marking order ${order.code} as READY_FOR_PICKUP`);
 
       const updatedOrder = await prisma.order.update({
         where: { id: parseInt(orderId) },
@@ -1100,11 +1095,11 @@ router.patch(
         }
       });
 
-      console.log(`✅ Order ${updatedOrder.code} marked as READY_FOR_PICKUP, riderId: ${updatedOrder.riderId}`);
+      logger.debug(`✅ Order ${updatedOrder.code} marked as READY_FOR_PICKUP, riderId: ${updatedOrder.riderId}`);
 
       res.json({ order: updatedOrder });
     } catch (error: any) {
-      console.error("Mark ready error:", error);
+      logger.error("Mark ready error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1173,7 +1168,7 @@ router.patch(
 
       res.json({ order: updatedOrder });
     } catch (error: any) {
-      console.error("Cancel order error:", error);
+      logger.error("Cancel order error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1221,7 +1216,7 @@ router.get(
         }
       });
     } catch (error: any) {
-      console.error("Get stats error:", error);
+      logger.error("Get stats error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1297,7 +1292,7 @@ router.get(
         }
       });
     } catch (error: any) {
-      console.error("Get earnings error:", error);
+      logger.error("Get earnings error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1369,7 +1364,7 @@ router.get(
         }
       });
     } catch (error: any) {
-      console.error("Get transactions error:", error);
+      logger.error("Get transactions error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1455,7 +1450,7 @@ router.get(
         total: ridersWithDistance.length
       });
     } catch (error: any) {
-      console.error("Get nearby riders error:", error);
+      logger.error("Get nearby riders error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1535,7 +1530,7 @@ router.post(
         ridersNotified: nearbyRiders.length
       });
     } catch (error: any) {
-      console.error("Broadcast order error:", error);
+      logger.error("Broadcast order error:", error);
       res.status(500).json({ message: "Server error" });
     }
   }
@@ -1558,7 +1553,7 @@ router.post(
         return res.status(400).json({ message: "Subject and message are required" });
       }
 
-      console.log("👤 User from token:", user);
+      logger.debug("👤 User from token:", user);
 
       // Get restaurant details using the user ID from token
       const restaurant = await prisma.restaurant.findFirst({
@@ -1576,10 +1571,10 @@ router.post(
       }
 
       // Create notification for admin
-      console.log("📧 Creating support notification for admin...");
-      console.log("Restaurant:", restaurant);
-      console.log("Subject:", subject);
-      console.log("Message:", message);
+      logger.debug("📧 Creating support notification for admin...");
+      logger.debug("Restaurant:", restaurant);
+      logger.debug("Subject:", subject);
+      logger.debug("Message:", message);
       
       const notification = await (prisma as any).notification.create({
         data: {
@@ -1597,12 +1592,12 @@ router.post(
         },
       });
 
-      console.log("✅ Notification created:", notification);
+      logger.debug("✅ Notification created:", notification);
       res.json({ message: "Support message sent successfully" });
     } catch (error: any) {
-      console.error("❌ Error submitting support message:", error);
-      console.error("❌ Error details:", error.message);
-      console.error("❌ Error stack:", error.stack);
+      logger.error("❌ Error submitting support message:", error);
+      logger.error("❌ Error details:", error.message);
+      logger.error("❌ Error stack:", error.stack);
       res.status(500).json({ 
         message: "Failed to send support message",
         error: error.message 

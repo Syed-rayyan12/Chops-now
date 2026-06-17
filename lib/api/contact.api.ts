@@ -3,6 +3,7 @@
 // ============================================
 
 import { API_CONFIG } from "./config";
+import { logger } from "@/lib/logger";
 
 // ============================================
 // Types
@@ -33,10 +34,10 @@ export async function submitContactForm(data: ContactFormData): Promise<ContactR
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
   try {
-    console.log("📤 Submitting contact form...", data);
+    logger.debug("📤 Submitting contact form...", data);
     
     const url = `${API_CONFIG.BASE_URL}/contact/submit`;
-    console.log("🌐 Contact API URL:", url);
+    logger.debug("🌐 Contact API URL:", url);
 
     const response = await fetch(url, {
       method: "POST",
@@ -49,15 +50,15 @@ export async function submitContactForm(data: ContactFormData): Promise<ContactR
 
     clearTimeout(timeoutId);
 
-    console.log("📥 Response status:", response.status);
+    logger.debug("📥 Response status:", response.status);
 
     const result = await response.json();
-    console.log("📦 Response data:", result);
+    logger.debug("📦 Response data:", result);
 
     return result;
   } catch (error: any) {
     clearTimeout(timeoutId);
-    console.error("❌ Contact form submission error:", error);
+    logger.error("❌ Contact form submission error:", error);
     
     if (error.name === 'AbortError') {
       return {

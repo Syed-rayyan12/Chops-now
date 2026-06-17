@@ -1,11 +1,12 @@
 import { Resend } from 'resend';
+import { logger } from "../utils/logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 if (!process.env.RESEND_API_KEY) {
-  console.error('⚠️ RESEND_API_KEY not found in environment variables!');
+  logger.error('⚠️ RESEND_API_KEY not found in environment variables!');
 } else {
-  console.log('✅ Resend configured successfully');
+  logger.debug('✅ Resend configured successfully');
 }
 
 export const COMPANY_EMAILS = [
@@ -64,7 +65,7 @@ export const sendContactEmail = async (data: ContactFormData) => {
     </div>
   `;
 
-  console.log('📤 Sending contact email to:', COMPANY_EMAILS);
+  logger.debug('📤 Sending contact email to:', COMPANY_EMAILS);
   return sendEmail(COMPANY_EMAILS, `[ChopNow Contact] ${subject}`, htmlContent, email);
 };
 
@@ -138,7 +139,7 @@ export const sendNewsletterSubscriptionEmail = async (data: NewsletterSubscripti
 };
 
 const sendEmail = async (to: string | string[], subject: string, html: string, replyTo?: string) => {
-  console.log('📤 Sending email via Resend to:', to);
+  logger.debug('📤 Sending email via Resend to:', to);
 
   const result = await resend.emails.send({
     from: `ChopNow <${process.env.EMAIL_USER || 'noreply@chopnow.co.uk'}>`,
@@ -148,7 +149,7 @@ const sendEmail = async (to: string | string[], subject: string, html: string, r
     ...(replyTo ? { reply_to: replyTo } : {}),
   });
 
-  console.log('✅ Resend email sent:', result.data?.id);
+  logger.debug('✅ Resend email sent:', result.data?.id);
   return result;
 };
 

@@ -10,6 +10,7 @@ import Toaster from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { STORAGE_KEYS, API_CONFIG } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 import { OTPModal } from "../otp-modal"
 
 export function RiderLogin() {
@@ -65,6 +66,7 @@ export function RiderLogin() {
       if (data.token && data.email) {
         // Save token to localStorage
         localStorage.setItem(STORAGE_KEYS.RIDER_TOKEN, data.token)
+        setRoleCookie("RIDER")
 
         toast({
           title: "Rider Login Successful!",

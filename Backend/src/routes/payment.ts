@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import stripe from '../config/stripe';
 import { authenticate, AuthRequest } from '../middlewares/auth';
 import prisma from '../config/db';
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -32,7 +33,7 @@ router.post('/create-payment-intent', authenticate(['USER']), async (req: AuthRe
       paymentIntentId: paymentIntent.id,
     });
   } catch (error: any) {
-    console.error('Create payment intent error:', error);
+    logger.error('Create payment intent error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -51,7 +52,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
+    logger.error('Webhook signature verification failed:', err.message);
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
@@ -59,7 +60,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      console.log('✅ Payment succeeded:', paymentIntent.id);
+      logger.debug('✅ Payment succeeded:', paymentIntent.id);
       
       // Update order status in database
       const orderId = paymentIntent.metadata.orderId;
@@ -72,18 +73,18 @@ router.post('/webhook', async (req: Request, res: Response) => {
             },
           });
         } catch (error) {
-          console.error('Error updating order:', error);
+          logger.error('Error updating order:', error);
         }
       }
       break;
 
     case 'payment_intent.payment_failed':
       const failedPayment = event.data.object;
-      console.log('❌ Payment failed:', failedPayment.id);
+      logger.debug('❌ Payment failed:', failedPayment.id);
       break;
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      logger.debug(`Unhandled event type: ${event.type}`);
   }
 
   res.json({ received: true });
@@ -102,7 +103,7 @@ router.get('/payment-status/:paymentIntentId', authenticate(['USER']), async (re
       currency: paymentIntent.currency,
     });
   } catch (error: any) {
-    console.error('Get payment status error:', error);
+    logger.error('Get payment status error:', error);
     res.status(500).json({ error: error.message });
   }
 });

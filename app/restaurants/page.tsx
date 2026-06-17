@@ -11,6 +11,7 @@ import { RestaurantGrid } from "@/components/customer-panel-components/restauran
 import { Footer } from "@/components/customer-panel-components/footer"
 import { RestaurantRiderNavbar } from "@/components/customer-panel-components/admin-rider-navbar"
 import { getAllRestaurants } from "@/lib/api/restaurant.api";
+import { logger } from "@/lib/logger";
 
 export type SortOption = "recommended" | "rating" | "delivery-time" | "distance"
 export type ViewMode = "grid" | "list"
@@ -58,7 +59,7 @@ export default function RestaurantsPage() {
         })
         setRestaurants(data)
       } catch (error) {
-        console.error("Failed to fetch restaurants:", error)
+        logger.error("Failed to fetch restaurants:", error)
       } finally {
         setLoading(false)
       }

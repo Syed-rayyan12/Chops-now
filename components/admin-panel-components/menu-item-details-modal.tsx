@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { logger } from "@/lib/logger";
 import {
   Clock,
   Flame,
@@ -80,7 +81,7 @@ export function MenuItemDetailsModal({ item, isOpen, onClose }: MenuItemDetailsM
 
   const handleStatusUpdate = (newStatus: string) => {
     setCurrentStatus(newStatus)
-    console.log(`Updating item ${item.id} status to ${newStatus}`)
+    logger.debug(`Updating item ${item.id} status to ${newStatus}`)
   }
 
   return (

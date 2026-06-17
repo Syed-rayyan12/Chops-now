@@ -3,6 +3,7 @@
 // ============================================
 
 import { API_CONFIG } from "./config";
+import { logger } from "@/lib/logger";
 
 // ============================================
 // Types
@@ -32,10 +33,10 @@ export async function submitNewsletterSubscription(
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
   try {
-    console.log("📤 Submitting newsletter subscription...", data);
+    logger.debug("📤 Submitting newsletter subscription...", data);
 
     const url = `${API_CONFIG.BASE_URL}/newsletter/subscribe`;
-    console.log("🌐 Newsletter API URL:", url);
+    logger.debug("🌐 Newsletter API URL:", url);
 
     const response = await fetch(url, {
       method: "POST",
@@ -48,15 +49,15 @@ export async function submitNewsletterSubscription(
 
     clearTimeout(timeoutId);
 
-    console.log("📥 Response status:", response.status);
+    logger.debug("📥 Response status:", response.status);
 
     const result = await response.json();
-    console.log("📦 Response data:", result);
+    logger.debug("📦 Response data:", result);
 
     return result;
   } catch (error: any) {
     clearTimeout(timeoutId);
-    console.error("❌ Newsletter subscription error:", error);
+    logger.error("❌ Newsletter subscription error:", error);
 
     if (error.name === "AbortError") {
       return {

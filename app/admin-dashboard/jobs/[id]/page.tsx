@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { logger } from "@/lib/logger";
 import {
   ArrowLeft,
   Briefcase,
@@ -92,7 +93,7 @@ export default function JobDetailPage() {
         alert("Failed to update application status");
       }
     } catch (error) {
-      console.error("Error updating application:", error);
+      logger.error("Error updating application:", error);
       alert("Failed to update application status");
     }
   };

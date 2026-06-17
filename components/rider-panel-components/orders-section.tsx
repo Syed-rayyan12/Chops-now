@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MapPin, Phone, Navigation, Package, CheckCircle, Timer, AlertCircle } from "lucide-react"
 import { riderOrders, type RiderOrder } from "@/lib/api/rider.api"
 import { useToast } from "@/hooks/use-toast"
+import { logger } from "@/lib/logger";
 
 export function OrdersSection() {
   const { toast } = useToast()
@@ -36,7 +37,7 @@ export function OrdersSection() {
       setActiveOrders(activeData.orders || [])
       setCompletedOrders(completedData.orders || [])
     } catch (error: any) {
-      console.error("Failed to load orders:", error)
+      logger.error("Failed to load orders:", error)
       toast({
         title: "Error",
         description: "Failed to load orders",

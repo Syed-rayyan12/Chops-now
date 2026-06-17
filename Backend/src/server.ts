@@ -16,9 +16,7 @@ import oauthRoutes from "./routes/oauth";
 import jobsRoutes from "./routes/jobs";
 import applicationsRoutes from "./routes/applications";
 import uploadRoutes from "./routes/upload";
-
-console.log("🔥 server.ts is running...");
-
+import { logger } from "./utils/logger";
 
 dotenv.config();
 const app = express();
@@ -49,23 +47,18 @@ app.use(
   express.static(path.join(process.cwd(), "uploads"))
 );
 
-// Log all incoming requests
+// Log all incoming requests (dev only, no auth header)
 app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  if (req.headers.authorization) {
-    console.log(`🔑 Auth header: ${req.headers.authorization.substring(0, 20)}...`);
-  }
+  logger.debug(`${req.method} ${req.url}`);
   next();
 });
 
 
 app.get("/test", (req, res) => {
-  console.log("🔥 /test route was called");
   res.send("✅ Express works");
 });
 
 app.get("/health", (req, res) => {
-  console.log("🏥 /health route was called");
   res.json({
     status: "OK",
     version: "2.0.0-jobs-and-applications",
@@ -97,4 +90,4 @@ app.use("/api", uploadRoutes);
 app.use("/api", menuCategoryRoutes);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => logger.debug(`Server running on port ${PORT}`));

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { User, MapPin, Phone, Store, Clock, CreditCard, CheckCircle, ChefHat, Truck, XCircle } from "lucide-react"
+import { logger } from "@/lib/logger";
 
 interface OrderItem {
   id: number
@@ -65,7 +66,7 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
   const handleStatusUpdate = (newStatus: string) => {
     setCurrentStatus(newStatus)
     // Here you would typically make an API call to update the order status
-    console.log(`Updating order ${order.id} status to ${newStatus}`)
+    logger.debug(`Updating order ${order.id} status to ${newStatus}`)
   }
 
   return (

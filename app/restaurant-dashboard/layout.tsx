@@ -43,7 +43,7 @@
 //   ])
 
 //   const handleSignOut = () => {
-//     console.log("Sign out clicked")
+//     logger.debug("Sign out clicked")
 //     // Add sign out logic here
 //   }
 
@@ -83,6 +83,8 @@ import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { getRestaurantBySlug } from "@/lib/api/restaurant.api";
 import { isRestaurantSetupComplete } from "@/lib/utils"
+import { logger } from "@/lib/logger";
+import { clearRoleCookie } from "@/lib/auth-cookie";
 
 type NotificationStatus = "unread" | "read"
 
@@ -130,32 +132,32 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
             localStorage.setItem("restaurantData", JSON.stringify(freshData))
           }
           
-          console.log("🔍 Layout checking setup status:", latest)
+          logger.debug("🔍 Layout checking setup status:", latest)
           
           if (latest) {
             const complete = isRestaurantSetupComplete(latest)
-            console.log("✅ Setup complete?", complete, "| Locked?", !complete)
+            logger.debug("✅ Setup complete?", complete, "| Locked?", !complete)
             setLocked(!complete)
 
             // If not complete, force settings page (unless already there)
             if (!complete && pathname !== "/restaurant-dashboard/settings") {
-              console.log("⚠️ Setup incomplete, redirecting to settings")
+              logger.debug("⚠️ Setup incomplete, redirecting to settings")
               router.replace("/restaurant-dashboard/settings")
             } 
             // Allow access to settings page even when complete (owners can update anytime)
             else if (complete) {
-              console.log("🎉 Setup complete! Dashboard unlocked - all pages accessible")
+              logger.debug("🎉 Setup complete! Dashboard unlocked - all pages accessible")
             }
           } else {
             // If API failed to return restaurant, keep it locked
-            console.log("⚠️ No restaurant data, locking dashboard")
+            logger.debug("⚠️ No restaurant data, locking dashboard")
             setLocked(true)
             if (pathname !== "/restaurant-dashboard/settings") {
               router.replace("/restaurant-dashboard/settings")
             }
           }
         } catch (e) {
-          console.error("❌ Error checking setup:", e)
+          logger.error("❌ Error checking setup:", e)
           // On any fetch error, keep authenticated but locked
           setLocked(true)
           if (pathname !== "/restaurant-dashboard/settings") {
@@ -166,7 +168,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
         }
       } else {
         // No slug yet, allow access but keep locked until slug is available
-        console.log("⚠️ No restaurant slug, locking dashboard")
+        logger.debug("⚠️ No restaurant slug, locking dashboard")
         setIsAuthenticated(true)
         setLocked(true)
         setIsChecking(false)
@@ -203,7 +205,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
       })) || []
       setNotifications(mappedNotifications)
     } catch (error) {
-      console.error("Failed to load notifications:", error)
+      logger.error("Failed to load notifications:", error)
     }
   }
 
@@ -223,6 +225,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
     localStorage.removeItem("restaurantEmail")
     localStorage.removeItem("restaurantSlug")
     localStorage.removeItem("restaurantData")
+    clearRoleCookie()
     router.push("/restaurant-signIn")
   }
 

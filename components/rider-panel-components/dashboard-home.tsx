@@ -9,6 +9,7 @@ import { Switch } from "../ui/switch"
 import { Label } from "../ui/label"
 import { riderStats, riderOrders, riderActivity, riderStatus, type RiderOrder, type Activity } from "@/lib/api/rider.api"
 import { useToast } from "@/hooks/use-toast"
+import { logger } from "@/lib/logger";
 
 export function DashboardHome() {
   const { toast } = useToast()
@@ -41,7 +42,7 @@ export function DashboardHome() {
       setRecentActivity(activityData.activities)
       setIsOnline(profileData.rider?.isOnline || false)
     } catch (error: any) {
-      console.error("Failed to load dashboard data:", error)
+      logger.error("Failed to load dashboard data:", error)
     } finally {
       setLoading(false)
     }
@@ -62,7 +63,7 @@ export function DashboardHome() {
         description: "Failed to update online status",
         variant: "destructive",
       })
-      console.error("Failed to toggle online status:", error)
+      logger.error("Failed to toggle online status:", error)
     } finally {
       setIsTogglingStatus(false)
     }

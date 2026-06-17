@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { logger } from "@/lib/logger";
 
 export interface User {
   id: string
@@ -96,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(JSON.parse(savedUser))
       }
     } catch (error) {
-      console.error("Error loading user from localStorage:", error)
+      logger.error("Error loading user from localStorage:", error)
     } finally {
       setIsLoading(false)
     }
@@ -112,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem(STORAGE_KEY)
         }
       } catch (error) {
-        console.error("Error saving user to localStorage:", error)
+        logger.error("Error saving user to localStorage:", error)
       }
     }
   }, [user, isLoading])

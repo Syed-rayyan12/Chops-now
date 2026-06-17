@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { logger } from "@/lib/logger";
 
 export interface CartItem {
   id: string
@@ -74,7 +75,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setAppliedPromo(JSON.parse(savedPromo))
       }
     } catch (error) {
-      console.error("Error loading cart from localStorage:", error)
+      logger.error("Error loading cart from localStorage:", error)
     } finally {
       setIsLoaded(true)
     }
@@ -86,7 +87,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
       } catch (error) {
-        console.error("Error saving cart to localStorage:", error)
+        logger.error("Error saving cart to localStorage:", error)
       }
     }
   }, [items, isLoaded])
@@ -101,7 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem(PROMO_KEY)
         }
       } catch (error) {
-        console.error("Error saving promo to localStorage:", error)
+        logger.error("Error saving promo to localStorage:", error)
       }
     }
   }, [appliedPromo, isLoaded])

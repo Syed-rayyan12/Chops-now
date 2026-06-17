@@ -3,11 +3,9 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt";
 import prisma from "../config/db";
 import { authenticate } from "../middlewares/auth";
+import { logger } from "../utils/logger";
 
 const router = Router();
-
-const ADMIN_EMAIL = "admin@chopnow.com";
-const ADMIN_PASSWORD = "admin123"; // hardcoded
 
 router.post("/login", async (req, res) => {
   try {
@@ -17,22 +15,7 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // First check if it's the hardcoded admin
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      const token = generateToken({ email, role: "ADMIN" });
-      return res.json({
-        token,
-        user: {
-          id: 1,
-          firstName: "Admin",
-          lastName: "User",
-          email: ADMIN_EMAIL,
-          role: "ADMIN"
-        }
-      });
-    }
-
-    // Then check database for other admin accounts
+    // Admin accounts live in the database only (no hardcoded credentials).
     const admin = await prisma.user.findUnique({
       where: { email },
     });
@@ -60,7 +43,7 @@ router.post("/login", async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -152,7 +135,7 @@ router.get("/users", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json(transformedUsers);
   } catch (error) {
-    console.error("Error fetching users:", error);
+    logger.error("Error fetching users:", error);
     res.status(500).json({ message: "Failed to fetch users" });
   }
 });
@@ -161,14 +144,14 @@ router.get("/users", authenticate(["ADMIN"]), async (req, res) => {
 router.get("/users/:userId/orders", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("Fetching orders for userId:", userId);
+    logger.debug("Fetching orders for userId:", userId);
     
     // Extract numeric ID from USR-XXX format
     const numericId = parseInt(userId.replace('USR-', ''));
-    console.log("Extracted numericId:", numericId);
+    logger.debug("Extracted numericId:", numericId);
     
     if (isNaN(numericId)) {
-      console.error("Invalid user ID format:", userId);
+      logger.error("Invalid user ID format:", userId);
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
@@ -226,7 +209,7 @@ router.get("/users/:userId/orders", authenticate(["ADMIN"]), async (req, res) =>
 
     res.json(transformedOrders);
   } catch (error) {
-    console.error("Error fetching user orders:", error);
+    logger.error("Error fetching user orders:", error);
     res.status(500).json({ message: "Failed to fetch user orders" });
   }
 });
@@ -235,11 +218,11 @@ router.get("/users/:userId/orders", authenticate(["ADMIN"]), async (req, res) =>
 router.get("/restaurants/:restaurantId/orders", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    console.log("=== Restaurant Orders Request ===");
-    console.log("Raw restaurantId from URL:", restaurantId);
+    logger.debug("=== Restaurant Orders Request ===");
+    logger.debug("Raw restaurantId from URL:", restaurantId);
     
     if (!restaurantId || restaurantId === 'undefined' || restaurantId === 'null') {
-      console.error("Restaurant ID is missing or invalid");
+      logger.error("Restaurant ID is missing or invalid");
       return res.status(400).json({ message: "Restaurant ID is required" });
     }
     
@@ -249,22 +232,22 @@ router.get("/restaurants/:restaurantId/orders", authenticate(["ADMIN"]), async (
     // Strategy 1: Check if it's already a number
     if (!isNaN(Number(restaurantId))) {
       numericId = Number(restaurantId);
-      console.log("Strategy 1 (direct number):", numericId);
+      logger.debug("Strategy 1 (direct number):", numericId);
     } 
     // Strategy 2: Remove common prefixes
     else if (restaurantId.match(/^(REST-|RES-|RESTAURANT-)/i)) {
       const cleanId = restaurantId.replace(/^(REST-|RES-|RESTAURANT-)/i, '').trim();
       numericId = parseInt(cleanId, 10);
-      console.log("Strategy 2 (removed prefix):", cleanId, "=>", numericId);
+      logger.debug("Strategy 2 (removed prefix):", cleanId, "=>", numericId);
     }
     // Strategy 3: Extract any numbers from the string
     else {
       const matches = restaurantId.match(/\d+/);
       if (matches) {
         numericId = parseInt(matches[0], 10);
-        console.log("Strategy 3 (extracted number):", matches[0], "=>", numericId);
+        logger.debug("Strategy 3 (extracted number):", matches[0], "=>", numericId);
       } else {
-        console.error("Could not extract number from:", restaurantId);
+        logger.error("Could not extract number from:", restaurantId);
         return res.status(400).json({ 
           message: `Invalid restaurant ID format: ${restaurantId}`,
         });
@@ -272,13 +255,13 @@ router.get("/restaurants/:restaurantId/orders", authenticate(["ADMIN"]), async (
     }
     
     if (isNaN(numericId) || numericId <= 0) {
-      console.error("Final parsed ID is invalid:", numericId);
+      logger.error("Final parsed ID is invalid:", numericId);
       return res.status(400).json({ 
         message: `Invalid restaurant ID: could not parse ${restaurantId}`,
       });
     }
     
-    console.log("Final numeric ID to query:", numericId);
+    logger.debug("Final numeric ID to query:", numericId);
 
     const orders = await prisma.order.findMany({
       where: {
@@ -332,7 +315,7 @@ router.get("/restaurants/:restaurantId/orders", authenticate(["ADMIN"]), async (
 
     res.json(transformedOrders);
   } catch (error) {
-    console.error("Error fetching restaurant orders:", error);
+    logger.error("Error fetching restaurant orders:", error);
     res.status(500).json({ message: "Failed to fetch restaurant orders" });
   }
 });
@@ -428,7 +411,7 @@ router.get("/restaurants", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json(transformedRestaurants);
   } catch (error) {
-    console.error("Error fetching restaurants:", error);
+    logger.error("Error fetching restaurants:", error);
     res.status(500).json({ message: "Failed to fetch restaurants" });
   }
 });
@@ -471,7 +454,7 @@ router.get("/stats", authenticate(["ADMIN"]), async (req, res) => {
       totalRevenue: parseFloat(totalRevenue.toFixed(2)),
     });
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
+    logger.error("Error fetching dashboard stats:", error);
     res.status(500).json({ message: "Failed to fetch dashboard stats" });
   }
 });
@@ -536,7 +519,7 @@ router.get("/recent-orders", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json(transformedOrders);
   } catch (error) {
-    console.error("Error fetching recent orders:", error);
+    logger.error("Error fetching recent orders:", error);
     res.status(500).json({ message: "Failed to fetch recent orders" });
   }
 });
@@ -668,7 +651,7 @@ router.get("/orders", authenticate(["ADMIN"]), async (req, res) => {
       stats,
     });
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    logger.error("Error fetching orders:", error);
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 });
@@ -760,7 +743,7 @@ router.get("/riders", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json(filteredRiders);
   } catch (error) {
-    console.error("Error fetching riders:", error);
+    logger.error("Error fetching riders:", error);
     res.status(500).json({ message: "Failed to fetch riders" });
   }
 });
@@ -913,7 +896,7 @@ router.get("/riders/:id", authenticate(["ADMIN"]), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching rider details:", error);
+    logger.error("Error fetching rider details:", error);
     res.status(500).json({ message: "Failed to fetch rider details" });
   }
 });
@@ -1061,7 +1044,7 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
       revenueData: monthlyRevenue
     });
   } catch (error: any) {
-    console.error("Get analytics error:", error);
+    logger.error("Get analytics error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -1091,7 +1074,7 @@ router.get("/accounts", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json(admins);
   } catch (error) {
-    console.error("Error fetching admin accounts:", error);
+    logger.error("Error fetching admin accounts:", error);
     res.status(500).json({ message: "Failed to fetch admin accounts" });
   }
 });
@@ -1101,16 +1084,16 @@ router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    console.log("📝 Creating new admin account:", { email });
+    logger.debug("📝 Creating new admin account:", { email });
 
     // Validate input
     if (!firstName || !lastName || !email || !password) {
-      console.log("❌ Missing fields:", { firstName, lastName, email, password });
+      logger.debug("❌ Missing fields:", { firstName, lastName, email, password });
       return res.status(400).json({ message: "All fields are required" });
     }
 
     if (password.length < 6) {
-      console.log("❌ Password too short");
+      logger.debug("❌ Password too short");
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
@@ -1120,7 +1103,7 @@ router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
     });
 
     if (existingAdmin) {
-      console.log("❌ Email already exists:", email);
+      logger.debug("❌ Email already exists:", email);
       return res.status(400).json({ message: "Email already exists" });
     }
 
@@ -1145,10 +1128,10 @@ router.post("/accounts", authenticate(["ADMIN"]), async (req, res) => {
       },
     });
 
-    console.log("✅ Admin account created:", newAdmin);
+    logger.debug("✅ Admin account created:", newAdmin);
     res.status(201).json(newAdmin);
   } catch (error) {
-    console.error("❌ Error creating admin account:", error);
+    logger.error("❌ Error creating admin account:", error);
     res.status(500).json({ message: "Failed to create admin account" });
   }
 });
@@ -1180,7 +1163,7 @@ router.put("/accounts/:id", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json(updatedAdmin);
   } catch (error) {
-    console.error("Error updating admin account:", error);
+    logger.error("Error updating admin account:", error);
     res.status(500).json({ message: "Failed to update admin account" });
   }
 });
@@ -1205,7 +1188,7 @@ router.delete("/accounts/:id", authenticate(["ADMIN"]), async (req, res) => {
 
     res.json({ message: "Admin account deleted successfully" });
   } catch (error) {
-    console.error("Error deleting admin account:", error);
+    logger.error("Error deleting admin account:", error);
     res.status(500).json({ message: "Failed to delete admin account" });
   }
 });
@@ -1248,9 +1231,9 @@ router.put("/restaurants/:id/approve", authenticate(["ADMIN"]), async (req, res)
         approved: !!approved,
         rejectionReason: rejectionReason || undefined,
       });
-      console.log('✅ Restaurant status email sent');
+      logger.debug('✅ Restaurant status email sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send restaurant status email:', emailError);
+      logger.error('⚠️ Failed to send restaurant status email:', emailError);
     }
 
     res.json({ 
@@ -1258,7 +1241,7 @@ router.put("/restaurants/:id/approve", authenticate(["ADMIN"]), async (req, res)
       restaurant 
     });
   } catch (error) {
-    console.error("Error updating restaurant status:", error);
+    logger.error("Error updating restaurant status:", error);
     res.status(500).json({ message: "Failed to update restaurant status" });
   }
 });
@@ -1298,9 +1281,9 @@ router.put("/riders/:id/approve", authenticate(["ADMIN"]), async (req, res) => {
         approved: !!approved,
         rejectionReason: rejectionReason || undefined,
       });
-      console.log('✅ Rider status email sent');
+      logger.debug('✅ Rider status email sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send rider status email:', emailError);
+      logger.error('⚠️ Failed to send rider status email:', emailError);
     }
 
     res.json({ 
@@ -1308,7 +1291,7 @@ router.put("/riders/:id/approve", authenticate(["ADMIN"]), async (req, res) => {
       rider 
     });
   } catch (error) {
-    console.error("Error updating rider status:", error);
+    logger.error("Error updating rider status:", error);
     res.status(500).json({ message: "Failed to update rider status" });
   }
 });

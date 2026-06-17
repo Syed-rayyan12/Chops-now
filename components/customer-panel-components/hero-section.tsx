@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Search, MapPin, Loader2 } from "lucide-react"
 import { motion, easeOut } from "framer-motion"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
+import { logger } from "@/lib/logger";
 
 export function HeroSection() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -30,7 +31,7 @@ export function HeroSection() {
       localStorage.setItem("user_location_text", shortAddr)
       localStorage.setItem("user_coords", JSON.stringify(coords))
     } catch (err: any) {
-      console.error("Location error:", err)
+      logger.error("Location error:", err)
       setLocationText("Location unavailable")
     } finally {
       setIsGettingLocation(false)

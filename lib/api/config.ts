@@ -7,8 +7,16 @@ const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  
-  // Fallback to localhost for development
+
+  // In production a missing API URL silently breaks every request with
+  // confusing CORS errors — surface it loudly instead of hiding it.
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "[config] NEXT_PUBLIC_API_URL is not set in production. API calls will fail."
+    );
+  }
+
+  // Fallback to localhost for local development only.
   return "http://localhost:4000/api";
 };
 
@@ -26,3 +34,14 @@ export const STORAGE_KEYS = {
   RIDER_TOKEN: "riderToken",
   ADMIN_TOKEN: "adminToken",
 } as const;
+
+/**
+ * Build an Authorization header from a token in localStorage.
+ * Returns an empty object on the server or when no token is present,
+ * so it can be safely spread into a fetch headers object.
+ */
+export function authHeader(tokenKey: string): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem(tokenKey);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}

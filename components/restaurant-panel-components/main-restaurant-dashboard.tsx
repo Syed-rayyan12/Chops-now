@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 // "use client"
 
 // import type React from "react"
@@ -901,7 +902,7 @@
 //         })
 //       }
 //     } catch (error) {
-//       console.error("Logout API call failed:", error)
+//       logger.error("Logout API call failed:", error)
 //     } finally {
 //       // Always clear local storage and redirect, even if API call fails
 //       localStorage.removeItem("token")
@@ -912,7 +913,7 @@
 //   }
 
 //   const handleUpdateProfile = () => {
-//     console.log("[v0] Profile updated:", profileData)
+//     logger.debug("[v0] Profile updated:", profileData)
 //     setIsEditingProfile(false)
 //     alert("Profile updated successfully!")
 //   }

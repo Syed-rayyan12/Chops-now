@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Edit, User, Loader2 } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
 import { useToast } from "@/hooks/use-toast"
+import { logger } from "@/lib/logger";
 
 export function ProfileSection() {
   const { toast } = useToast()
@@ -43,7 +44,7 @@ export function ProfileSection() {
           closeTime: data.openingHours?.split(' - ')[1] || "22:00",
         })
       } catch (e) {
-        console.error('Error parsing restaurant data:', e)
+        logger.error('Error parsing restaurant data:', e)
       }
     }
   }, [])
@@ -90,7 +91,7 @@ export function ProfileSection() {
         })
       }
     } catch (error) {
-      console.error('Update error:', error)
+      logger.error('Update error:', error)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

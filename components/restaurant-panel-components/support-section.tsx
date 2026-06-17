@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { submitSupportMessage } from "@/lib/api/notification.api"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
+import { logger } from "@/lib/logger";
 
 export function SupportSection() {
   const [subject, setSubject] = useState("")
@@ -38,7 +39,7 @@ export function SupportSection() {
       setSubject("")
       setMessage("")
     } catch (error) {
-      console.error("Error submitting support message:", error)
+      logger.error("Error submitting support message:", error)
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",

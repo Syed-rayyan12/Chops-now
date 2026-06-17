@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Loader2, Bike, MapPin } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 import { OTPModal } from "@/components/otp-modal"
+import { logger } from "@/lib/logger";
 
 export default function RiderSetupPage() {
   const router = useRouter()
@@ -114,6 +116,7 @@ export default function RiderSetupPage() {
           localStorage.setItem('riderToken', token || '')
           localStorage.setItem('riderEmail', data.rider.email)
           localStorage.setItem('riderData', JSON.stringify(data.rider))
+          setRoleCookie("RIDER")
         }
 
         toast({
@@ -134,7 +137,7 @@ export default function RiderSetupPage() {
         })
       }
     } catch (error) {
-      console.error('Setup error:', error)
+      logger.error('Setup error:', error)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

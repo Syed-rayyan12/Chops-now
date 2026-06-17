@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
+import { logger } from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -96,7 +97,7 @@ export function MenuManagementSection() {
       const data = await menuCategories.getAll(slug)
       setCategories(data)
     } catch (error) {
-      console.error("Failed to load categories:", error)
+      logger.error("Failed to load categories:", error)
       toast({
         title: "Error",
         description: "Failed to load categories",
@@ -119,7 +120,7 @@ export function MenuManagementSection() {
       const data = await menuItemsApi.getAll(slug)
       setMenuItems(data)
     } catch (error) {
-      console.error("Failed to load menu items:", error)
+      logger.error("Failed to load menu items:", error)
       toast({
         title: "Error",
         description: "Failed to load menu items",
@@ -161,7 +162,7 @@ export function MenuManagementSection() {
         description: "Item availability updated",
       })
     } catch (error) {
-      console.error("Failed to update availability:", error)
+      logger.error("Failed to update availability:", error)
       toast({
         title: "Error",
         description: "Failed to update item availability",
@@ -258,7 +259,7 @@ export function MenuManagementSection() {
         resetForm()
         setShowAddMenuItem(false)
       } catch (error: any) {
-        console.error("Failed to create menu item:", error)
+        logger.error("Failed to create menu item:", error)
         toast({
           title: "Error",
           description: error.message || "Failed to create menu item",
@@ -304,7 +305,7 @@ export function MenuManagementSection() {
         description: "Menu item deleted successfully",
       })
     } catch (error) {
-      console.error("Failed to delete menu item:", error)
+      logger.error("Failed to delete menu item:", error)
       toast({
         title: "Error",
         description: "Failed to delete menu item",
@@ -351,7 +352,7 @@ export function MenuManagementSection() {
         description: "Menu item updated successfully",
       })
     } catch (error) {
-      console.error("Failed to update menu item:", error)
+      logger.error("Failed to update menu item:", error)
       toast({
         title: "Error",
         description: "Failed to update menu item",

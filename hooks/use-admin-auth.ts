@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { STORAGE_KEYS } from "@/lib/api/config"
+import { clearRoleCookie } from "@/lib/auth-cookie"
+import { logger } from "@/lib/logger";
 
 interface AdminUser {
   id: number
@@ -28,7 +30,7 @@ export const useAdminAuth = () => {
       const userStr = localStorage.getItem("adminUser")
 
       if (!token) {
-        console.log("❌ No admin token found - redirecting to login")
+        logger.debug("❌ No admin token found - redirecting to login")
         router.push("/admin-signin")
         setIsAuthenticated(false)
         setIsLoading(false)
@@ -40,7 +42,7 @@ export const useAdminAuth = () => {
       if (tokenPayload && tokenPayload.exp) {
         const isExpired = Date.now() >= tokenPayload.exp * 1000
         if (isExpired) {
-          console.log("❌ Admin token expired - redirecting to login")
+          logger.debug("❌ Admin token expired - redirecting to login")
           logout()
           return
         }
@@ -53,11 +55,11 @@ export const useAdminAuth = () => {
         try {
           setAdminUser(JSON.parse(userStr))
         } catch (e) {
-          console.error("Failed to parse admin user:", e)
+          logger.error("Failed to parse admin user:", e)
         }
       }
     } catch (error) {
-      console.error("Auth check error:", error)
+      logger.error("Auth check error:", error)
       logout()
     } finally {
       setIsLoading(false)
@@ -67,6 +69,7 @@ export const useAdminAuth = () => {
   const logout = () => {
     localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN)
     localStorage.removeItem("adminUser")
+    clearRoleCookie()
     setIsAuthenticated(false)
     setAdminUser(null)
     router.push("/admin-signin")
@@ -94,7 +97,7 @@ function parseJwt(token: string) {
     )
     return JSON.parse(jsonPayload)
   } catch (error) {
-    console.error("Failed to parse JWT:", error)
+    logger.error("Failed to parse JWT:", error)
     return null
   }
 }

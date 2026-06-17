@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { loginAdmin } from "@/lib/api/admin.api"
 import { STORAGE_KEYS } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 
 function parseJwt(token: string) {
   try {
@@ -74,6 +75,7 @@ export default function AdminSignIn() {
 
       if (data.token) {
         localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, data.token)
+        setRoleCookie("ADMIN")
         if (data.user) {
           localStorage.setItem("adminUser", JSON.stringify(data.user))
         }

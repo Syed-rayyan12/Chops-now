@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { logger } from "@/lib/logger";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import { Menu, X, ShoppingCart, LogOut, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
 import { getUserProfile } from "@/lib/api/user.api"
+import { clearRoleCookie } from "@/lib/auth-cookie"
 import { Separator } from "../ui/separator"
 
 type CustomerUser = {
@@ -40,22 +42,22 @@ export function Header() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) return
       const profile = await getUserProfile()
-      console.log('📸 User Profile loaded:', profile)
-      console.log('📸 User image:', profile?.image)
+      logger.debug('📸 User Profile loaded:', profile)
+      logger.debug('📸 User image:', profile?.image)
       setUser(profile)
       // keep localStorage email in sync
       if (profile?.email) localStorage.setItem('userEmail', profile.email)
     } catch (e: any) {
-      console.error('Error loading profile:', e)
+      logger.error('Error loading profile:', e)
       // Only clear token if it's a 401/403 (unauthorized) error
       if (e?.statusCode === 401 || e?.statusCode === 403) {
-        console.log('🔒 Token is invalid, clearing auth data')
+        logger.debug('🔒 Token is invalid, clearing auth data')
         localStorage.removeItem('token')
         localStorage.removeItem('userEmail')
         setUser(null)
       } else {
         // For other errors (network, 500, etc.), keep the token
-        console.log('⚠️ API error but keeping token:', e?.statusCode)
+        logger.debug('⚠️ API error but keeping token:', e?.statusCode)
         // Still try to use the email from localStorage
         const email = localStorage.getItem('userEmail')
         if (email) setUser({ email })
@@ -80,6 +82,7 @@ export function Header() {
   const handleLogout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("userEmail")
+    clearRoleCookie()
     setUser(null)
     toast({ title: "You have successfully logged out.", duration: 3000 })
     router.push("/")
@@ -162,7 +165,7 @@ export function Header() {
                   >
                     <div className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold overflow-hidden">
                       {(() => {
-                        console.log('🖼️ Rendering avatar, user.image:', user.image)
+                        logger.debug('🖼️ Rendering avatar, user.image:', user.image)
                         if (user.image) {
                           return <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
                         }

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DollarSign, TrendingUp, Calendar, Clock, Target, Award } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { logger } from "@/lib/logger";
 
 interface Earnings {
   today: number
@@ -48,7 +49,7 @@ export function EarningsSection() {
       })
       setEarnings(data.earnings)
     } catch (error) {
-      console.error('Error fetching earnings:', error)
+      logger.error('Error fetching earnings:', error)
     } finally {
       setLoading(false)
     }

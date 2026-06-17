@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { logger } from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -65,9 +66,9 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
       const token = localStorage.getItem("adminToken")
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       
-      console.log("🔄 Creating admin with token:", token ? "Present" : "Missing")
-      console.log("🌐 API URL:", apiUrl)
-      console.log("📝 Form data:", formData)
+      logger.debug("🔄 Creating admin with token:", token ? "Present" : "Missing")
+      logger.debug("🌐 API URL:", apiUrl)
+      logger.debug("📝 Form data:", formData)
       
       const response = await fetch(`${apiUrl}/admin/accounts`, {
         method: "POST",
@@ -78,9 +79,9 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
         body: JSON.stringify(formData),
       })
 
-      console.log("📤 Response status:", response.status)
+      logger.debug("📤 Response status:", response.status)
       const responseData = await response.json()
-      console.log("📥 Response data:", responseData)
+      logger.debug("📥 Response data:", responseData)
 
       if (!response.ok) {
         throw new Error(responseData.message || "Failed to create admin")
@@ -102,7 +103,7 @@ export function CreateAdminDialog({ open, onOpenChange, onAdminCreated }: Create
       }, 1500)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create admin"
-      console.error("❌ Error creating admin:", message)
+      logger.error("❌ Error creating admin:", message)
       setError(message)
     } finally {
       setLoading(false)

@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Store, MapPin, StoreIcon } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 import { OTPModal } from "@/components/otp-modal"
+import { logger } from "@/lib/logger";
 
 export default function RestaurantSetupPage() {
   const router = useRouter()
@@ -117,6 +119,7 @@ export default function RestaurantSetupPage() {
           localStorage.setItem('restaurantToken', token || '')
           localStorage.setItem('restaurantSlug', data.restaurant.slug)
           localStorage.setItem('restaurantData', JSON.stringify(data.restaurant))
+          setRoleCookie("RESTAURANT")
         }
 
         toast({
@@ -137,7 +140,7 @@ export default function RestaurantSetupPage() {
         })
       }
     } catch (error) {
-      console.error('Setup error:', error)
+      logger.error('Setup error:', error)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

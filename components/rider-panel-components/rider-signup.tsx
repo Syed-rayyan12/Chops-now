@@ -13,6 +13,7 @@ import { API_CONFIG } from "@/lib/api/config"
 import { Textarea } from "../ui/textarea"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 import { OTPModal } from "../otp-modal"
+import { logger } from "@/lib/logger";
 
 
 export default function RiderSignup() {
@@ -124,7 +125,7 @@ export default function RiderSignup() {
         description: "Your location has been set successfully",
       })
     } catch (error) {
-      console.error("Error getting location:", error)
+      logger.error("Error getting location:", error)
       toast({
         title: "Location error",
         description: "Could not get your location. Please enter address manually.",
@@ -263,7 +264,7 @@ export default function RiderSignup() {
       if (formData.selfie) payload.append("selfie", formData.selfie);
       if (formData.insurance) payload.append("insurance", formData.insurance);
 
-      console.log("📤 Sending rider signup request...")
+      logger.debug("📤 Sending rider signup request...")
       const res = await fetch(`${API_CONFIG.BASE_URL}/rider/signup`, {
         method: "POST",
         body: payload,

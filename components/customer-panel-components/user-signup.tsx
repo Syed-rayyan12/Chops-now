@@ -396,7 +396,7 @@ export default function RiderSignup() {
               )}
             </div>
 
-            <Button type="submit" className="w-full bg-primary text-white rounded-lg px-2 py-4 cursor-pointer">
+            <Button type="submit" disabled={loading} className="w-full bg-primary text-white rounded-lg px-2 py-4 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
 

@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader } from "@/components/ui/loader"
 import { getAdminOrders } from "@/lib/api/admin.api"
 
+import { logger } from "@/lib/logger";
 import {
   Search,
   Filter,
@@ -134,7 +135,7 @@ export function OrdersManagement() {
       setOrders(data.orders)
       setOrderStats(data.stats)
     } catch (error) {
-      console.error("Failed to fetch orders:", error)
+      logger.error("Failed to fetch orders:", error)
     } finally {
       setLoading(false)
       setTableLoading(false)

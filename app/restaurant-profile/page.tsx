@@ -12,6 +12,7 @@ import { Header } from "@/components/restaurant-panel-components/header"
 import { getRestaurantProfile, updateRestaurantProfile } from "@/lib/api/restaurant.api";
 import { toast } from "@/components/ui/use-toast"
 import { Ubuntu } from "next/font/google"
+import { logger } from "@/lib/logger";
 
 const ubuntu = Ubuntu({
   subsets: ["latin"],
@@ -77,7 +78,7 @@ export default function RestaurantProfilePage() {
         image: profileData.image || null,
       })
     } catch (error: any) {
-      console.error("Failed to load profile:", error)
+      logger.error("Failed to load profile:", error)
       toast({
         title: "Error",
         description: error.message || "Failed to load profile data",

@@ -11,6 +11,7 @@ import { Check, X, MoreHorizontal, MapPin, Navigation } from "lucide-react"
 import { restaurantOrders } from "@/lib/api/order.api"
 import type { Order as ApiOrder } from "@/lib/api/order.api"
 import { API_CONFIG } from "@/lib/api/config"
+import { logger } from "@/lib/logger";
 
 // Helper function to calculate distance between rider and restaurant
 function calculateRiderDistance(restaurantLat: number, restaurantLon: number, riderLat: number, riderLon: number): string {
@@ -90,7 +91,7 @@ export function OrdersSection() {
       const data = await restaurantOrders.getAll(slug)
       setOrders(data.orders)
     } catch (error) {
-      console.error("Failed to load orders:", error)
+      logger.error("Failed to load orders:", error)
     } finally {
       setLoading(false)
       setInitialLoad(false)
@@ -121,7 +122,7 @@ export function OrdersSection() {
         channel.close()
       } catch { }
     } catch (error) {
-      console.error("Failed to update order status:", error)
+      logger.error("Failed to update order status:", error)
     }
   }
 
@@ -133,22 +134,22 @@ export function OrdersSection() {
       })
       if (response.ok) {
         const data = await response.json()
-        console.log("📍 Restaurant data received:", data)
+        logger.debug("📍 Restaurant data received:", data)
         if (data.restaurant?.latitude && data.restaurant?.longitude) {
           setRestaurantLocation({ 
             latitude: data.restaurant.latitude, 
             longitude: data.restaurant.longitude 
           })
-          console.log("✅ Restaurant location set:", { 
+          logger.debug("✅ Restaurant location set:", { 
             latitude: data.restaurant.latitude, 
             longitude: data.restaurant.longitude 
           })
         } else {
-          console.warn("⚠️ Restaurant location not available in response")
+          logger.warn("⚠️ Restaurant location not available in response")
         }
       }
     } catch (error) {
-      console.error("Failed to load restaurant location:", error)
+      logger.error("Failed to load restaurant location:", error)
     }
   }
 
@@ -160,13 +161,13 @@ export function OrdersSection() {
       })
       if (response.ok) {
         const data = await response.json()
-        console.log("🚴 Riders data received:", data)
-        console.log("🚴 Total riders:", data.riders?.length || 0)
-        console.log("🚴 Riders with location:", data.riders?.filter((r: Rider) => r.latitude && r.longitude).length || 0)
+        logger.debug("🚴 Riders data received:", data)
+        logger.debug("🚴 Total riders:", data.riders?.length || 0)
+        logger.debug("🚴 Riders with location:", data.riders?.filter((r: Rider) => r.latitude && r.longitude).length || 0)
         setRiders(data.riders || [])
       }
     } catch (error) {
-      console.error("Failed to load riders:", error)
+      logger.error("Failed to load riders:", error)
     }
   }
 
@@ -265,7 +266,7 @@ export function OrdersSection() {
                       .filter(rider => {
                         const hasLocation = rider.latitude && rider.longitude
                         if (hasLocation) {
-                          console.log(`🎯 Rider ${rider.firstName} ${rider.lastName} has location:`, { lat: rider.latitude, lon: rider.longitude })
+                          logger.debug(`🎯 Rider ${rider.firstName} ${rider.lastName} has location:`, { lat: rider.latitude, lon: rider.longitude })
                         }
                         return hasLocation
                       })
@@ -276,7 +277,7 @@ export function OrdersSection() {
                           rider.latitude!,
                           rider.longitude!
                         ))
-                        console.log(`📏 Distance for ${rider.firstName} ${rider.lastName}: ${distance} km`)
+                        logger.debug(`📏 Distance for ${rider.firstName} ${rider.lastName}: ${distance} km`)
                         return {
                           ...rider,
                           distance

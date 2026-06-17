@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 
 import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Download } from "lucide-react"
+import { logger } from "@/lib/logger";
 import {
   Area,
   AreaChart,
@@ -38,7 +39,7 @@ export function AnalyticsDashboard() {
       const data = await getAdminAnalytics()
       setAnalytics(data)
     } catch (error) {
-      console.error("Failed to load analytics:", error)
+      logger.error("Failed to load analytics:", error)
     } finally {
       setLoading(false)
     }

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { CheckCircle, Clock, MapPin, CreditCard, Phone, Tag } from "lucide-react"
 import { Footer } from "@/components/customer-panel-components/footer"
+import { getJsonItem } from "@/lib/safe-storage"
 import { Header } from "@/components/customer-panel-components/header"
 
 interface Order {
@@ -48,7 +49,7 @@ export default function OrderConfirmationPage() {
 
   useEffect(() => {
     const orderId = params.orderId as string
-    const orders = JSON.parse(localStorage.getItem("chop-now-orders") || "[]")
+    const orders = getJsonItem<Order[]>("chop-now-orders", [])
     const foundOrder = orders.find((o: Order) => o.id === orderId)
 
     if (foundOrder) {

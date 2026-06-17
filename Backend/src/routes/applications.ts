@@ -1,10 +1,12 @@
 import { Router } from "express";
 import prisma from "../config/db";
+import { authenticate } from "../middlewares/auth";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
 // GET all applications (admin only)
-router.get("/applications", async (req, res) => {
+router.get("/applications", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const applications = await prisma.application.findMany({
       include: {
@@ -20,13 +22,13 @@ router.get("/applications", async (req, res) => {
 
     return res.status(200).json({ applications });
   } catch (error) {
-    console.error("Error fetching applications:", error);
+    logger.error("Error fetching applications:", error);
     return res.status(500).json({ error: "Failed to fetch applications" });
   }
 });
 
-// GET single application
-router.get("/applications/:id", async (req, res) => {
+// GET single application (admin only)
+router.get("/applications/:id", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -43,7 +45,7 @@ router.get("/applications/:id", async (req, res) => {
 
     return res.status(200).json({ application });
   } catch (error) {
-    console.error("Error fetching application:", error);
+    logger.error("Error fetching application:", error);
     return res.status(500).json({ error: "Failed to fetch application" });
   }
 });
@@ -112,18 +114,18 @@ router.post("/applications", async (req, res) => {
         },
       });
     } catch (notifError) {
-      console.error("Failed to create notification (non-blocking):", notifError);
+      logger.error("Failed to create notification (non-blocking):", notifError);
     }
 
     return res.status(201).json({ application });
   } catch (error) {
-    console.error("Error creating application:", error);
+    logger.error("Error creating application:", error);
     return res.status(500).json({ error: "Failed to submit application" });
   }
 });
 
-// PATCH update application status
-router.patch("/applications/:id", async (req, res) => {
+// PATCH update application status (admin only)
+router.patch("/applications/:id", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -139,13 +141,13 @@ router.patch("/applications/:id", async (req, res) => {
 
     return res.status(200).json({ application });
   } catch (error) {
-    console.error("Error updating application:", error);
+    logger.error("Error updating application:", error);
     return res.status(500).json({ error: "Failed to update application" });
   }
 });
 
-// DELETE application
-router.delete("/applications/:id", async (req, res) => {
+// DELETE application (admin only)
+router.delete("/applications/:id", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -157,7 +159,7 @@ router.delete("/applications/:id", async (req, res) => {
       .status(200)
       .json({ message: "Application deleted successfully" });
   } catch (error) {
-    console.error("Error deleting application:", error);
+    logger.error("Error deleting application:", error);
     return res.status(500).json({ error: "Failed to delete application" });
   }
 });

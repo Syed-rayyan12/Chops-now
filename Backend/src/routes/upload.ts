@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import { uploadToR2 } from "../config/r2";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -44,7 +45,7 @@ router.post("/resume-upload", upload.single("file"), async (req, res) => {
     
     return res.status(200).json({ url });
   } catch (error) {
-    console.error("Error uploading file:", error);
+    logger.error("Error uploading file:", error);
     return res.status(500).json({ error: "Failed to upload file" });
   }
 });

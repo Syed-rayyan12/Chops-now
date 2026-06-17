@@ -1,5 +1,7 @@
 import { Router } from "express";
 import prisma from "../config/db";
+import { authenticate } from "../middlewares/auth";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -13,13 +15,13 @@ router.get("/jobs", async (req, res) => {
 
     return res.status(200).json({ jobs });
   } catch (error) {
-    console.error("Error fetching jobs:", error);
+    logger.error("Error fetching jobs:", error);
     return res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
 
 // GET all jobs (admin - includes inactive)
-router.get("/jobs/all", async (req, res) => {
+router.get("/jobs/all", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const jobs = await prisma.job.findMany({
       orderBy: { createdAt: "desc" },
@@ -32,13 +34,13 @@ router.get("/jobs/all", async (req, res) => {
 
     return res.status(200).json({ jobs });
   } catch (error) {
-    console.error("Error fetching all jobs:", error);
+    logger.error("Error fetching all jobs:", error);
     return res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
 
-// GET single job by ID
-router.get("/jobs/:id", async (req, res) => {
+// GET single job by ID, including its applications (admin only — exposes applicant PII)
+router.get("/jobs/:id", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -57,13 +59,13 @@ router.get("/jobs/:id", async (req, res) => {
 
     return res.status(200).json({ job });
   } catch (error) {
-    console.error("Error fetching job:", error);
+    logger.error("Error fetching job:", error);
     return res.status(500).json({ error: "Failed to fetch job" });
   }
 });
 
 // POST create new job (admin only)
-router.post("/jobs", async (req, res) => {
+router.post("/jobs", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const {
       title,
@@ -106,13 +108,13 @@ router.post("/jobs", async (req, res) => {
 
     return res.status(201).json({ job });
   } catch (error) {
-    console.error("Error creating job:", error);
+    logger.error("Error creating job:", error);
     return res.status(500).json({ error: "Failed to create job" });
   }
 });
 
-// PATCH update job
-router.patch("/jobs/:id", async (req, res) => {
+// PATCH update job (admin only)
+router.patch("/jobs/:id", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
     const updateData: any = {};
@@ -138,13 +140,13 @@ router.patch("/jobs/:id", async (req, res) => {
 
     return res.status(200).json({ job });
   } catch (error) {
-    console.error("Error updating job:", error);
+    logger.error("Error updating job:", error);
     return res.status(500).json({ error: "Failed to update job" });
   }
 });
 
-// DELETE job
-router.delete("/jobs/:id", async (req, res) => {
+// DELETE job (admin only)
+router.delete("/jobs/:id", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -154,7 +156,7 @@ router.delete("/jobs/:id", async (req, res) => {
 
     return res.status(200).json({ message: "Job deleted successfully" });
   } catch (error) {
-    console.error("Error deleting job:", error);
+    logger.error("Error deleting job:", error);
     return res.status(500).json({ error: "Failed to delete job" });
   }
 });

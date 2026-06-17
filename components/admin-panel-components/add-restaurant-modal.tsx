@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Store } from "lucide-react"
+import { logger } from "@/lib/logger";
 
 interface AddRestaurantModalProps {
   isOpen: boolean
@@ -32,7 +33,7 @@ export function AddRestaurantModal({ isOpen, onClose }: AddRestaurantModalProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Adding new restaurant:", formData)
+    logger.debug("Adding new restaurant:", formData)
     onClose()
   }
 

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
-import { API_CONFIG } from "@/lib/api/config";
+import { API_CONFIG, STORAGE_KEYS, authHeader } from "@/lib/api/config";
+import { logger } from "@/lib/logger";
 
 interface Job {
   id: string;
@@ -28,11 +29,13 @@ export default function AdminJobsPage() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/all`);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/all`, {
+        headers: { ...authHeader(STORAGE_KEYS.ADMIN_TOKEN) },
+      });
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {
-      console.error("Error fetching jobs:", error);
+      logger.error("Error fetching jobs:", error);
     } finally {
       setLoading(false);
     }
@@ -44,6 +47,7 @@ export default function AdminJobsPage() {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${id}`, {
         method: "DELETE",
+        headers: { ...authHeader(STORAGE_KEYS.ADMIN_TOKEN) },
       });
 
       if (response.ok) {
@@ -53,7 +57,7 @@ export default function AdminJobsPage() {
         alert("Failed to delete job");
       }
     } catch (error) {
-      console.error("Error deleting job:", error);
+      logger.error("Error deleting job:", error);
       alert("Failed to delete job");
     }
   };
@@ -64,7 +68,10 @@ export default function AdminJobsPage() {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(STORAGE_KEYS.ADMIN_TOKEN),
+        },
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -75,7 +82,7 @@ export default function AdminJobsPage() {
         alert("Failed to update job status");
       }
     } catch (error) {
-      console.error("Error updating job:", error);
+      logger.error("Error updating job:", error);
       alert("Failed to update job status");
     }
   };

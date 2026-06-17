@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getUserOrders } from "@/lib/api/admin.api"
 import { Loader } from "@/components/ui/loader"
+import { logger } from "@/lib/logger";
 import {
   MapPin,
   Phone,
@@ -64,13 +65,13 @@ export function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProp
   const fetchUserOrders = async () => {
     try {
       setLoadingOrders(true)
-      console.log("Fetching orders for user ID:", user.id)
+      logger.debug("Fetching orders for user ID:", user.id)
       const orders = await getUserOrders(user.id)
-      console.log("Fetched orders:", orders)
+      logger.debug("Fetched orders:", orders)
       setRecentOrders(orders)
     } catch (error: any) {
-      console.error("Failed to fetch user orders:", error)
-      console.error("Error details:", error.message, error.response)
+      logger.error("Failed to fetch user orders:", error)
+      logger.error("Error details:", error.message, error.response)
       setRecentOrders([])
     } finally {
       setLoadingOrders(false)
@@ -111,19 +112,19 @@ export function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProp
 
   const handleStatusUpdate = (newStatus: string) => {
     setCurrentStatus(newStatus)
-    console.log(`Updating user ${user.id} status to ${newStatus}`)
+    logger.debug(`Updating user ${user.id} status to ${newStatus}`)
   }
 
   useEffect(() => {
     if (isOpen && dialogRef.current) {
       const rect = dialogRef.current.getBoundingClientRect()
-      console.log('Dialog width:', rect.width, 'Viewport width:', window.innerWidth)
-      console.log('Dialog computed style width:', getComputedStyle(dialogRef.current).width)
-      console.log('Dialog maxWidth from style:', getComputedStyle(dialogRef.current).maxWidth)
+      logger.debug('Dialog width:', rect.width, 'Viewport width:', window.innerWidth)
+      logger.debug('Dialog computed style width:', getComputedStyle(dialogRef.current).width)
+      logger.debug('Dialog maxWidth from style:', getComputedStyle(dialogRef.current).maxWidth)
       // Check if content is constraining
       const content = dialogRef.current.querySelector('[data-slot="dialog-content"]')
       if (content) {
-        console.log('Content width:', content.clientWidth, 'Content scrollWidth:', content.scrollWidth)
+        logger.debug('Content width:', content.clientWidth, 'Content scrollWidth:', content.scrollWidth)
       }
     }
   }, [isOpen])

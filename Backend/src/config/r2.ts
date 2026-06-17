@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import path from "path";
+import { logger } from "../utils/logger";
 
 // Cloudflare R2 Configuration
 const R2_ACCOUNT_ID = "381370613fec5e31ad4616a7fa80e07c";
@@ -77,11 +78,11 @@ export async function deleteFromR2(publicUrl: string): Promise<void> {
       })
     );
   } catch (error) {
-    console.error("Error deleting from R2:", error);
+    logger.error("Error deleting from R2:", error);
   }
 }
 
-console.log("✅ Cloudflare R2 configured:", {
+logger.debug("✅ Cloudflare R2 configured:", {
   bucket: R2_BUCKET_NAME,
   endpoint: R2_ENDPOINT,
 });

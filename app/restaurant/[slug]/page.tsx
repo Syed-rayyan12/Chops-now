@@ -12,6 +12,7 @@ import { CartSidebar } from "@/components/customer-panel-components/cart-sidebar
 import { Footer } from "@/components/customer-panel-components/footer"
 import { MenuItems } from "@/components/customer-panel-components/menu-items"
 import { getRestaurantBySlug, getPublicCategoriesWithItems } from "@/lib/api/restaurant.api";
+import { logger } from "@/lib/logger";
 
 export type MenuItem = {
   id: number
@@ -95,7 +96,7 @@ export default function RestaurantPage() {
         ]
         setCategories(formattedCategories)
       } catch (error) {
-        console.error("Failed to fetch public menu:", error)
+        logger.error("Failed to fetch public menu:", error)
       } finally {
         menuLoadingRef.current = false
         lastMenuFetchRef.current = Date.now()
@@ -110,7 +111,7 @@ export default function RestaurantPage() {
         setRestaurant(restaurantData)
         await loadPublicMenu()
       } catch (error) {
-        console.error("Failed to fetch restaurant data:", error)
+        logger.error("Failed to fetch restaurant data:", error)
       } finally {
         setLoading(false)
       }

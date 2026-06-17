@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../config/db";
 import { authenticate, AuthRequest } from "../middlewares/auth";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
@@ -41,7 +42,7 @@ router.get("/", authenticate(), async (req: AuthRequest, res) => {
 
     res.json({ notifications, unreadCount });
   } catch (error) {
-    console.error("❌ Error fetching notifications:", error);
+    logger.error("❌ Error fetching notifications:", error);
     res.status(500).json({ message: "Failed to fetch notifications" });
   }
 });
@@ -68,7 +69,7 @@ router.post("/", authenticate(["ADMIN"]), async (req: AuthRequest, res) => {
 
     res.status(201).json(notification);
   } catch (error) {
-    console.error("❌ Error creating notification:", error);
+    logger.error("❌ Error creating notification:", error);
     res.status(500).json({ message: "Failed to create notification" });
   }
 });
@@ -107,7 +108,7 @@ router.put("/:id/read", authenticate(), async (req: AuthRequest, res) => {
 
     res.json(updated);
   } catch (error) {
-    console.error("❌ Error marking notification as read:", error);
+    logger.error("❌ Error marking notification as read:", error);
     res.status(500).json({ message: "Failed to update notification" });
   }
 });
@@ -134,7 +135,7 @@ router.put("/read-all", authenticate(), async (req: AuthRequest, res) => {
 
     res.json({ message: "All notifications marked as read" });
   } catch (error) {
-    console.error("❌ Error marking all notifications as read:", error);
+    logger.error("❌ Error marking all notifications as read:", error);
     res.status(500).json({ message: "Failed to update notifications" });
   }
 });
@@ -172,7 +173,7 @@ router.delete("/:id", authenticate(), async (req: AuthRequest, res) => {
 
     res.json({ message: "Notification deleted" });
   } catch (error) {
-    console.error("❌ Error deleting notification:", error);
+    logger.error("❌ Error deleting notification:", error);
     res.status(500).json({ message: "Failed to delete notification" });
   }
 });

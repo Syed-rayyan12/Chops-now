@@ -5,6 +5,7 @@ import multer from "multer";
 import prisma from "../config/db";
 import { authenticate } from "../middlewares/auth";
 import { uploadToR2, deleteFromR2 } from "../config/r2";
+import { logger } from "../utils/logger";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
@@ -34,7 +35,7 @@ const signupUpload = upload.fields([
 // Single image upload for profile
 const profileImageUpload = upload.single("image");
 
-console.log("✅ auth.ts loaded");
+logger.debug("✅ auth.ts loaded");
 
 // Ping route
 router.get("/ping", (req, res) => {
@@ -173,7 +174,7 @@ router.post("/signup", signupUpload, async (req, res) => {
         otp,
         role: 'RIDER'
       });
-      console.log('✅ OTP email sent to rider');
+      logger.debug('✅ OTP email sent to rider');
 
       // Send notification to admin
       await sendAdminSignupNotification({
@@ -181,9 +182,9 @@ router.post("/signup", signupUpload, async (req, res) => {
         name: `${rider.firstName} ${rider.lastName}`,
         role: 'RIDER'
       });
-      console.log('✅ Admin notification sent');
+      logger.debug('✅ Admin notification sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send emails:', emailError);
+      logger.error('⚠️ Failed to send emails:', emailError);
       // Don't fail signup if email fails
     }
 
@@ -194,7 +195,7 @@ router.post("/signup", signupUpload, async (req, res) => {
       requiresVerification: true
     });
   } catch (err: any) {
-    console.error("Signup error:", err);
+    logger.error("Signup error:", err);
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
 });
@@ -240,7 +241,7 @@ router.post("/login", async (req, res) => {
     // Return minimal response: email and token
     res.json({ email: rider.email, token });
   } catch (err: any) {
-    console.error("Login error:", err);
+    logger.error("Login error:", err);
     res.status(500).json({ message: "Login failed", error: err.message });
   }
 });
@@ -275,7 +276,7 @@ router.post("/complete-profile", authenticate(["RIDER"]), async (req: any, res) 
       },
     });
 
-    console.log(`✅ Rider profile completed:`, updatedRider.email);
+    logger.debug(`✅ Rider profile completed:`, updatedRider.email);
 
     res.status(200).json({
       success: true,
@@ -283,13 +284,14 @@ router.post("/complete-profile", authenticate(["RIDER"]), async (req: any, res) 
       rider: updatedRider,
     });
   } catch (error: any) {
-    console.error("Error completing rider profile:", error);
+    logger.error("Error completing rider profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// GET - All riders (for restaurant to see available riders)
-router.get("/all", async (_req: any, res: any) => {
+// GET - All riders (for restaurants/admin to see available riders)
+// Exposes rider live location, so it must never be public.
+router.get("/all", authenticate(["RESTAURANT", "ADMIN"]), async (_req: any, res: any) => {
   try {
     const riders = await prisma.rider.findMany({
       select: {
@@ -306,7 +308,7 @@ router.get("/all", async (_req: any, res: any) => {
 
     res.json({ riders });
   } catch (err: any) {
-    console.error("Get all riders error:", err);
+    logger.error("Get all riders error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -342,7 +344,7 @@ router.get("/me", authenticate(["RIDER"]), async (req: any, res: any) => {
 
     res.json({ rider });
   } catch (err: any) {
-    console.error("Get rider profile error:", err);
+    logger.error("Get rider profile error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -418,7 +420,7 @@ router.put("/update-profile", authenticate(["RIDER"]), profileImageUpload, async
 
     res.json({ rider: updatedRider });
   } catch (err: any) {
-    console.error("Update rider profile error:", err);
+    logger.error("Update rider profile error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -451,7 +453,7 @@ router.get("/stats", authenticate(["RIDER"]), async (req: any, res: any) => {
       totalEarnings: Number(totalEarningsResult._sum.amount || 0)
     });
   } catch (error: any) {
-    console.error("Get rider stats error:", error);
+    logger.error("Get rider stats error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -490,7 +492,7 @@ router.get("/earnings", authenticate(["RIDER"]), async (req: any, res: any) => {
       }
     });
   } catch (error: any) {
-    console.error("Get rider earnings error:", error);
+    logger.error("Get rider earnings error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -498,7 +500,7 @@ router.get("/earnings", authenticate(["RIDER"]), async (req: any, res: any) => {
 // GET - Available orders (READY_FOR_PICKUP)
 router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: any) => {
   try {
-    console.log("🔍 Fetching available orders (READY_FOR_PICKUP, riderId: null)");
+    logger.debug("🔍 Fetching available orders (READY_FOR_PICKUP, riderId: null)");
     
     const orders = await prisma.order.findMany({
       where: {
@@ -527,7 +529,7 @@ router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: 
       orderBy: { createdAt: 'desc' }
     });
 
-    console.log(`✅ Found ${orders.length} available orders for rider`);
+    logger.debug(`✅ Found ${orders.length} available orders for rider`);
     
     const formattedOrders = orders.map(order => ({
       id: order.id,
@@ -547,7 +549,7 @@ router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: 
 
     res.json({ orders: formattedOrders });
   } catch (error: any) {
-    console.error("Get available orders error:", error);
+    logger.error("Get available orders error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -601,7 +603,7 @@ router.get("/orders/active", authenticate(["RIDER"]), async (req: any, res: any)
 
     res.json({ orders: formattedOrders });
   } catch (error: any) {
-    console.error("Get active orders error:", error);
+    logger.error("Get active orders error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -650,7 +652,7 @@ router.get("/orders/completed", authenticate(["RIDER"]), async (req: any, res: a
 
     res.json({ orders: formattedOrders });
   } catch (error: any) {
-    console.error("Get completed orders error:", error);
+    logger.error("Get completed orders error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -689,7 +691,7 @@ router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any
     }
     riderPayout = Math.round(riderPayout * 100) / 100;
 
-    console.log(`💰 Rider payout: £${riderPayout} | Distance: ${order.distanceKm || 'N/A'} km`);
+    logger.debug(`💰 Rider payout: £${riderPayout} | Distance: ${order.distanceKm || 'N/A'} km`);
 
     const updatedOrder = await prisma.order.update({
       where: { id: parseInt(orderId) },
@@ -720,7 +722,7 @@ router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any
 
     res.json({ order: updatedOrder });
   } catch (error: any) {
-    console.error("Accept delivery error:", error);
+    logger.error("Accept delivery error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -776,7 +778,7 @@ router.patch("/orders/:orderId/deliver", authenticate(["RIDER"]), async (req: an
 
     res.json({ order: updatedOrder });
   } catch (error: any) {
-    console.error("Mark delivered error:", error);
+    logger.error("Mark delivered error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -813,7 +815,7 @@ router.get("/activity/recent", authenticate(["RIDER"]), async (req: any, res: an
 
     res.json({ activities });
   } catch (error: any) {
-    console.error("Get recent activity error:", error);
+    logger.error("Get recent activity error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -846,7 +848,7 @@ router.patch("/toggle-online", authenticate(["RIDER"]), async (req: any, res: an
       message: isOnline ? "You are now online and available for orders" : "You are now offline"
     });
   } catch (error: any) {
-    console.error("Toggle online status error:", error);
+    logger.error("Toggle online status error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -889,7 +891,7 @@ router.put("/location", authenticate(["RIDER"]), async (req: any, res: any) => {
       location: updatedRider
     });
   } catch (error: any) {
-    console.error("Update location error:", error);
+    logger.error("Update location error:", error);
     res.status(500).json({ message: "Failed to update location" });
   }
 });
@@ -983,7 +985,7 @@ router.get("/nearby-orders", authenticate(["RIDER"]), async (req: any, res: any)
       }
     });
   } catch (error: any) {
-    console.error("Get nearby orders error:", error);
+    logger.error("Get nearby orders error:", error);
     res.status(500).json({ message: "Failed to fetch nearby orders" });
   }
 });

@@ -19,6 +19,7 @@ import { Footer } from "@/components/customer-panel-components/footer"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { calculateDistance, calculateDeliveryFee } from "@/lib/utils/distance"
 import { getRestaurantBySlug } from "@/lib/api/restaurant.api"
+import { logger } from "@/lib/logger";
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -54,7 +55,7 @@ export default function CheckoutPage() {
         description: "Please login to place an order",
         variant: "destructive",
       })
-      router.push("/user-signin")
+      router.push("/user-signIn")
       return
     }
 
@@ -92,7 +93,7 @@ export default function CheckoutPage() {
         }))
       } catch (error) {
         // ignore profile fetch errors; keep manual entry flow
-        console.warn("Prefill from profile failed:", error)
+        logger.warn("Prefill from profile failed:", error)
       }
     }
 
@@ -105,14 +106,14 @@ export default function CheckoutPage() {
 
         const restaurantSlug = items[0]?.restaurantSlug
         if (!restaurantSlug) {
-          console.warn("No restaurant slug found in cart")
+          logger.warn("No restaurant slug found in cart")
           return
         }
 
         // Fetch restaurant data
         const restaurant = await getRestaurantBySlug(restaurantSlug)
         if (!restaurant) {
-          console.warn("Restaurant not found")
+          logger.warn("Restaurant not found")
           return
         }
         setRestaurantData(restaurant)
@@ -137,7 +138,7 @@ export default function CheckoutPage() {
           setCalculatedDeliveryFee(2.50)
         }
       } catch (error) {
-        console.error("Error fetching restaurant or calculating distance:", error)
+        logger.error("Error fetching restaurant or calculating distance:", error)
         setCalculatedDeliveryFee(2.50) // Fallback
       }
     }
@@ -192,7 +193,7 @@ export default function CheckoutPage() {
           customerLongitude = parsed.longitude
         }
       } catch (err) {
-        console.warn("No GPS coordinates available")
+        logger.warn("No GPS coordinates available")
       }
 
       const orderPayload = {
@@ -222,7 +223,7 @@ export default function CheckoutPage() {
       }, 3000)
 
     } catch (error: any) {
-      console.error("Order error:", error)
+      logger.error("Order error:", error)
       toast({
         title: "Order Failed",
         description: error.message || "Failed to place order. Please try again.",
@@ -258,7 +259,7 @@ export default function CheckoutPage() {
           customerLongitude = parsed.longitude
         }
       } catch (err) {
-        console.warn("No GPS coordinates available")
+        logger.warn("No GPS coordinates available")
       }
 
       const orderPayload = {
@@ -279,7 +280,7 @@ export default function CheckoutPage() {
 
       router.push("/profile?tab=orders")
     } catch (error: any) {
-      console.error("Order creation error:", error)
+      logger.error("Order creation error:", error)
       toast({
         title: "Order Failed",
         description: "Payment succeeded but order creation failed. Please contact support.",

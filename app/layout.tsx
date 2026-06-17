@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Ubuntu, Space_Grotesk } from "next/font/google"
 import { CartProvider } from "@/contexts/cart-context"
 import { AuthProvider } from "@/contexts/auth-context"
+import { RoleCookieSync } from "@/components/role-cookie-sync"
 import "./globals.css"
 
 const ubuntu = Ubuntu({
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="en" className={`${ubuntu.variable} ${spaceGrotesk.variable} antialiased`}>
       <body className="font-sans text-[18px]">
         <AuthProvider>
+          <RoleCookieSync />
           <CartProvider>{children}</CartProvider>
         </AuthProvider>
       </body>

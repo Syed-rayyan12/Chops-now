@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Loader } from "@/components/ui/loader"
 import { getAdminRestaurants } from "@/lib/api/admin.api"
 
+import { logger } from "@/lib/logger";
 import {
   Search,
   Filter,
@@ -100,7 +101,7 @@ export function RestaurantManagement() {
       })
       setRestaurants(data)
     } catch (error) {
-      console.error("Failed to fetch restaurants:", error)
+      logger.error("Failed to fetch restaurants:", error)
     } finally {
       setLoading(false)
       setTableLoading(false)

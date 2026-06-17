@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getRestaurantBySlug, updateRestaurantBySlug, updateRestaurantBySlugForm, deleteRestaurantBySlug, RestaurantUpdatePayload } from "@/lib/api/restaurant.api"
 import { isRestaurantSetupComplete } from "@/lib/utils"
+import { logger } from "@/lib/logger";
 
 export default function RestaurantSettingsPage() {
   const router = useRouter()
@@ -31,30 +32,30 @@ export default function RestaurantSettingsPage() {
   const [deleteError, setDeleteError] = useState<string>("")
 
   useEffect(() => {
-    console.log("🔍 Settings page loaded, checking localStorage...")
+    logger.debug("🔍 Settings page loaded, checking localStorage...")
     const rd = typeof window !== "undefined" ? localStorage.getItem("restaurantData") : null
-    console.log("📦 restaurantData from localStorage:", rd)
+    logger.debug("📦 restaurantData from localStorage:", rd)
     
     if (!rd) {
-      console.error("❌ No restaurantData found in localStorage")
+      logger.error("❌ No restaurantData found in localStorage")
       setError("No restaurant data found. Please log in again.")
       return
     }
     
     try {
       const parsed = JSON.parse(rd)
-      console.log("✅ Parsed restaurantData:", parsed)
-      console.log("🔑 Slug from parsed data:", parsed?.slug)
+      logger.debug("✅ Parsed restaurantData:", parsed)
+      logger.debug("🔑 Slug from parsed data:", parsed?.slug)
       
       if (parsed?.slug) {
         setSlug(parsed.slug)
-        console.log("✅ Slug set to:", parsed.slug)
+        logger.debug("✅ Slug set to:", parsed.slug)
         
-        console.log("🔄 Fetching restaurant data by slug...")
+        logger.debug("🔄 Fetching restaurant data by slug...")
         getRestaurantBySlug(parsed.slug).then((r) => {
-          console.log("📥 Restaurant data received:", r)
+          logger.debug("📥 Restaurant data received:", r)
           if (!r) {
-            console.error("❌ No restaurant data returned")
+            logger.error("❌ No restaurant data returned")
             return
           }
           setForm((f) => ({
@@ -71,17 +72,17 @@ export default function RestaurantSettingsPage() {
             phone: r.phone ?? f.phone,
             address: r.address ?? f.address,
           }))
-          console.log("✅ Form populated successfully")
+          logger.debug("✅ Form populated successfully")
         }).catch(err => {
-          console.error("❌ Error fetching restaurant:", err)
+          logger.error("❌ Error fetching restaurant:", err)
           setError("Failed to load restaurant data: " + err.message)
         })
       } else {
-        console.error("❌ No slug in parsed data")
+        logger.error("❌ No slug in parsed data")
         setError("Restaurant slug missing. Please log in again.")
       }
     } catch (err) {
-      console.error("❌ Error parsing restaurantData:", err)
+      logger.error("❌ Error parsing restaurantData:", err)
       setError("Invalid restaurant data. Please log in again.")
     }
   }, [])
@@ -100,14 +101,8 @@ export default function RestaurantSettingsPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    console.log("🚀 Save Changes clicked!")
-    console.log("🔑 Current slug:", slug)
-    console.log("📦 Form data:", form)
-    console.log("🎫 Restaurant Token in localStorage:", localStorage.getItem("restaurantToken") ? "Present" : "Missing")
-    
+
     if (!slug) {
-      console.error("❌ Cannot save: slug is empty!")
       setError("No restaurant found. Please log in again.")
       return
     }
@@ -117,7 +112,7 @@ export default function RestaurantSettingsPage() {
     setSuccess("")
     
     try {
-      console.log("📤 Preparing form data for upload...")
+      logger.debug("📤 Preparing form data for upload...")
 
       // If files are selected, send multipart/form-data
       if (imageFile || coverImageFile) {
@@ -130,7 +125,7 @@ export default function RestaurantSettingsPage() {
         if (coverImageFile) formData.append("coverImage", coverImageFile)
 
         const updated = await updateRestaurantBySlugForm(slug, formData)
-        console.log("✅ Upload + update successful! Response:", updated)
+        logger.debug("✅ Upload + update successful! Response:", updated)
         setSuccess("Restaurant settings and images saved successfully!")
 
         if (updated) {
@@ -139,22 +134,22 @@ export default function RestaurantSettingsPage() {
           
           // Check if setup is complete
           const isComplete = isRestaurantSetupComplete(updated)
-          console.log("🔍 Is setup complete?", isComplete)
-          console.log("📋 Updated restaurant data:", updated)
+          logger.debug("🔍 Is setup complete?", isComplete)
+          logger.debug("📋 Updated restaurant data:", updated)
           
           // If setup becomes complete, redirect to dashboard overview
           if (isComplete) {
-            console.log("🎉 Setup now complete! Redirecting to dashboard...")
+            logger.debug("🎉 Setup now complete! Redirecting to dashboard...")
             // Use replace to prevent back button issues
             router.replace("/restaurant-dashboard")
           } else {
-            console.log("⚠️ Setup still incomplete. Staying on settings page.")
+            logger.debug("⚠️ Setup still incomplete. Staying on settings page.")
           }
         }
       } else {
         // fallback to existing JSON-based update
         const updated = await updateRestaurantBySlug(slug, form)
-        console.log("✅ Update successful! Response:", updated)
+        logger.debug("✅ Update successful! Response:", updated)
         setSuccess("Restaurant settings saved successfully!")
         if (updated) {
           // Update localStorage immediately
@@ -162,24 +157,24 @@ export default function RestaurantSettingsPage() {
           
           // Check if setup is complete
           const isComplete = isRestaurantSetupComplete(updated)
-          console.log("🔍 Is setup complete?", isComplete)
-          console.log("📋 Updated restaurant data:", updated)
+          logger.debug("🔍 Is setup complete?", isComplete)
+          logger.debug("📋 Updated restaurant data:", updated)
           
           if (isComplete) {
-            console.log("🎉 Setup now complete! Redirecting to dashboard...")
+            logger.debug("🎉 Setup now complete! Redirecting to dashboard...")
             // Use replace to prevent back button issues
             router.replace("/restaurant-dashboard")
           } else {
-            console.log("⚠️ Setup still incomplete. Staying on settings page.")
+            logger.debug("⚠️ Setup still incomplete. Staying on settings page.")
           }
         }
       }
     } catch (err: any) {
-      console.error("❌ Update error:", err)
+      logger.error("❌ Update error:", err)
       setError(err.message || "Failed to save settings. Please try again.")
     } finally {
       setSaving(false)
-      console.log("🏁 Save operation completed")
+      logger.debug("🏁 Save operation completed")
     }
   }
 

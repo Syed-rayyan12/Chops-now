@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 import { ShoppingBag, Store, Users, DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { getAdminStats, getAdminRecentOrders } from "@/lib/api/admin.api"
 import { Loader } from "@/components/ui/loader"
+import { logger } from "@/lib/logger";
 
 const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
@@ -80,7 +81,7 @@ export function DashboardOverview() {
       setStats(statsData)
       setRecentOrders(ordersData)
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error)
+      logger.error("Failed to fetch dashboard data:", error)
     } finally {
       setLoading(false)
       setOrdersLoading(false)

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { API_CONFIG, STORAGE_KEYS } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
+import { logger } from "@/lib/logger"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -80,22 +82,17 @@ export default function UserSignIn({ setLoading }: { setLoading: (val: boolean) 
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || "Something went wrong")
 
-      console.log('✅ Login response:', data)
-
       // ✅ Store only token and email (backend now returns { email, token })
       if (data.token) {
         localStorage.setItem("token", data.token)
-        console.log('✅ Token stored:', data.token.substring(0, 20) + '...')
+        setRoleCookie("USER")
       } else {
-        console.error('❌ No token in response!')
+        logger.error('Login succeeded but no token in response')
       }
-      
+
       const emailFromResp = data.email || data.user?.email
       if (emailFromResp) {
         localStorage.setItem("userEmail", emailFromResp)
-        console.log('✅ Email stored:', emailFromResp)
-      } else {
-        console.error('❌ No email in response!')
       }
 
       // Small success toast (non-blocking)

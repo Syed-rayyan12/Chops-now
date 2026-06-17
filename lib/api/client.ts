@@ -3,6 +3,8 @@
 // ============================================
 
 import { API_CONFIG } from "./config";
+import { logger } from "../logger";
+import { clearRoleCookie } from "../auth-cookie";
 
 export class ApiError extends Error {
   constructor(
@@ -37,13 +39,6 @@ export async function apiRequest<T>(
     authToken = localStorage.getItem(tokenKey) || undefined;
   }
 
-  console.log("🔑 Token Info:", { 
-    providedToken: !!token, 
-    tokenKey, 
-    foundToken: !!authToken,
-    skipAuth 
-  });
-
   // Build headers
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -56,8 +51,6 @@ export async function apiRequest<T>(
 
   // Make request
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-  console.log("🌐 API Request URL:", url);
-  console.log("📨 Request Headers:", requestHeaders);
 
   try {
     const response = await fetch(url, {
@@ -65,59 +58,47 @@ export async function apiRequest<T>(
       headers: requestHeaders,
     });
 
-    console.log("✅ API Response Status:", response.status);
-
     // Parse response
     let data = null;
     try {
       data = await response.json();
-      console.log("📦 API Response Data:", data);
     } catch {
       // Response might not be JSON
-      console.log("⚠️ API Response is not JSON");
     }
 
     // Handle errors
     if (!response.ok) {
-      console.error("❌ API Error Response:", data);
-      
       // Handle 401 Unauthorized (expired/invalid token)
       if (response.status === 401) {
-        console.log("🔒 Unauthorized - Token expired or invalid");
-        
         // Check which token is being used and clear it
         if (tokenKey) {
-          console.log(`🗑️ Clearing token: ${tokenKey}`);
           if (typeof window !== "undefined") {
             localStorage.removeItem(tokenKey);
-            
+            clearRoleCookie();
+
             // Also clear admin user data if it's an admin token
             if (tokenKey === "adminToken") {
               localStorage.removeItem("adminUser");
             }
           }
         }
-        
+
         // Redirect to appropriate login page based on token type
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
-          
+
           if (currentPath.includes("/admin")) {
-            console.log("🔄 Redirecting to admin login");
             window.location.href = "/admin-signin";
           } else if (currentPath.includes("/restaurant")) {
-            console.log("🔄 Redirecting to restaurant login");
             window.location.href = "/restaurant-signIn";
           } else if (currentPath.includes("/rider")) {
-            console.log("🔄 Redirecting to rider login");
             window.location.href = "/rider-signIn";
           } else {
-            console.log("🔄 Redirecting to user login");
             window.location.href = "/user-signIn";
           }
         }
       }
-      
+
       throw new ApiError(
         data?.message || `Request failed with status ${response.status}`,
         response.status,
@@ -127,7 +108,7 @@ export async function apiRequest<T>(
 
     return data as T;
   } catch (error) {
-    console.error("🚨 API Request Error:", error);
+    logger.error("API request failed:", error instanceof Error ? error.message : error);
     if (error instanceof ApiError) {
       throw error;
     }

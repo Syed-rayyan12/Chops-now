@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { sendOTPEmail } from "../config/email.config";
+import { logger } from "../utils/logger";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -82,14 +83,14 @@ router.post("/send", async (req: Request, res: Response) => {
     // Send OTP email
     await sendOTPEmail({ email, name, otp, role: role as "USER" | "RESTAURANT" | "RIDER" });
 
-    console.log(`✅ OTP sent to ${email} (${role}): ${otp}`);
+    logger.debug(`✅ OTP sent to ${email} (${role}): ${otp}`);
 
     return res.status(200).json({
       success: true,
       message: "OTP sent to your email",
     });
   } catch (error: any) {
-    console.error("❌ OTP send error:", error);
+    logger.error("❌ OTP send error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to send OTP",
@@ -198,14 +199,14 @@ router.post("/verify", async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`✅ Email verified for ${email} (${role})`);
+    logger.debug(`✅ Email verified for ${email} (${role})`);
 
     return res.status(200).json({
       success: true,
       message: "Email verified successfully! You can now sign in.",
     });
   } catch (error: any) {
-    console.error("❌ OTP verify error:", error);
+    logger.error("❌ OTP verify error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to verify OTP",

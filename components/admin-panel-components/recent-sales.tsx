@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getAdminRecentOrders } from "@/lib/api/admin.api"
+import { logger } from "@/lib/logger";
 
 interface RecentOrder {
   id: string;
@@ -31,7 +32,7 @@ export function RecentSales() {
       const data = await getAdminRecentOrders(10)
       setOrders(data)
     } catch (error) {
-      console.error("Failed to load recent orders:", error)
+      logger.error("Failed to load recent orders:", error)
     } finally {
       setLoading(false)
     }

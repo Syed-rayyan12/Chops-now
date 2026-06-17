@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Download, DownloadIcon, PoundSterlingIcon } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { logger } from "@/lib/logger";
 
 interface Transaction {
   orderId: string
@@ -48,7 +49,7 @@ export function EarningsSection() {
         setEarnings(data.earnings)
       }
     } catch (error) {
-      console.error('Error fetching earnings:', error)
+      logger.error('Error fetching earnings:', error)
     }
   }
 
@@ -70,7 +71,7 @@ export function EarningsSection() {
         setTransactions(data.transactions)
       }
     } catch (error) {
-      console.error('Error fetching transactions:', error)
+      logger.error('Error fetching transactions:', error)
     } finally {
       setLoading(false)
     }

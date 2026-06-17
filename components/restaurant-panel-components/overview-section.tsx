@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Clock, Package, CheckCircle, CircleX, PoundSterlingIcon } from "lucide-react"
 import { restaurantOrders } from "@/lib/api/order.api"
 import type { Order, OrderStats, Earnings } from "@/lib/api/order.api"
+import { logger } from "@/lib/logger";
 
 export function OverviewSection() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -31,7 +32,7 @@ export function OverviewSection() {
         const parsed = JSON.parse(restaurantData)
         setRestaurantName(parsed.name || "Restaurant")
       } catch (e) {
-        console.error("Error parsing restaurant data:", e)
+        logger.error("Error parsing restaurant data:", e)
       }
     }
 
@@ -49,7 +50,7 @@ export function OverviewSection() {
         setEarnings(earningsData.earnings)
         setOrders(ordersData.orders)
       } catch (error) {
-        console.error("Failed to load dashboard data:", error)
+        logger.error("Failed to load dashboard data:", error)
       } finally {
         setLoading(false)
       }

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { User, MapPin, Clock, Edit2, Loader2, Package, DollarSign, Navigation, Phone as PhoneIcon, X, Upload } from "lucide-react"
 import { STORAGE_KEYS, API_CONFIG } from "@/lib/api/config"
 import { toast } from "@/components/ui/use-toast"
+import { logger } from "@/lib/logger";
 
 type EditForm = {
   firstName: string
@@ -86,7 +87,7 @@ export default function RiderProfilePage() {
         imageFile: null,
       })
     } catch (error: any) {
-      console.error("Failed to load profile:", error)
+      logger.error("Failed to load profile:", error)
       toast({
         title: "Error",
         description: error.message || "Failed to load profile data",
@@ -114,7 +115,7 @@ export default function RiderProfilePage() {
       const data = await response.json()
       setRecentOrders(data.orders || [])
     } catch (error: any) {
-      console.error("Failed to load orders:", error)
+      logger.error("Failed to load orders:", error)
     }
   }
 

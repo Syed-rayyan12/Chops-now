@@ -8,6 +8,7 @@ import { Plus, Trash2, Edit2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { CreateAdminDialog } from "./create-admin-dialog"
 import { EditAdminDialog } from "./edit-admin-dialog"
+import { logger } from "@/lib/logger";
 
 interface Admin {
   id: number
@@ -36,8 +37,8 @@ export function AdminAccountsContent() {
       setLoading(true)
       const token = localStorage.getItem("adminToken")
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      console.log("Fetching admins with token:", token ? "Present" : "Missing")
-      console.log("API URL:", apiUrl)
+      logger.debug("Fetching admins with token:", token ? "Present" : "Missing")
+      logger.debug("API URL:", apiUrl)
       const response = await fetch(`${apiUrl}/admin/accounts`, {
         method: "GET",
         headers: {
@@ -46,7 +47,7 @@ export function AdminAccountsContent() {
         },
       })
 
-      console.log("Fetch response status:", response.status)
+      logger.debug("Fetch response status:", response.status)
       
       if (!response.ok) {
         const errorData = await response.json()
@@ -54,10 +55,10 @@ export function AdminAccountsContent() {
       }
 
       const data = await response.json()
-      console.log("Admins fetched:", data)
+      logger.debug("Admins fetched:", data)
       setAdmins(data)
     } catch (error) {
-      console.error("Error fetching admins:", error)
+      logger.error("Error fetching admins:", error)
       alert("Failed to load admin accounts. Please check your connection and try again.")
     } finally {
       setLoading(false)
@@ -88,7 +89,7 @@ export function AdminAccountsContent() {
         variant: "default",
       })
     } catch (error) {
-      console.error("❌ Error deleting admin:", error)
+      logger.error("❌ Error deleting admin:", error)
       toast({
         title: "Error",
         description: "Failed to delete admin account",

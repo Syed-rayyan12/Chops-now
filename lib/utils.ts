@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { logger } from "@/lib/logger";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -8,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 // Determine if a restaurant has completed the required setup fields
 export function isRestaurantSetupComplete(r: any): boolean {
   if (!r) {
-    console.log("❌ Setup check: No restaurant data")
+    logger.debug("❌ Setup check: No restaurant data")
     return false;
   }
   
@@ -38,7 +39,7 @@ export function isRestaurantSetupComplete(r: any): boolean {
 
   const isComplete = missing.length === 0;
 
-  console.log("🔍 Setup completeness check:", {
+  logger.debug("🔍 Setup completeness check:", {
     isComplete,
     missing,
     data: {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { MapPin, Clock, Briefcase } from "lucide-react";
 import { JobApplicationModal } from "./job-application-modal";
 import { API_CONFIG } from "@/lib/api/config";
+import { logger } from "@/lib/logger";
 
 interface Job {
   id: string;
@@ -33,7 +34,7 @@ export function JobListings() {
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {
-      console.error("Error fetching jobs:", error);
+      logger.error("Error fetching jobs:", error);
     } finally {
       setLoading(false);
     }

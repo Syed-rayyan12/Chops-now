@@ -17,6 +17,7 @@ import { getUserProfile, updateUserProfile, getUserAddresses, getUserOrders } fr
 import { STORAGE_KEYS } from "@/lib/api/config"
 import { toast } from "@/components/ui/use-toast"
 import { Ubuntu } from "next/font/google"
+import { logger } from "@/lib/logger";
 
 type EditForm = {
   firstName: string
@@ -87,7 +88,7 @@ export default function ProfilePage() {
         image: profileData.image || null,
       })
     } catch (error: any) {
-      console.error("Failed to load profile:", error)
+      logger.error("Failed to load profile:", error)
       toast({
         title: "Error",
         description: error.message || "Failed to load profile data",

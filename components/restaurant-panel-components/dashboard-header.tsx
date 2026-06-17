@@ -205,6 +205,7 @@
 
 "use client"
 
+import { logger } from "@/lib/logger";
 import {
   Bell, Search, User, MenuIcon, Settings, LogOut, ChefHat, CreditCard,
   HelpCircle, Home, ShoppingCart, Star, Download
@@ -302,7 +303,7 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
         }
       }
     } catch (error) {
-      console.error("Failed to load restaurant profile:", error)
+      logger.error("Failed to load restaurant profile:", error)
     } finally {
       setLoading(false)
     }

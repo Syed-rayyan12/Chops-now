@@ -3,11 +3,12 @@ import bcrypt from "bcryptjs";
 import prisma from "../config/db";
 import jwt from "jsonwebtoken";
 import { authenticate } from "../middlewares/auth";
+import { logger } from "../utils/logger";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 
-console.log("✅ auth.ts loaded");
+logger.debug("✅ auth.ts loaded");
 
 // Ping route to test router
 router.get("/ping", (req, res) => {
@@ -54,9 +55,9 @@ router.post("/google", async (req, res) => {
           firstName: user.firstName,
           role: 'USER'
         });
-        console.log('✅ Welcome email sent to Google user');
+        logger.debug('✅ Welcome email sent to Google user');
       } catch (emailError) {
-        console.error('⚠️ Failed to send welcome email:', emailError);
+        logger.error('⚠️ Failed to send welcome email:', emailError);
       }
     }
 
@@ -67,7 +68,7 @@ router.post("/google", async (req, res) => {
     const { password: _pw, ...userWithoutPassword } = user;
     res.status(200).json({ user: userWithoutPassword, token });
   } catch (err: any) {
-    console.error("Google OAuth error:", err);
+    logger.error("Google OAuth error:", err);
     res.status(500).json({ message: "Google authentication failed", error: err.message });
   }
 });
@@ -178,7 +179,7 @@ router.post("/signup", async (req, res) => {
         otp,
         role: 'USER'
       });
-      console.log('✅ OTP email sent to user');
+      logger.debug('✅ OTP email sent to user');
 
       // Send notification to admin
       await sendAdminSignupNotification({
@@ -186,9 +187,9 @@ router.post("/signup", async (req, res) => {
         name: `${user.firstName} ${user.lastName}`,
         role: 'USER'
       });
-      console.log('✅ Admin notification sent');
+      logger.debug('✅ Admin notification sent');
     } catch (emailError) {
-      console.error('⚠️ Failed to send emails:', emailError);
+      logger.error('⚠️ Failed to send emails:', emailError);
       // Don't fail signup if email fails
     }
 
@@ -200,7 +201,7 @@ router.post("/signup", async (req, res) => {
       requiresVerification: true
     });
   } catch (err: any) {
-    console.error("Signup error:", err);
+    logger.error("Signup error:", err);
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
 });
@@ -247,7 +248,7 @@ router.post("/login", async (req, res) => {
   // Return only email and token for login
   res.json({ email: user.email, token });
   } catch (err) {
-    console.error("Login error:", err);
+    logger.error("Login error:", err);
     res.status(500).json({ message: "Login failed. Please try again." });
   }
 });
@@ -275,7 +276,7 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
 
     res.json({ user });
   } catch (error: any) {
-    console.error("Error fetching profile:", error);
+    logger.error("Error fetching profile:", error);
     res.status(500).json({ message: "Failed to fetch profile", error: error.message });
   }
 });
@@ -367,7 +368,7 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
 
     res.json({ user: updatedUser });
   } catch (error: any) {
-    console.error("Error updating profile:", error);
+    logger.error("Error updating profile:", error);
     res.status(500).json({ message: "Failed to update profile", error: error.message });
   }
 });
@@ -416,7 +417,7 @@ router.post("/complete-profile", authenticate(["USER"]), async (req: any, res) =
       },
     });
 
-    console.log(`✅ User profile completed:`, updatedUser.email);
+    logger.debug(`✅ User profile completed:`, updatedUser.email);
 
     res.status(200).json({
       success: true,
@@ -424,7 +425,7 @@ router.post("/complete-profile", authenticate(["USER"]), async (req: any, res) =
       user: updatedUser,
     });
   } catch (error: any) {
-    console.error("Error completing user profile:", error);
+    logger.error("Error completing user profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -451,7 +452,7 @@ router.get("/addresses", authenticate(["USER"]), async (req: any, res) => {
 
     res.json({ addresses: formattedAddresses });
   } catch (error: any) {
-    console.error("Error fetching addresses:", error);
+    logger.error("Error fetching addresses:", error);
     res.status(500).json({ message: "Failed to fetch addresses", error: error.message });
   }
 });
@@ -625,10 +626,10 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
           total: amount,
           deliveryAddress
         });
-        console.log('✅ Order confirmation email sent');
+        logger.debug('✅ Order confirmation email sent');
       }
     } catch (emailError) {
-      console.error('⚠️ Failed to send order confirmation email:', emailError);
+      logger.error('⚠️ Failed to send order confirmation email:', emailError);
       // Don't fail the order if email fails
     }
 
@@ -637,7 +638,7 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
       order 
     });
   } catch (error: any) {
-    console.error("Create order error:", error);
+    logger.error("Create order error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -688,7 +689,7 @@ router.get("/orders", authenticate(["USER"]), async (req: any, res) => {
 
     res.json({ orders: formattedOrders });
   } catch (error: any) {
-    console.error("Get orders error:", error);
+    logger.error("Get orders error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -734,7 +735,7 @@ router.get("/orders/:orderId", authenticate(["USER"]), async (req: any, res) => 
 
     res.json({ order });
   } catch (error: any) {
-    console.error("Get order error:", error);
+    logger.error("Get order error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

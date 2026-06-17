@@ -4,6 +4,7 @@ import { authenticate, AuthRequest } from '../middlewares/auth';
 import multer from 'multer';
 import path from 'path';
 import { uploadToR2, deleteFromR2 } from '../config/r2';
+import { logger } from "../utils/logger";
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ router.get('/restaurant/:slug/categories', async (req: Request, res: Response) =
 
     res.json(categoriesWithUrls);
   } catch (error) {
-    console.error('Get categories error:', error);
+    logger.error('Get categories error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -118,7 +119,7 @@ router.post('/restaurant/:slug/categories', authenticate(['RESTAURANT']), async 
 
     res.status(201).json(category);
   } catch (error) {
-    console.error('Create category error:', error);
+    logger.error('Create category error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -168,7 +169,7 @@ router.patch('/restaurant/:slug/categories/:categoryId', authenticate(['RESTAURA
 
     res.json(updated);
   } catch (error) {
-    console.error('Update category error:', error);
+    logger.error('Update category error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -213,7 +214,7 @@ router.delete('/restaurant/:slug/categories/:categoryId', authenticate(['RESTAUR
 
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
-    console.error('Delete category error:', error);
+    logger.error('Delete category error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -258,7 +259,7 @@ router.get('/restaurant/:slug/categories/:categoryId/items', async (req: Request
 
     res.json(itemsWithUrls);
   } catch (error) {
-    console.error('Get items error:', error);
+    logger.error('Get items error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -351,7 +352,7 @@ router.post('/restaurant/:slug/categories/:categoryId/items', authenticate(['RES
 
     res.status(201).json(itemWithUrl);
   } catch (error) {
-    console.error('Create menu item error:', error);
+    logger.error('Create menu item error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -459,7 +460,7 @@ router.patch('/restaurant/:slug/categories/:categoryId/items/:itemId', authentic
 
     res.json(itemWithUrl);
   } catch (error) {
-    console.error('Update menu item error:', error);
+    logger.error('Update menu item error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -500,7 +501,7 @@ router.delete('/restaurant/:slug/categories/:categoryId/items/:itemId', authenti
 
     res.json({ message: 'Menu item deleted successfully' });
   } catch (error) {
-    console.error('Delete menu item error:', error);
+    logger.error('Delete menu item error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

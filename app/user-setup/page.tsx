@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Loader2, User, MapPin, Phone } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { setRoleCookie } from "@/lib/auth-cookie"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentPosition, getAddressFromCoords } from "@/lib/utils/location"
 import Link from "next/link"
 import { OTPModal } from "@/components/otp-modal"
+import { logger } from "@/lib/logger";
 
 export default function UserSetupPage() {
   const router = useRouter()
@@ -119,6 +121,7 @@ export default function UserSetupPage() {
           localStorage.setItem('token', token || '')
           localStorage.setItem('userEmail', data.user.email)
           localStorage.setItem('userData', JSON.stringify(data.user))
+          setRoleCookie("USER")
         }
 
         toast({
@@ -135,7 +138,7 @@ export default function UserSetupPage() {
         throw new Error(data.message || 'Failed to complete profile')
       }
     } catch (error: any) {
-      console.error('Error completing profile:', error)
+      logger.error('Error completing profile:', error)
       toast({
         title: "Error",
         description: error.message || "Failed to complete profile",

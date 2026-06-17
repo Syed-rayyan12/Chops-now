@@ -4,6 +4,7 @@
 
 import { apiRequest } from "./client";
 import { STORAGE_KEYS } from "./config";
+import { logger } from "@/lib/logger";
 
 // ============================================
 // Types
@@ -77,18 +78,18 @@ export const getUserOrders = (userId: string) => {
 };
 
 export const getRestaurantOrders = (restaurantId: string) => {
-  console.log("=== Frontend API Call ===");
-  console.log("API: Restaurant ID received:", restaurantId);
-  console.log("API: Restaurant ID type:", typeof restaurantId);
+  logger.debug("=== Frontend API Call ===");
+  logger.debug("API: Restaurant ID received:", restaurantId);
+  logger.debug("API: Restaurant ID type:", typeof restaurantId);
   
   if (!restaurantId || restaurantId === 'undefined' || restaurantId === 'null') {
-    console.error("API: Invalid restaurant ID provided:", restaurantId);
+    logger.error("API: Invalid restaurant ID provided:", restaurantId);
     return Promise.reject(new Error("Restaurant ID is required"));
   }
   
   // Don't encode - let it pass through as-is
   const endpoint = `/admin/restaurants/${restaurantId}/orders`;
-  console.log("API: Calling endpoint:", endpoint);
+  logger.debug("API: Calling endpoint:", endpoint);
   
   return apiRequest<any[]>(endpoint, {
     tokenKey: STORAGE_KEYS.ADMIN_TOKEN,

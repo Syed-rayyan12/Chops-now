@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
+import { logger } from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -48,18 +49,18 @@ export function CategoryManagement() {
        try {
          const parsed = JSON.parse(restaurantData)
          setRestaurantSlug(parsed?.slug || "")
-         console.log("🔵 Restaurant slug from localStorage:", parsed?.slug)
+         logger.debug("🔵 Restaurant slug from localStorage:", parsed?.slug)
        } catch (e) {
-         console.error("❌ Error parsing restaurant data:", e)
+         logger.error("❌ Error parsing restaurant data:", e)
        }
      }
    }, [])
 
   useEffect(() => {
-    console.log("🔵 CategoryManagement - user:", user)
-    console.log("🔵 CategoryManagement - restaurantSlug:", restaurantSlug)
+    logger.debug("🔵 CategoryManagement - user:", user)
+    logger.debug("🔵 CategoryManagement - restaurantSlug:", restaurantSlug)
     if (!restaurantSlug) {
-      console.log("⚠️ No restaurant slug in CategoryManagement")
+      logger.debug("⚠️ No restaurant slug in CategoryManagement")
       return
     }
 
@@ -93,14 +94,14 @@ export function CategoryManagement() {
      const now = Date.now()
      if (catLoadingRef.current) return
      if (now - catLastFetchRef.current < 2000) return
-     console.log("🔵 Loading categories for slug:", restaurantSlug)
+     logger.debug("🔵 Loading categories for slug:", restaurantSlug)
     try {
       catLoadingRef.current = true
       const data = await getMenuCategories(restaurantSlug)
-       console.log("✅ Categories loaded:", data)
+       logger.debug("✅ Categories loaded:", data)
       setCategories(data as unknown as MenuCategory[])
     } catch (error: any) {
-       console.error("❌ Error loading categories:", error)
+       logger.error("❌ Error loading categories:", error)
       toast({
         title: "Error",
         description: error.message || "Failed to load categories",

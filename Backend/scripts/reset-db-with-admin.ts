@@ -60,14 +60,23 @@ async function resetDatabaseWithAdmin() {
 
     // Create super admin
     console.log('\n👤 Creating super admin...');
-    
-    const hashedPassword = await bcrypt.hash('Admin@123', 10);
-    
+
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@chops.com';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      throw new Error(
+        'ADMIN_PASSWORD env var is required to seed the super admin. ' +
+        'Set it before running this script (do not hardcode credentials).'
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
     const admin = await prisma.user.create({
       data: {
         firstName: 'Super',
         lastName: 'Admin',
-        email: 'admin@chops.com',
+        email: adminEmail,
         password: hashedPassword,
         phone: '+447700900000',
         role: 'ADMIN',
@@ -75,10 +84,10 @@ async function resetDatabaseWithAdmin() {
     });
 
     console.log('✅ Super admin created successfully!');
-    console.log('\n📋 Admin Credentials:');
+    console.log('\n📋 Admin Account:');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`Email:    ${admin.email}`);
-    console.log(`Password: Admin@123`);
+    console.log(`Password: (the ADMIN_PASSWORD you supplied)`);
     console.log(`Role:     ${admin.role}`);
     console.log(`ID:       ${admin.id}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

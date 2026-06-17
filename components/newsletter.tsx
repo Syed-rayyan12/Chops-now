@@ -5,6 +5,7 @@ import { Loader2, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { submitNewsletterSubscription } from "@/lib/api/newsletter.api"
 import { useAuth } from "@/contexts/auth-context"
+import { logger } from "@/lib/logger";
 
 export function Newsletter() {
   const { toast } = useToast()
@@ -53,7 +54,7 @@ export function Newsletter() {
         })
       }
     } catch (error) {
-      console.error("Newsletter submission error:", error)
+      logger.error("Newsletter submission error:", error)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
