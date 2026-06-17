@@ -118,13 +118,20 @@ router.post("/signup", async (req, res) => {
     const existing = await prisma.user.findFirst({
       where: { OR: [{ email }, phone ? { phone } : {}] },
     });
-    
+
     if (existing) {
-      if (existing.email === email) {
-        return res.status(400).json({ message: "This email is already registered. Please use a different email or login." });
-      }
-      if (existing.phone === phone) {
-        return res.status(400).json({ message: "This phone number is already registered" });
+      if (!existing.isEmailVerified) {
+        // Unverified account — clean it up so the user can re-register
+        await prisma.cartItem.deleteMany({ where: { userId: existing.id } });
+        await prisma.address.deleteMany({ where: { userId: existing.id } });
+        await prisma.user.delete({ where: { id: existing.id } });
+      } else {
+        if (existing.email === email) {
+          return res.status(400).json({ message: "This email is already registered. Please use a different email or login." });
+        }
+        if (existing.phone === phone) {
+          return res.status(400).json({ message: "This phone number is already registered" });
+        }
       }
     }
 

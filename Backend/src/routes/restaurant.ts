@@ -93,20 +93,34 @@ router.post("/signup", async (req, res) => {
 
     // Check if email or phone already exists in restaurants
     const existingRestaurant = await prisma.restaurant.findFirst({
-      where: { phone: businessPhone },
+      where: { OR: [{ phone: businessPhone }, { ownerEmail: businessEmail }] },
     });
-    if (existingRestaurant) return res.status(400).json({ message: "Phone already in use" });
-
-    const existingEmail = await prisma.restaurant.findFirst({
-      where: { ownerEmail: businessEmail },
-    });
-    if (existingEmail) return res.status(400).json({ message: "Email already in use" });
+    if (existingRestaurant) {
+      if (!existingRestaurant.isEmailVerified) {
+        // Unverified restaurant — clean it up so owner can re-register
+        await prisma.restaurant.delete({ where: { id: existingRestaurant.id } });
+        await prisma.user.deleteMany({ where: { email: existingRestaurant.ownerEmail } });
+      } else {
+        if (existingRestaurant.phone === businessPhone) {
+          return res.status(400).json({ message: "Phone already in use" });
+        }
+        return res.status(400).json({ message: "Email already in use" });
+      }
+    }
 
     // Also ensure no existing user with same email/phone
     const existingUser = await prisma.user.findFirst({
       where: { OR: [{ email: businessEmail }, { phone: businessPhone }] },
     });
-    if (existingUser) return res.status(400).json({ message: "An account with this email or phone already exists" });
+    if (existingUser) {
+      if (!existingUser.isEmailVerified) {
+        await prisma.cartItem.deleteMany({ where: { userId: existingUser.id } });
+        await prisma.address.deleteMany({ where: { userId: existingUser.id } });
+        await prisma.user.delete({ where: { id: existingUser.id } });
+      } else {
+        return res.status(400).json({ message: "An account with this email or phone already exists" });
+      }
+    }
 
     // Hash the provided password
     const hashedPassword = await bcrypt.hash(password, 10);

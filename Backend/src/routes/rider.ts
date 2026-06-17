@@ -93,7 +93,12 @@ router.post("/signup", signupUpload, async (req, res) => {
       },
     });
     if (existingRider) {
-      return res.status(400).json({ message: "Email or phone already in use" });
+      if (!existingRider.isEmailVerified) {
+        // Unverified rider — clean it up so they can re-register
+        await prisma.rider.delete({ where: { id: existingRider.id } });
+      } else {
+        return res.status(400).json({ message: "Email or phone already in use" });
+      }
     }
 
     // Hash password
