@@ -15,11 +15,23 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter: (_req: any, file: any, cb: any) => {
-    const allowed = ["image/png", "image/jpeg", "image/webp", "image/jpg"];
+    const allowed = ["image/png", "image/jpeg"];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error("Invalid file type"), false);
+    else cb(new Error("Only PNG and JPG images are allowed"), false);
   },
 });
+
+// Wraps multer so file type/size errors return 400 instead of crashing to 500
+function withUpload(middleware: any) {
+  return (req: any, res: any, next: any) => {
+    middleware(req, res, (err: any) => {
+      if (err) {
+        return res.status(400).json({ message: err.message || "Invalid file upload" });
+      }
+      next();
+    });
+  };
+}
 
 // Helper to resolve image URLs - R2 URLs are already absolute
 function assetUrl(req: Request, rel?: string | null) {
@@ -634,10 +646,10 @@ router.get("/:slug", async (req, res) => {
 router.patch(
   "/:slug",
   authenticate(["RESTAURANT"]),
-  upload.fields([
+  withUpload(upload.fields([
     { name: "image", maxCount: 1 },
     { name: "coverImage", maxCount: 1 },
-  ]),
+  ])),
   async (req: any, res: any) => {
     try {
       const { slug } = req.params;

@@ -273,7 +273,7 @@ export default function RestaurantSettingsPage() {
           <label className="block text-sm font-medium mb-2">Restaurant Image</label>
           <input
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg"
             onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
             className="border p-2 w-full rounded bg-white"
           />
@@ -283,7 +283,7 @@ export default function RestaurantSettingsPage() {
           <label className="block text-sm font-medium mb-2">Cover Image</label>
           <input
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg"
             onChange={(e) => setCoverImageFile(e.target.files ? e.target.files[0] : null)}
             className="border p-2 w-full rounded bg-white"
           />
