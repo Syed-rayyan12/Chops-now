@@ -117,22 +117,29 @@ function CheckoutForm({ clientSecret, amount, onSuccess, onError }: CheckoutForm
 
 interface StripePaymentFormProps {
   amount: number;
+  orderId: number;
   onSuccess: () => void;
   onError: (error: string) => void;
 }
 
-export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentFormProps) {
+export function StripePaymentForm({ amount, orderId, onSuccess, onError }: StripePaymentFormProps) {
   const [clientSecret, setClientSecret] = useState<string>("");
+  // The amount charged is read server-side from the persisted order. We display
+  // the order's own amount (returned by the backend) so the UI can never show a
+  // total that differs from what Stripe charges.
+  const [serverAmount, setServerAmount] = useState<number>(amount);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    // Prevent creating payment intent if already created
-    if (clientSecret) return;
+    let cancelled = false;
 
-    // Create PaymentIntent as soon as the component mounts
     const createPaymentIntent = async () => {
       try {
+        setLoading(true);
+        setError("");
+        setClientSecret("");
+        setServerAmount(amount);
         const token = localStorage.getItem("token");
         if (!token) {
           throw new Error("Please login to continue");
@@ -146,7 +153,7 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ amount }),
+            body: JSON.stringify({ orderId }),
           }
         );
 
@@ -156,18 +163,29 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
           throw new Error(data.error || "Failed to initialize payment");
         }
 
+        if (cancelled) return;
         setClientSecret(data.clientSecret);
+        if (typeof data.amount === "number") {
+          setServerAmount(data.amount);
+        }
         setLoading(false);
       } catch (err: any) {
+        if (cancelled) return;
         setError(err.message);
         setLoading(false);
         onError(err.message);
       }
     };
 
-    createPaymentIntent();
+    if (orderId) {
+      createPaymentIntent();
+    }
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amount]);
+  }, [orderId]);
 
   if (loading) {
     return (
@@ -204,7 +222,7 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
     <Elements stripe={stripePromise} options={options}>
       <CheckoutForm
         clientSecret={clientSecret}
-        amount={amount}
+        amount={serverAmount}
         onSuccess={onSuccess}
         onError={onError}
       />

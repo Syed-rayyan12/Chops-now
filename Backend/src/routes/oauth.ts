@@ -1,9 +1,8 @@
 import { Router } from "express";
 import prisma from "../config/db";
-import jwt from "jsonwebtoken";
+import { generateToken } from "../utils/jwt";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -103,11 +102,11 @@ router.post("/google", async (req, res) => {
         }
 
         // Return with isNewUser flag
-        const token = jwt.sign({ 
+        const token = generateToken({
           id: restaurant.id, 
           role: 'RESTAURANT',
           email: restaurant.ownerEmail 
-        }, JWT_SECRET, { expiresIn: "7d" });
+        });
 
         const response = { 
           success: true,
@@ -133,11 +132,11 @@ router.post("/google", async (req, res) => {
       const needsSetup = !restaurant.phone || restaurant.phone.trim() === '' || !restaurant.address || restaurant.address.trim() === '';
 
       // Generate JWT token with restaurant data (for existing users)
-      const token = jwt.sign({ 
+      const token = generateToken({
         id: restaurant.id, 
         role: 'RESTAURANT',
         email: restaurant.ownerEmail 
-      }, JWT_SECRET, { expiresIn: "7d" });
+      });
 
       const response = { 
         success: true,
@@ -251,11 +250,11 @@ router.post("/google", async (req, res) => {
         }
 
         // Return with isNewUser flag
-        const token = jwt.sign({ 
+        const token = generateToken({
           id: rider.id, 
           role: 'RIDER',
           email: rider.email 
-        }, JWT_SECRET, { expiresIn: "7d" });
+        });
 
         const response = { 
           success: true,
@@ -281,11 +280,11 @@ router.post("/google", async (req, res) => {
       const needsSetup = !rider.phone || rider.phone.trim() === '' || !rider.address || rider.address.trim() === '';
 
       // Generate JWT token with rider data (for existing users)
-      const token = jwt.sign({ 
+      const token = generateToken({
         id: rider.id, 
         role: 'RIDER',
         email: rider.email 
-      }, JWT_SECRET, { expiresIn: "7d" });
+      });
 
       const response = { 
         success: true,
@@ -356,7 +355,7 @@ router.post("/google", async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    const token = generateToken({ id: user.id, role: user.role });
 
     // Return user data and token with flags
     const { password: _pw, ...userWithoutPassword } = user;

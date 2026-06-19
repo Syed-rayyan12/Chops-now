@@ -3,25 +3,43 @@ import stripe from '../config/stripe';
 import { authenticate, AuthRequest } from '../middlewares/auth';
 import prisma from '../config/db';
 import { logger } from "../utils/logger";
+import { notifyOrderPlaced } from "../utils/orderNotifications";
 
 const router = Router();
 
-// Create payment intent for order
+// Create payment intent for an existing order.
+// The order is created (UNPAID) before this is called, so the charge amount is
+// read from the persisted order — never from the client — and the order is
+// confirmed paid only via the Stripe webhook.
 router.post('/create-payment-intent', authenticate(['USER']), async (req: AuthRequest, res: Response) => {
   try {
-    const { amount, orderId } = req.body;
+    const { orderId } = req.body;
+    const userId = req.user?.id;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Invalid amount' });
+    if (!orderId) {
+      return res.status(400).json({ error: 'orderId is required' });
     }
 
-    // Create payment intent
+    // Verify the order exists and belongs to the requesting user, so a client
+    // can neither pay for another user's order nor influence the amount.
+    const order = await prisma.order.findUnique({ where: { id: Number(orderId) } });
+
+    if (!order || order.customerId !== userId) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    if (order.paymentStatus === 'PAID') {
+      return res.status(400).json({ error: 'Order is already paid' });
+    }
+
+    const amount = Number(order.amount);
+
+    // Create payment intent against the order's server-computed amount
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to pence
       currency: 'gbp',
       metadata: {
-        orderId: orderId?.toString() || '',
-        userId: req.user?.id?.toString() || '',
+        orderId: order.id.toString(),
+        userId: userId?.toString() || '',
       },
       automatic_payment_methods: {
         enabled: true,
@@ -31,6 +49,7 @@ router.post('/create-payment-intent', authenticate(['USER']), async (req: AuthRe
     res.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
+      amount, // server-authoritative total for display
     });
   } catch (error: any) {
     logger.error('Create payment intent error:', error);
@@ -56,32 +75,52 @@ router.post('/webhook', async (req: Request, res: Response) => {
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
-  // Handle the event
+  // Handle the event. Payment confirmation is the webhook's responsibility:
+  // marking paymentStatus=PAID here (never from the client) is what makes a card
+  // order visible/actionable to restaurants and riders.
   switch (event.type) {
-    case 'payment_intent.succeeded':
+    case 'payment_intent.succeeded': {
       const paymentIntent = event.data.object;
       logger.debug('✅ Payment succeeded:', paymentIntent.id);
-      
-      // Update order status in database
-      const orderId = paymentIntent.metadata.orderId;
+
+      const orderId = paymentIntent.metadata?.orderId;
+      if (orderId) {
+        try {
+          // Idempotent: only the transition INTO paid runs the side effects, so a
+          // re-delivered webhook can't notify the restaurant / email the customer
+          // twice.
+          const result = await prisma.order.updateMany({
+            where: { id: parseInt(orderId), paymentStatus: { not: 'PAID' } },
+            data: { paymentStatus: 'PAID' },
+          });
+          if (result.count > 0) {
+            // Payment confirmed — now run the deferred "order placed" side effects.
+            await notifyOrderPlaced(parseInt(orderId));
+          }
+        } catch (error) {
+          logger.error('Error marking order paid:', error);
+        }
+      }
+      break;
+    }
+
+    case 'payment_intent.payment_failed': {
+      const failedPayment = event.data.object;
+      logger.debug('❌ Payment failed:', failedPayment.id);
+
+      const orderId = failedPayment.metadata?.orderId;
       if (orderId) {
         try {
           await prisma.order.update({
             where: { id: parseInt(orderId) },
-            data: { 
-              status: 'PENDING',
-            },
+            data: { paymentStatus: 'FAILED' },
           });
         } catch (error) {
-          logger.error('Error updating order:', error);
+          logger.error('Error marking order failed:', error);
         }
       }
       break;
-
-    case 'payment_intent.payment_failed':
-      const failedPayment = event.data.object;
-      logger.debug('❌ Payment failed:', failedPayment.id);
-      break;
+    }
 
     default:
       logger.debug(`Unhandled event type: ${event.type}`);

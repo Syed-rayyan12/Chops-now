@@ -1,14 +1,15 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import multer from "multer";
+import type { Prisma } from "@prisma/client";
 import prisma from "../config/db";
 import { authenticate } from "../middlewares/auth";
 import { uploadToR2, deleteFromR2 } from "../config/r2";
 import { logger } from "../utils/logger";
+import { generateToken } from "../utils/jwt";
+import { PAID_OR_NON_CARD } from "../utils/orderVisibility";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 
 // Multer memory storage for rider file uploads
 const upload = multer({
@@ -234,9 +235,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ id: rider.id, role: "RIDER" }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = generateToken({ id: rider.id, role: "RIDER" });
 
     // Return minimal response: email and token
     res.json({ email: rider.email, token });
@@ -505,7 +504,8 @@ router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: 
     const orders = await prisma.order.findMany({
       where: {
         status: 'READY_FOR_PICKUP',
-        riderId: null
+        riderId: null,
+        ...PAID_OR_NON_CARD
       },
       include: {
         restaurant: {
@@ -693,15 +693,28 @@ router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any
 
     logger.debug(`💰 Rider payout: £${riderPayout} | Distance: ${order.distanceKm || 'N/A'} km`);
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: parseInt(orderId) },
+    // CONCURRENCY: claim the order atomically. This conditional updateMany only
+    // matches while the order is still READY_FOR_PICKUP and unassigned, so when
+    // two riders race to accept, exactly one update affects a row — the other
+    // gets count 0 and is rejected. (Replaces the previous read-then-update,
+    // which let both riders pass the in-memory check.)
+    const claim = await prisma.order.updateMany({
+      where: { id: parseInt(orderId), status: 'READY_FOR_PICKUP', riderId: null },
       data: {
         riderId,
         status: 'PICKED_UP',
         riderPayout,
         pickedUpAt: new Date(),
         assignedAt: new Date()
-      },
+      }
+    });
+
+    if (claim.count === 0) {
+      return res.status(409).json({ message: "Order was just accepted by another rider" });
+    }
+
+    const updatedOrder = await prisma.order.findUnique({
+      where: { id: parseInt(orderId) },
       include: {
         restaurant: {
           select: {
@@ -749,31 +762,38 @@ router.patch("/orders/:orderId/deliver", authenticate(["RIDER"]), async (req: an
       return res.status(400).json({ message: "Order must be picked up before delivery" });
     }
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: parseInt(orderId) },
-      data: {
-        status: 'DELIVERED',
-        deliveredAt: new Date()
-      },
-      include: {
-        restaurant: {
-          select: {
-            id: true,
-            name: true,
-          }
+    // ATOMICITY: mark delivered and record the rider's earning in a single
+    // transaction. Previously these were two independent writes — if the earning
+    // insert failed, the order was already DELIVERED but the rider's payout was
+    // silently lost. Now either both succeed or neither does.
+    const updatedOrder = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const updated = await tx.order.update({
+        where: { id: parseInt(orderId) },
+        data: {
+          status: 'DELIVERED',
+          deliveredAt: new Date()
         },
-        address: true,
-      }
-    });
+        include: {
+          restaurant: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          address: true,
+        }
+      });
 
-    // Create earning record
-    await prisma.earning.create({
-      data: {
-        riderId,
-        orderId: parseInt(orderId),
-        amount: order.riderPayout,
-        date: new Date()
-      }
+      await tx.earning.create({
+        data: {
+          riderId,
+          orderId: parseInt(orderId),
+          amount: order.riderPayout,
+          date: new Date()
+        }
+      });
+
+      return updated;
     });
 
     res.json({ order: updatedOrder });
@@ -923,7 +943,8 @@ router.get("/nearby-orders", authenticate(["RIDER"]), async (req: any, res: any)
     const orders = await prisma.order.findMany({
       where: {
         status: 'READY_FOR_PICKUP',
-        riderId: null // Not yet assigned
+        riderId: null, // Not yet assigned
+        ...PAID_OR_NON_CARD
       },
       include: {
         restaurant: {

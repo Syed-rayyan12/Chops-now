@@ -1,12 +1,13 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import prisma from "../config/db";
-import jwt from "jsonwebtoken";
+import { generateToken } from "../utils/jwt";
+import { calculateOrderPricing } from "../utils/pricing";
+import { notifyOrderPlaced } from "../utils/orderNotifications";
 import { authenticate } from "../middlewares/auth";
 import { logger } from "../utils/logger";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 
 logger.debug("✅ auth.ts loaded");
 
@@ -62,7 +63,7 @@ router.post("/google", async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    const token = generateToken({ id: user.id, role: user.role });
 
     // Return user data and token
     const { password: _pw, ...userWithoutPassword } = user;
@@ -243,7 +244,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    const token = generateToken({ id: user.id, role: user.role });
 
   // Return only email and token for login
   res.json({ email: user.email, token });
@@ -487,66 +488,55 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Calculate totals
-    const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-    
-    // Get restaurant delivery fee and location
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: restaurantId },
-      select: { 
-        name: true,
-        deliveryFee: true,
-        latitude: true,
-        longitude: true
-      }
+    // SECURITY: item prices are looked up server-side from the database and never
+    // trusted from the client. calculateOrderPricing validates that every item
+    // belongs to this restaurant and is available, and derives every fee/total
+    // authoritatively so a tampered cart or edited localStorage cannot alter pricing.
+    const pricingResult = await calculateOrderPricing({
+      restaurantId,
+      items,
+      customerLatitude,
+      customerLongitude,
     });
 
-    if (!restaurant) {
-      return res.status(404).json({ message: "Restaurant not found" });
+    if (!pricingResult.ok) {
+      return res.status(pricingResult.status).json({ message: pricingResult.message });
     }
 
-    const deliveryFee = restaurant.deliveryFee || 2.50; // Default £2.50 if not set
-    
-    // NEW FLOW: Calculate ChopNow service fee (15% of food subtotal)
-    const serviceFee = subtotal * 0.15;
-    
-    // NEW FLOW: Restaurant gets 100% of food price
-    const restaurantPayout = subtotal;
-    
-    // NEW FLOW: ChopNow platform revenue (service fee)
-    const platformRevenue = serviceFee;
-    
-    // NEW FLOW: Rider gets 100% of delivery fee (will be set when order is accepted)
-    const riderPayout = deliveryFee;
-    
-    const tip = 0; // Can be added from frontend
-    
-    // Total amount customer pays: food + service fee + delivery
-    const amount = subtotal + serviceFee + deliveryFee;
+    const {
+      subtotal,
+      serviceFee,
+      deliveryFee,
+      restaurantPayout,
+      platformRevenue,
+      riderPayout,
+      tip,
+      amount,
+      distanceKm,
+      lineItems,
+      restaurantName,
+    } = pricingResult.pricing;
 
     // Generate unique order code
     const code = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // Calculate distance if both customer and restaurant have locations
-    let distanceKm = null;
-    if (customerLatitude && customerLongitude && restaurant.latitude && restaurant.longitude) {
-      const { calculateDistance } = await import('../utils/location');
-      distanceKm = calculateDistance(
-        customerLatitude,
-        customerLongitude,
-        restaurant.latitude,
-        restaurant.longitude
-      );
-    }
+    // Normalize the payment method. Card orders are created UNPAID — the client
+    // can never mark an order paid. Only the Stripe webhook flips paymentStatus
+    // to PAID after a verified payment_intent.succeeded event, and until then the
+    // order is hidden from restaurants/riders.
+    const normalizedPaymentMethod =
+      String(paymentMethod).toUpperCase() === "CARD" ? "CARD" : "CASH";
 
     // Create order with items and location
     const order = await prisma.order.create({
-      
+
       data: {
         code,
         customerId: userId,
         restaurantId,
         status: 'PENDING',
+        paymentMethod: normalizedPaymentMethod,
+        paymentStatus: 'PENDING',
         subTotal: subtotal,
         serviceFee: serviceFee,
         deliveryFee,
@@ -561,11 +551,11 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
         customerLongitude: customerLongitude || null,
         distanceKm: distanceKm,
         items: {
-          create: items.map((item: any) => ({
-            title: item.title || item.name || 'Item',
-            qty: item.quantity,
-            unitPrice: Number(item.price),
-            total: Number(item.price) * item.quantity,
+          create: lineItems.map((item) => ({
+            title: item.title,
+            qty: item.qty,
+            unitPrice: item.unitPrice,
+            total: item.total,
           }))
         }
       },
@@ -584,56 +574,15 @@ router.post("/orders", authenticate(["USER"]), async (req: any, res) => {
       }
     });
 
-    // Create notification for restaurant about new order
-    await prisma.notification.create({
-      data: {
-        type: "ORDER_STATUS",
-        title: "New Order Received",
-        message: `New order #${code} from ${customerName}`,
-        recipientRole: "RESTAURANT",
-        recipientId: restaurantId,
-        isRead: false,
-        metadata: JSON.stringify({
-          orderId: order.id,
-          orderCode: code,
-          customerId: userId,
-          customerName,
-          amount,
-          items: items.length
-        })
-      }
-    });
-
-    // Send order confirmation email to customer
-    try {
-      const { sendOrderConfirmationEmail } = await import('../config/email.config');
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      
-      if (user && user.email) {
-        await sendOrderConfirmationEmail({
-          customerEmail: user.email,
-          customerName: `${user.firstName} ${user.lastName}`,
-          orderCode: code,
-          restaurantName: restaurant.name,
-          items: order.items.map(item => ({
-            title: item.title,
-            qty: item.qty,
-            unitPrice: Number(item.unitPrice)
-          })),
-          subtotal,
-          serviceFee,
-          deliveryFee,
-          total: amount,
-          deliveryAddress
-        });
-        logger.debug('✅ Order confirmation email sent');
-      }
-    } catch (emailError) {
-      logger.error('⚠️ Failed to send order confirmation email:', emailError);
-      // Don't fail the order if email fails
+    // For CASH the order is live immediately, so notify the restaurant and email
+    // the customer now. For CARD these side effects are deferred to the Stripe
+    // webhook (after paymentStatus=PAID) so nobody is alerted about an order that
+    // has not actually been paid for.
+    if (normalizedPaymentMethod === "CASH") {
+      await notifyOrderPlaced(order.id);
     }
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: "Order placed successfully! 🎉",
       order 
     });

@@ -106,6 +106,8 @@ model Order {
   restaurantId      Int
   riderId           Int?
   status            OrderStatus @default(PENDING)
+  paymentMethod     String        @default("CASH")
+  paymentStatus     PaymentStatus @default(PENDING)
   subTotal          Decimal     @db.Decimal(10, 2)
   serviceFee        Decimal     @db.Decimal(10, 2) @default(0)
   deliveryFee       Decimal     @db.Decimal(10, 2)
@@ -269,6 +271,12 @@ enum OrderStatus {
   PICKED_UP
   DELIVERED
   CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }
 
 model RestaurantTransaction {

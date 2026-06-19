@@ -8,6 +8,7 @@ import multer from "multer";
 import path from "path";
 import { uploadToR2 } from "../config/r2";
 import { logger } from "../utils/logger";
+import { PAID_OR_NON_CARD, isOrderActionable } from "../utils/orderVisibility";
 
 const router = Router();
 
@@ -852,7 +853,8 @@ router.get(
         return res.status(403).json({ message: "Not authorized" });
       }
 
-      const whereClause: any = { restaurantId: restaurant.id };
+      // Hide unpaid card orders — they are not real, payable orders yet.
+      const whereClause: any = { restaurantId: restaurant.id, ...PAID_OR_NON_CARD };
       if (status) {
         whereClause.status = status;
       }
@@ -924,9 +926,34 @@ router.patch(
         return res.status(404).json({ message: "Order not found" });
       }
 
-      const validStatuses = ['PENDING', 'PREPARING', 'READY_FOR_PICKUP', 'PICKED_UP', 'DELIVERED', 'CANCELLED'];
-      if (status && !validStatuses.includes(status)) {
-        return res.status(400).json({ message: "Invalid status" });
+      // An unpaid card order is not actionable until Stripe confirms payment.
+      if (!isOrderActionable(order)) {
+        return res.status(403).json({ message: "Card order is awaiting payment confirmation" });
+      }
+
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+
+      // Enforce the order lifecycle. A restaurant may only advance an order through
+      // the states it owns and cannot skip steps (e.g. PENDING → DELIVERED) or take
+      // over rider-owned transitions (PICKED_UP / DELIVERED). This stops the generic
+      // update from bypassing rider assignment, timestamps and earnings that the
+      // dedicated endpoints set.
+      const allowedTransitions: Record<string, string[]> = {
+        PENDING: ['PREPARING', 'CANCELLED'],
+        PREPARING: ['READY_FOR_PICKUP', 'CANCELLED'],
+        READY_FOR_PICKUP: ['CANCELLED'],
+        PICKED_UP: [],
+        DELIVERED: [],
+        CANCELLED: [],
+      };
+
+      const permitted = allowedTransitions[order.status] || [];
+      if (!permitted.includes(status)) {
+        return res.status(400).json({
+          message: `Cannot change order status from ${order.status} to ${status}`,
+        });
       }
 
       const updatedOrder = await prisma.order.update({
@@ -992,6 +1019,11 @@ router.patch(
 
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
+      }
+
+      // An unpaid card order is not actionable until Stripe confirms payment.
+      if (!isOrderActionable(order)) {
+        return res.status(403).json({ message: "Card order is awaiting payment confirmation" });
       }
 
       if (order.status !== 'PENDING') {

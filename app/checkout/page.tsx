@@ -30,6 +30,10 @@ export default function CheckoutPage() {
   const [restaurantData, setRestaurantData] = useState<any>(null)
   const [distanceKm, setDistanceKm] = useState<number>(0)
   const [calculatedDeliveryFee, setCalculatedDeliveryFee] = useState<number>(0)
+  // For card payments: the order is created (unpaid) before payment, and these
+  // hold its id + server-authoritative amount so Stripe charges against it.
+  const [cardOrderId, setCardOrderId] = useState<number | null>(null)
+  const [cardAmount, setCardAmount] = useState<number>(0)
   
   type CheckoutForm = {
     name: string;
@@ -146,18 +150,31 @@ export default function CheckoutPage() {
     fetchRestaurantAndCalculateDistance()
   }, [items, router, toast])
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  // If the user edits delivery details, the cart, or the payment method after
+  // pressing "Continue to Payment", invalidate the created (unpaid) card order so
+  // a payment can never be applied to stale order details. They must re-confirm,
+  // which creates a fresh order from the current inputs.
+  useEffect(() => {
+    setCardOrderId(null)
+    setCardAmount(0)
+  }, [
+    formData.name,
+    formData.phone,
+    formData.address,
+    formData.instructions,
+    formData.paymentMethod,
+    items,
+  ])
+
+  const validateDeliveryForm = (): boolean => {
     if (!formData.name || !formData.phone || !formData.address) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
         variant: "destructive",
       })
-      return
+      return false
     }
-
     // Backend requires customerEmail even if not shown in UI
     if (!customerEmail) {
       toast({
@@ -165,51 +182,63 @@ export default function CheckoutPage() {
         description: "Your account email is missing. Please update your profile and try again.",
         variant: "destructive",
       })
-      return
+      return false
     }
+    return true
+  }
+
+  // Build the order payload from the current form + cart. Item prices are
+  // recomputed authoritatively on the server; what we send only identifies the
+  // items (menuItemId) and their quantities.
+  const buildOrderPayload = (paymentMethod: string) => {
+    const restaurantId = items[0]?.restaurantId
+    if (!restaurantId) {
+      throw new Error("Restaurant information missing")
+    }
+
+    // @ts-ignore
+    const orderItems = items.map(item => ({
+      menuItemId: item.menuItem?.id,
+      title: item.menuItem?.name || "",
+      quantity: item.quantity,
+      price: item.menuItem?.price || 0,
+    }))
+
+    // Get saved GPS coordinates
+    let customerLatitude, customerLongitude
+    try {
+      const coords = localStorage.getItem("user_coords")
+      if (coords) {
+        const parsed = JSON.parse(coords)
+        customerLatitude = parsed.latitude
+        customerLongitude = parsed.longitude
+      }
+    } catch (err) {
+      logger.warn("No GPS coordinates available")
+    }
+
+    return {
+      restaurantId,
+      items: orderItems,
+      deliveryAddress: formData.address,
+      deliveryInstructions: formData.instructions || "",
+      paymentMethod,
+      customerName: formData.name,
+      customerEmail,
+      customerPhone: formData.phone,
+      customerLatitude,
+      customerLongitude,
+    }
+  }
+
+  // Cash on Delivery: the order is placed immediately.
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateDeliveryForm()) return
 
     try {
       setIsLoading(true)
-
-      const restaurantId = items[0]?.restaurantId
-      if (!restaurantId) {
-        throw new Error("Restaurant information missing")
-      }
-
-      // @ts-ignore
-      const orderItems = items.map(item => ({
-        title: item.menuItem?.name || "",
-        quantity: item.quantity,
-        price: item.menuItem?.price || 0,
-      }))
-
-      // Get saved GPS coordinates
-      let customerLatitude, customerLongitude
-      try {
-        const coords = localStorage.getItem("user_coords")
-        if (coords) {
-          const parsed = JSON.parse(coords)
-          customerLatitude = parsed.latitude
-          customerLongitude = parsed.longitude
-        }
-      } catch (err) {
-        logger.warn("No GPS coordinates available")
-      }
-
-      const orderPayload = {
-        restaurantId,
-        items: orderItems,
-        deliveryAddress: formData.address,
-        deliveryInstructions: formData.instructions || "",
-        paymentMethod: formData.paymentMethod,
-        customerName: formData.name,
-        customerEmail,
-        customerPhone: formData.phone,
-        customerLatitude,
-        customerLongitude,
-      }
-
-      await customerOrders.create(orderPayload)
+      await customerOrders.create(buildOrderPayload("CASH"))
       clearCart()
 
       toast({
@@ -221,7 +250,6 @@ export default function CheckoutPage() {
       setTimeout(() => {
         router.push("/profile?tab=orders")
       }, 3000)
-
     } catch (error: any) {
       logger.error("Order error:", error)
       toast({
@@ -234,59 +262,38 @@ export default function CheckoutPage() {
     }
   }
 
-  // Handle successful Stripe payment
-  const handlePaymentSuccess = async () => {
+  // Card: create the order FIRST (as UNPAID), then reveal the Stripe form which
+  // pays against that order id. The order becomes visible/actionable to the
+  // restaurant only once Stripe confirms payment via webhook — so a failed or
+  // abandoned payment can never leave the customer charged with no order, nor
+  // leave an unpaid order live on the restaurant's dashboard.
+  const handleCardContinue = async () => {
+    if (!validateDeliveryForm()) return
+
     try {
-      const restaurantId = items[0]?.restaurantId
-      if (!restaurantId) {
-        throw new Error("Restaurant information missing")
-      }
-
-      // @ts-ignore
-      const orderItems = items.map(item => ({
-        title: item.menuItem?.name || "",
-        quantity: item.quantity,
-        price: item.menuItem?.price || 0,
-      }))
-
-      // Get saved GPS coordinates
-      let customerLatitude, customerLongitude
-      try {
-        const coords = localStorage.getItem("user_coords")
-        if (coords) {
-          const parsed = JSON.parse(coords)
-          customerLatitude = parsed.latitude
-          customerLongitude = parsed.longitude
-        }
-      } catch (err) {
-        logger.warn("No GPS coordinates available")
-      }
-
-      const orderPayload = {
-        restaurantId,
-        items: orderItems,
-        deliveryAddress: formData.address,
-        deliveryInstructions: formData.instructions || "",
-        paymentMethod: "CARD",
-        customerName: formData.name,
-        customerEmail,
-        customerPhone: formData.phone,
-        customerLatitude,
-        customerLongitude,
-      }
-
-      await customerOrders.create(orderPayload)
-      clearCart()
-
-      router.push("/profile?tab=orders")
+      setIsLoading(true)
+      const res = await customerOrders.create(buildOrderPayload("CARD"))
+      setCardOrderId(res.order.id)
+      setCardAmount(Number(res.order.amount))
     } catch (error: any) {
-      logger.error("Order creation error:", error)
+      logger.error("Card order creation error:", error)
       toast({
-        title: "Order Failed",
-        description: "Payment succeeded but order creation failed. Please contact support.",
+        title: "Could not start payment",
+        description: error.message || "Failed to prepare your order. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  // Stripe payment succeeded. The order already exists and the webhook marks it
+  // paid, so just clear the cart and route to the customer's orders.
+  const handlePaymentSuccess = async () => {
+    clearCart()
+    setTimeout(() => {
+      router.push("/profile?tab=orders")
+    }, 1500)
   }
 
   // Handle Stripe payment error
@@ -433,14 +440,33 @@ export default function CheckoutPage() {
               </form>
             )}
 
-            {/* Stripe Payment Form - Shows when CARD is selected */}
+            {/* Stripe Payment - order is created first, then paid against its id */}
             {formData.paymentMethod === "CARD" && (
               <div className="p-4 border rounded-lg bg-gray-50/50">
-                <StripePaymentForm
-                  amount={grandTotal}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                />
+                {cardOrderId ? (
+                  <StripePaymentForm
+                    orderId={cardOrderId}
+                    amount={cardAmount || grandTotal}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleCardContinue}
+                    disabled={isLoading}
+                    className="w-full h-12 text-lg bg-secondary hover:bg-secondary/90"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Preparing Payment...
+                      </>
+                    ) : (
+                      `Continue to Payment - £${grandTotal.toFixed(2)}`
+                    )}
+                  </Button>
+                )}
               </div>
             )}
           </div>
