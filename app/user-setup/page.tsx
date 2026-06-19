@@ -130,9 +130,9 @@ export default function UserSetupPage() {
           duration: 2000,
         })
 
-        // Redirect to customer panel
+        // Redirect to home
         setTimeout(() => {
-          router.push('/customer-panel')
+          router.push('/')
         }, 1000)
       } else {
         throw new Error(data.message || 'Failed to complete profile')

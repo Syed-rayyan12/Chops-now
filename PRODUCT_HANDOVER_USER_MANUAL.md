@@ -28,7 +28,7 @@ Live website: https://www.chopnow.co.uk/
 - Admin Sign In: https://www.chopnow.co.uk/admin-signin
 
 ### Dashboard Access
-- User Area: https://www.chopnow.co.uk/customer-panel
+- User Area: https://www.chopnow.co.uk/
 - User Profile and Orders: https://www.chopnow.co.uk/profile
 - Restaurant Dashboard: https://www.chopnow.co.uk/restaurant-dashboard
 - Rider Dashboard: https://www.chopnow.co.uk/rider-dashboard

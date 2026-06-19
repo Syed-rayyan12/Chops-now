@@ -18,7 +18,6 @@ const DASHBOARD_GUARDS: { prefix: string; role: string; signIn: string }[] = [
   { prefix: "/restaurant-dashboard", role: "RESTAURANT", signIn: "/restaurant-signIn" },
   { prefix: "/restaurant-profile", role: "RESTAURANT", signIn: "/restaurant-signIn" },
   { prefix: "/rider-dashboard", role: "RIDER", signIn: "/rider-signIn" },
-  { prefix: "/customer-panel", role: "USER", signIn: "/user-signIn" },
   // Onboarding pages — reached only via OAuth callback, which sets the role
   // cookie before redirecting here, so a legit user always matches.
   { prefix: "/restaurant-setup", role: "RESTAURANT", signIn: "/restaurant-signIn" },
@@ -93,7 +92,6 @@ export const config = {
     "/restaurant-dashboard/:path*",
     "/restaurant-profile/:path*",
     "/rider-dashboard/:path*",
-    "/customer-panel/:path*",
     "/restaurant-setup/:path*",
     "/rider-setup/:path*",
     "/user-setup/:path*",

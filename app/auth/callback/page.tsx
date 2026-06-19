@@ -31,7 +31,7 @@ function GoogleCallbackContent() {
       setIsProcessing(true)
 
       // Parse state to get role and redirect URL
-      let roleInfo = { role: 'USER', redirect: '/customer-panel' }
+      let roleInfo = { role: 'USER', redirect: '/' }
       try {
         if (stateParam) {
           roleInfo = JSON.parse(decodeURIComponent(stateParam))
