@@ -16,62 +16,16 @@ router.get("/ping", (req, res) => {
   res.send("Auth router working ✅");
 });
 
-// Google OAuth Signup/Login
-router.post("/google", async (req, res) => {
-  try {
-    const { email, firstName, lastName, image, googleId } = req.body;
-
-    // Validate required field
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
-    }
-
-    // Check if user already exists
-    let user = await prisma.user.findFirst({
-      where: { email: email.toLowerCase() }
-    });
-
-    if (!user) {
-      // Create new user from Google data
-      const nameParts = firstName || lastName 
-        ? { firstName: firstName || '', lastName: lastName || '' }
-        : { firstName: email.split('@')[0], lastName: '' };
-
-      user = await prisma.user.create({
-        data: {
-          email: email.toLowerCase(),
-          firstName: nameParts.firstName,
-          lastName: nameParts.lastName,
-          password: '', // No password for OAuth users
-          role: "USER",
-          phone: null,
-        },
-      });
-
-      // Send welcome email
-      try {
-        const { sendWelcomeEmail } = await import('../config/email.config');
-        await sendWelcomeEmail({
-          email: user.email,
-          firstName: user.firstName,
-          role: 'USER'
-        });
-        logger.debug('✅ Welcome email sent to Google user');
-      } catch (emailError) {
-        logger.error('⚠️ Failed to send welcome email:', emailError);
-      }
-    }
-
-    // Generate JWT token
-    const token = generateToken({ id: user.id, role: user.role });
-
-    // Return user data and token
-    const { password: _pw, ...userWithoutPassword } = user;
-    res.status(200).json({ user: userWithoutPassword, token });
-  } catch (err: any) {
-    logger.error("Google OAuth error:", err);
-    res.status(500).json({ message: "Google authentication failed", error: err.message });
-  }
+// DEPRECATED — Google OAuth is handled exclusively by POST /api/oauth/google,
+// which validates the authorization code with Google and trusts only Google's
+// verified_email. This legacy endpoint trusted an email supplied in the request
+// body and minted a JWT from it, allowing account takeover by anyone who knew a
+// victim's email. It is intentionally disabled (410 Gone) rather than removed so
+// any stale client gets a clear, non-silent failure instead of a 404.
+router.post("/google", (_req, res) => {
+  return res.status(410).json({
+    message: "This endpoint has been removed. Use POST /api/oauth/google instead.",
+  });
 });
 
 // Signup

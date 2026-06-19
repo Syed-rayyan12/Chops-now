@@ -63,8 +63,12 @@ function GoogleCallbackContent() {
 
         // Check if this is a new user (needs profile completion)
         const isNewUser = backendData.isNewUser === true
-        const requiresOTPVerification = backendData.requiresOTPVerification === true
         const needsSetup = backendData.needsSetup === true
+
+        // Google verifies the email (backend enforces verified_email), so OAuth
+        // accounts never go through OTP. Clear any stale flag so the setup pages
+        // never show an OTP requirement to a Google-verified user.
+        localStorage.removeItem('requiresOTPVerification')
 
         // Store token and email based on role
         if (roleInfo.role === 'RESTAURANT') {
@@ -77,31 +81,16 @@ function GoogleCallbackContent() {
             localStorage.setItem('restaurantSlug', backendData.user.slug)
             localStorage.setItem('restaurantData', JSON.stringify(backendData.user))
           }
-          
-          // Set OTP flag based on backend response
-          if (requiresOTPVerification) {
-            localStorage.setItem('requiresOTPVerification', 'true')
-          }
-        } else if (roleInfo.role === 'RIDER') {
+                  } else if (roleInfo.role === 'RIDER') {
           localStorage.setItem('riderToken', backendData.token)
           localStorage.setItem('riderEmail', backendData.user.email)
           localStorage.setItem('riderData', JSON.stringify(backendData.user))
           setRoleCookie("RIDER")
-
-          // Set OTP flag based on backend response
-          if (requiresOTPVerification) {
-            localStorage.setItem('requiresOTPVerification', 'true')
-          }
         } else {
           // USER role
           localStorage.setItem('token', backendData.token)
           localStorage.setItem('userEmail', backendData.user.email)
           setRoleCookie("USER")
-
-          // Set OTP flag based on backend response
-          if (requiresOTPVerification) {
-            localStorage.setItem('requiresOTPVerification', 'true')
-          }
         }
 
         // Determine redirect based on role and profile completion

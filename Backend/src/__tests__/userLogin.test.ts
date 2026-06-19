@@ -77,3 +77,18 @@ describe("POST /user/login email verification", () => {
     expect(res.body.token).toBeUndefined();
   });
 });
+
+describe("POST /user/google (legacy, disabled)", () => {
+  it("returns 410 Gone and never issues a token", async () => {
+    mockPrisma.user.findFirst.mockClear();
+
+    const res = await request(makeApp())
+      .post("/user/google")
+      .send({ email: "attacker@example.com", firstName: "Mal", lastName: "Ory" });
+
+    expect(res.status).toBe(410);
+    expect(res.body.token).toBeUndefined();
+    // The legacy handler must not touch the DB at all.
+    expect(mockPrisma.user.findFirst).not.toHaveBeenCalled();
+  });
+});
