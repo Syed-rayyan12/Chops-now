@@ -2,7 +2,7 @@
 // User API - All user-related endpoints
 // ============================================
 
-import { apiRequest } from "./client";
+import { apiRequest, apiRequestFormData } from "./client";
 import { STORAGE_KEYS } from "./config";
 
 // ============================================
@@ -70,18 +70,45 @@ export const userAuth = {
 // Profile Management
 // ============================================
 
+export interface UpdateProfilePayload {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  /** New profile picture to upload to R2. */
+  imageFile?: File | null;
+  /** Clear the existing profile picture. */
+  removeImage?: boolean;
+}
+
 export const userProfile = {
   get: () =>
     apiRequest<{ user: UserProfile }>("/user/profile", {
       tokenKey: STORAGE_KEYS.USER_TOKEN,
     }).then((res) => res.user),
 
-  update: (data: Partial<UserProfile>) =>
-    apiRequest<{ user: UserProfile }>("/user/profile", {
+  // Sent as multipart/form-data so the photo is uploaded to R2 (stored as a
+  // URL) instead of being inlined as a base64 blob in the database.
+  update: (data: UpdateProfilePayload) => {
+    const form = new FormData();
+    if (data.firstName !== undefined) form.append("firstName", data.firstName);
+    if (data.lastName !== undefined) form.append("lastName", data.lastName);
+    if (data.email !== undefined) form.append("email", data.email);
+    if (data.phone !== undefined) form.append("phone", data.phone ?? "");
+    if (data.address !== undefined) form.append("address", data.address ?? "");
+    if (data.imageFile) {
+      form.append("image", data.imageFile);
+    } else if (data.removeImage) {
+      // Empty value signals explicit removal to the backend.
+      form.append("image", "");
+    }
+
+    return apiRequestFormData<{ user: UserProfile }>("/user/profile", form, {
       method: "PUT",
       tokenKey: STORAGE_KEYS.USER_TOKEN,
-      body: JSON.stringify(data),
-    }).then((res) => res.user),
+    }).then((res) => res.user);
+  },
 };
 
 // ============================================

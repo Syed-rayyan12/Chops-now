@@ -25,7 +25,6 @@ type EditForm = {
   email: string
   phone: string
   address: string
-  image?: string | null
 }
 
 const ubuntu = Ubuntu({
@@ -45,14 +44,16 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const fileInputRef = useState<HTMLInputElement | null>(null)[1]
+  // Staged profile picture: the file to upload (if any) and whether the user
+  // chose to clear their existing photo.
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [removeImage, setRemoveImage] = useState(false)
   const [editForm, setEditForm] = useState<EditForm>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     address: "",
-    image: null,
   })
 
   useEffect(() => {
@@ -85,7 +86,6 @@ export default function ProfilePage() {
         email: profileData.email || "",
         phone: profileData.phone || "",
         address: profileData.address || "",
-        image: profileData.image || null,
       })
     } catch (error: any) {
       logger.error("Failed to load profile:", error)
@@ -141,9 +141,20 @@ export default function ProfilePage() {
           const ctx = canvas.getContext('2d')
           ctx?.drawImage(img, 0, 0, width, height)
 
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
-          setImagePreview(compressedBase64)
-          setEditForm({ ...editForm, image: compressedBase64 })
+          // Compress to a JPEG file that gets uploaded to R2 on save.
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return
+              const compressed = new File([blob], `profile-${Date.now()}.jpg`, {
+                type: "image/jpeg",
+              })
+              setImageFile(compressed)
+              setRemoveImage(false)
+              setImagePreview(URL.createObjectURL(blob))
+            },
+            "image/jpeg",
+            0.7
+          )
         }
         img.src = event.target?.result as string
       }
@@ -153,14 +164,22 @@ export default function ProfilePage() {
 
   const handleRemoveImage = () => {
     setImagePreview(null)
-    setEditForm({ ...editForm, image: null })
+    setImageFile(null)
+    setRemoveImage(true)
   }
 
   const handleSaveProfile = async () => {
     setIsSaving(true)
     try {
-      const updatedUser = await updateUserProfile(editForm)
+      const updatedUser = await updateUserProfile({
+        ...editForm,
+        imageFile,
+        removeImage,
+      })
       setUser(updatedUser)
+      setImagePreview(updatedUser.image || null)
+      setImageFile(null)
+      setRemoveImage(false)
       setIsEditing(false)
       // sync email in local storage so other places (fallback) are up to date
       if (updatedUser?.email) {
@@ -276,6 +295,9 @@ export default function ProfilePage() {
                         size="sm"
                         onClick={() => {
                           setIsEditing(false)
+                          setImageFile(null)
+                          setRemoveImage(false)
+                          setImagePreview(user?.image || null)
                         }}
                         disabled={isSaving}
                       >

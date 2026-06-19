@@ -1,13 +1,28 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import multer from "multer";
 import prisma from "../config/db";
 import { generateToken } from "../utils/jwt";
 import { calculateOrderPricing } from "../utils/pricing";
 import { notifyOrderPlaced } from "../utils/orderNotifications";
 import { authenticate } from "../middlewares/auth";
+import { uploadToR2, deleteFromR2 } from "../config/r2";
 import { logger } from "../utils/logger";
 
 const router = Router();
+
+// Memory storage for the customer profile picture, uploaded to R2 like every
+// other image in the app (restaurants, riders, menu items) rather than stored
+// as a base64 blob in the DB.
+const profileImageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("Only JPEG, PNG, GIF, and WebP images are allowed"));
+  },
+}).single("image");
 
 logger.debug("✅ auth.ts loaded");
 
@@ -232,6 +247,7 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
         email: true,
         phone: true,
         address: true,
+        image: true,
         role: true,
         createdAt: true,
       },
@@ -247,19 +263,23 @@ router.get("/profile", authenticate(["USER"]), async (req: any, res) => {
 });
 
 // Protected: Update current user's profile
-router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
+router.put("/profile", authenticate(["USER"]), profileImageUpload, async (req: any, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, email, phone, address, image } = req.body as {
+    const { firstName, lastName, email, phone, address } = req.body as {
       firstName?: string;
       lastName?: string;
       email?: string;
       phone?: string | null;
       address?: string | null;
-      image?: string | null;
     };
 
-    if (!firstName && !lastName && !email && !phone && address === undefined && image === undefined) {
+    // Image arrives as an uploaded file (req.file). An empty/"null" `image`
+    // text field signals explicit removal.
+    const removeImage = req.body.image === "" || req.body.image === "null";
+    const hasImageChange = !!req.file || removeImage;
+
+    if (!firstName && !lastName && !email && !phone && address === undefined && !hasImageChange) {
       return res.status(400).json({ message: "At least one field is required" });
     }
 
@@ -312,8 +332,21 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
     if (address !== undefined) {
       updates.address = address ?? null;
     }
-    if (image !== undefined) {
-      updates.image = image ?? null;
+
+    // Profile picture: upload to R2 and store the URL (matching restaurants,
+    // riders, and menu items), or clear it. Any previous R2 object is deleted
+    // so we don't leak orphaned files.
+    if (hasImageChange) {
+      const existing = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { image: true },
+      });
+      if (existing?.image && existing.image.includes("r2.dev")) {
+        await deleteFromR2(existing.image);
+      }
+      updates.image = req.file
+        ? await uploadToR2(req.file.buffer, req.file.originalname, "user-profiles")
+        : null;
     }
 
     const updatedUser = await prisma.user.update({
@@ -326,6 +359,7 @@ router.put("/profile", authenticate(["USER"]), async (req: any, res) => {
         email: true,
         phone: true,
         address: true,
+        image: true,
         role: true,
         createdAt: true,
       },
