@@ -9,8 +9,11 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
 
-export const generateToken = (payload: object) => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+export const generateToken = (
+  payload: object,
+  expiresIn: jwt.SignOptions["expiresIn"] = "7d"
+) => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 };
 
 export const verifyToken = (token: string) => {

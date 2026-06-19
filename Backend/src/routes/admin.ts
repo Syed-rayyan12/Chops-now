@@ -30,8 +30,10 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate token
-    const token = generateToken({ email: admin.email, role: "ADMIN", id: admin.id });
+    // Admin tokens are short-lived (12h vs the 7d default). Combined with the
+    // per-request DB re-check in `authenticate`, this limits how long a deleted
+    // or downgraded admin's token keeps working.
+    const token = generateToken({ email: admin.email, role: "ADMIN", id: admin.id }, "12h");
     res.json({
       token,
       user: {
@@ -683,6 +685,7 @@ router.get("/riders", authenticate(["ADMIN"]), async (req, res) => {
         email: true,
         phone: true,
         isOnline: true,
+        approvalStatus: true,
         createdAt: true,
       },
       orderBy: {
@@ -730,6 +733,7 @@ router.get("/riders", authenticate(["ADMIN"]), async (req, res) => {
         email: rider.email,
         phone: rider.phone || "N/A",
         status: riderStatus,
+        approvalStatus: rider.approvalStatus,
         joinDate: rider.createdAt.toISOString().split('T')[0],
         totalDeliveries: orders.filter((o: any) => o.status === "DELIVERED").length,
         earnings: totalEarnings,
@@ -779,6 +783,7 @@ router.get("/riders/:id", authenticate(["ADMIN"]), async (req, res) => {
         image: true,
         isOnline: true,
         isEmailVerified: true,
+        approvalStatus: true,
         deliveryPartnerAgreementAccepted: true,
         latitude: true,
         longitude: true,
@@ -865,6 +870,7 @@ router.get("/riders/:id", authenticate(["ADMIN"]), async (req, res) => {
         image: rider.image || null,
         isOnline: rider.isOnline,
         isEmailVerified: rider.isEmailVerified,
+        approvalStatus: rider.approvalStatus,
         deliveryPartnerAgreementAccepted: rider.deliveryPartnerAgreementAccepted,
         latitude: rider.latitude,
         longitude: rider.longitude,
@@ -1268,9 +1274,12 @@ router.put("/riders/:id/approve", authenticate(["ADMIN"]), async (req, res) => {
       return res.status(404).json({ message: "Rider not found" });
     }
 
-    // Update rider approval status (you may want to add an 'approved' field to Rider model)
-    // For now, we'll just use this endpoint to send emails
-    // Consider adding: approved Boolean @default(false) to Rider model
+    // Persist the decision on the Rider row. This is the source of truth that
+    // rider login, online toggle, and order-accept all enforce.
+    const updatedRider = await prisma.rider.update({
+      where: { id: numericId },
+      data: { approvalStatus: approved ? "APPROVED" : "REJECTED" },
+    });
 
     // Send approval/rejection email
     try {
@@ -1286,9 +1295,9 @@ router.put("/riders/:id/approve", authenticate(["ADMIN"]), async (req, res) => {
       logger.error('⚠️ Failed to send rider status email:', emailError);
     }
 
-    res.json({ 
+    res.json({
       message: approved ? "Rider approved successfully" : "Rider rejected",
-      rider 
+      rider: updatedRider,
     });
   } catch (error) {
     logger.error("Error updating rider status:", error);

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import multer from "multer";
 import type { Prisma } from "@prisma/client";
 import prisma from "../config/db";
-import { authenticate } from "../middlewares/auth";
+import { authenticate, requireApprovedRider } from "../middlewares/auth";
 import { uploadToR2, deleteFromR2 } from "../config/r2";
 import { logger } from "../utils/logger";
 import { generateToken } from "../utils/jwt";
@@ -227,10 +227,24 @@ router.post("/login", async (req, res) => {
 
     // ✅ Check if email is verified
     if (!rider.isEmailVerified) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "Please verify your email before logging in. Check your inbox for the verification code.",
         requiresVerification: true,
         email: rider.email
+      });
+    }
+
+    // ✅ Enforce admin approval. A verified rider still cannot operate until an
+    // admin approves them (persisted on the Rider row), so a self-service signup
+    // can't immediately start accepting deliveries.
+    if (rider.approvalStatus !== "APPROVED") {
+      return res.status(403).json({
+        message:
+          rider.approvalStatus === "REJECTED"
+            ? "Your rider application was not approved. Please contact support."
+            : "Your rider account is pending admin approval. You'll be notified once it's approved.",
+        approvalStatus: rider.approvalStatus,
+        pendingApproval: rider.approvalStatus === "PENDING",
       });
     }
 
@@ -429,7 +443,7 @@ router.put("/update-profile", authenticate(["RIDER"]), profileImageUpload, async
 // ============================================
 
 // GET - Rider stats
-router.get("/stats", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.get("/stats", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
 
@@ -458,7 +472,7 @@ router.get("/stats", authenticate(["RIDER"]), async (req: any, res: any) => {
 });
 
 // GET - Rider earnings (today and this week)
-router.get("/earnings", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.get("/earnings", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
 
@@ -497,7 +511,7 @@ router.get("/earnings", authenticate(["RIDER"]), async (req: any, res: any) => {
 });
 
 // GET - Available orders (READY_FOR_PICKUP)
-router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: any) => {
+router.get("/orders/available", authenticate(["RIDER"]), requireApprovedRider, async (_req: any, res: any) => {
   try {
     logger.debug("🔍 Fetching available orders (READY_FOR_PICKUP, riderId: null)");
     
@@ -555,7 +569,7 @@ router.get("/orders/available", authenticate(["RIDER"]), async (_req: any, res: 
 });
 
 // GET - Active orders (PICKED_UP by this rider)
-router.get("/orders/active", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.get("/orders/active", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
 
@@ -609,7 +623,7 @@ router.get("/orders/active", authenticate(["RIDER"]), async (req: any, res: any)
 });
 
 // GET - Completed orders
-router.get("/orders/completed", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.get("/orders/completed", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
 
@@ -658,7 +672,7 @@ router.get("/orders/completed", authenticate(["RIDER"]), async (req: any, res: a
 });
 
 // PATCH - Accept delivery (READY_FOR_PICKUP → PICKED_UP)
-router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const { orderId } = req.params;
     const riderId = req.user.id;
@@ -741,7 +755,7 @@ router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), async (req: any
 });
 
 // PATCH - Mark delivered (PICKED_UP → DELIVERED)
-router.patch("/orders/:orderId/deliver", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.patch("/orders/:orderId/deliver", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const { orderId } = req.params;
     const riderId = req.user.id;
@@ -804,7 +818,7 @@ router.patch("/orders/:orderId/deliver", authenticate(["RIDER"]), async (req: an
 });
 
 // GET - Recent activity
-router.get("/activity/recent", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.get("/activity/recent", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
 
@@ -841,7 +855,7 @@ router.get("/activity/recent", authenticate(["RIDER"]), async (req: any, res: an
 });
 
 // PATCH - Toggle online/offline status
-router.patch("/toggle-online", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.patch("/toggle-online", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user.id;
     const { isOnline } = req.body;
@@ -876,7 +890,7 @@ router.patch("/toggle-online", authenticate(["RIDER"]), async (req: any, res: an
 // ============================================
 // UPDATE RIDER LOCATION
 // ============================================
-router.put("/location", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.put("/location", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user?.id;
     const { latitude, longitude } = req.body;
@@ -919,7 +933,7 @@ router.put("/location", authenticate(["RIDER"]), async (req: any, res: any) => {
 // ============================================
 // GET NEARBY ORDERS (within 5km of rider)
 // ============================================
-router.get("/nearby-orders", authenticate(["RIDER"]), async (req: any, res: any) => {
+router.get("/nearby-orders", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
   try {
     const riderId = req.user?.id;
 

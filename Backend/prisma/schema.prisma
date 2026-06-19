@@ -92,6 +92,7 @@ model Rider {
   otp                              String?
   otpExpiry                        DateTime?
   isEmailVerified                  Boolean              @default(false)
+  approvalStatus                   RiderApprovalStatus  @default(PENDING)
   createdAt                        DateTime             @default(now())
   orders                           Order[]
   earnings                         Earning[]
@@ -262,6 +263,12 @@ enum Role {
   RIDER
   RESTAURANT
   ADMIN
+}
+
+enum RiderApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum OrderStatus {

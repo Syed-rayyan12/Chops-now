@@ -1,20 +1,87 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { sendOTPEmail } from "../config/email.config";
+import prisma from "../config/db";
 import { logger } from "../utils/logger";
+import { FixedWindowStore, clientIp, rateLimit } from "../utils/rateLimiter";
 
 const router = Router();
-const prisma = new PrismaClient();
 
-// Generate 6-digit OTP
+const VALID_ROLES = ["USER", "RESTAURANT", "RIDER"] as const;
+
+// Emails are normalized to a single canonical form (trimmed + lowercased) so
+// that limiter keys, DB lookups/updates, email delivery, and brute-force
+// counters all agree. Without this, "User@x.com " and "user@x.com" hit different
+// limiter buckets and different (or missing) DB rows.
+const normalizeEmail = (value: unknown): string => String(value ?? "").trim().toLowerCase();
+
+// Generic responses keep these endpoints from leaking which emails are
+// registered. A request for a non-existent account looks identical to a valid
+// one (success on /send, generic failure on /verify).
+const GENERIC_SEND_MESSAGE = "If an account exists for this email, an OTP has been sent.";
+const GENERIC_VERIFY_FAILURE = "Invalid or expired OTP. Please request a new one.";
+
+// 15-minute windows for everything below.
+const WINDOW_MS = 15 * 60 * 1000;
+
+// Per-IP caps blunt broad scanning; per-email caps blunt targeted spamming of a
+// single inbox. Both apply to /send.
+const sendByIp = rateLimit({
+  windowMs: WINDOW_MS,
+  max: 10,
+  keyGenerator: (req) => `otp-send:ip:${clientIp(req)}`,
+  message: "Too many OTP requests. Please try again later.",
+});
+const sendByEmail = rateLimit({
+  windowMs: WINDOW_MS,
+  max: 5,
+  keyGenerator: (req) => {
+    const { email, role } = req.body || {};
+    if (!email || !role) return undefined;
+    return `otp-send:email:${String(role)}:${normalizeEmail(email)}`;
+  },
+  message: "Too many OTP requests for this account. Please try again later.",
+});
+
+// /verify gets an IP cap plus a per-account failed-attempt lockout so a leaked
+// or guessed OTP can't be brute-forced (6-digit space is only 1,000,000 wide).
+const verifyByIp = rateLimit({
+  windowMs: WINDOW_MS,
+  max: 30,
+  keyGenerator: (req) => `otp-verify:ip:${clientIp(req)}`,
+  message: "Too many verification attempts. Please try again later.",
+});
+const MAX_VERIFY_FAILURES = 5;
+const verifyFailures = new FixedWindowStore(WINDOW_MS);
+const failureKey = (role: string, email: string) =>
+  `otp-verify:fail:${role}:${normalizeEmail(email)}`;
+
 const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Resolve the account row for an email+role without revealing which table
+// matched. Returns the account (or null) plus a display name.
+async function findAccount(role: string, email: string): Promise<{ name: string } | null> {
+  if (role === "USER") {
+    const user = await prisma.user.findUnique({ where: { email } });
+    return user ? { name: `${user.firstName} ${user.lastName}` } : null;
+  }
+  if (role === "RESTAURANT") {
+    const restaurant = await prisma.restaurant.findUnique({ where: { ownerEmail: email } });
+    return restaurant ? { name: `${restaurant.ownerFirstName} ${restaurant.ownerLastName}` } : null;
+  }
+  if (role === "RIDER") {
+    const rider = await prisma.rider.findUnique({ where: { email } });
+    return rider ? { name: `${rider.firstName} ${rider.lastName}` } : null;
+  }
+  return null;
+}
+
 // POST /api/otp/send - Send OTP to email
-router.post("/send", async (req: Request, res: Response) => {
+router.post("/send", sendByIp, sendByEmail, async (req: Request, res: Response) => {
   try {
-    const { email, role } = req.body;
+    const { role } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!email || !role) {
       return res.status(400).json({
@@ -23,71 +90,41 @@ router.post("/send", async (req: Request, res: Response) => {
       });
     }
 
-    // Validate role
-    if (!["USER", "RESTAURANT", "RIDER"].includes(role)) {
+    if (!VALID_ROLES.includes(role)) {
       return res.status(400).json({
         success: false,
         message: "Invalid role",
       });
     }
 
-    // Generate OTP
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Find user based on role and update OTP
-    let user: any = null;
-    let name = "";
+    const account = await findAccount(role, email);
 
-    if (role === "USER") {
-      user = await prisma.user.findUnique({ where: { email } });
-      if (user) {
-        await prisma.user.update({
-          where: { email },
-          data: { otp, otpExpiry },
-        });
-        name = `${user.firstName} ${user.lastName}`;
+    // Generic response: do not disclose whether the account exists. If it does,
+    // persist the OTP and email it; if not, we still return success.
+    if (account) {
+      if (role === "USER") {
+        await prisma.user.update({ where: { email }, data: { otp, otpExpiry } });
+      } else if (role === "RESTAURANT") {
+        // Keep User and Restaurant rows in sync for restaurant owners.
+        await prisma.user.update({ where: { email }, data: { otp, otpExpiry } });
+        await prisma.restaurant.update({ where: { ownerEmail: email }, data: { otp, otpExpiry } });
+      } else if (role === "RIDER") {
+        await prisma.rider.update({ where: { email }, data: { otp, otpExpiry } });
       }
-    } else if (role === "RESTAURANT") {
-      user = await prisma.restaurant.findUnique({ where: { ownerEmail: email } });
-      if (user) {
-        // Update both User and Restaurant tables for restaurants
-        await prisma.user.update({
-          where: { email },
-          data: { otp, otpExpiry },
-        });
-        await prisma.restaurant.update({
-          where: { ownerEmail: email },
-          data: { otp, otpExpiry },
-        });
-        name = `${user.ownerFirstName} ${user.ownerLastName}`;
-      }
-    } else if (role === "RIDER") {
-      user = await prisma.rider.findUnique({ where: { email } });
-      if (user) {
-        await prisma.rider.update({
-          where: { email },
-          data: { otp, otpExpiry },
-        });
-        name = `${user.firstName} ${user.lastName}`;
-      }
+
+      await sendOTPEmail({ email, name: account.name, otp, role: role as (typeof VALID_ROLES)[number] });
+      // Never log the OTP value itself.
+      logger.debug(`✅ OTP sent to ${email} (${role})`);
+    } else {
+      logger.debug(`OTP requested for unknown account (${role})`);
     }
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Send OTP email
-    await sendOTPEmail({ email, name, otp, role: role as "USER" | "RESTAURANT" | "RIDER" });
-
-    logger.debug(`✅ OTP sent to ${email} (${role}): ${otp}`);
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent to your email",
+      message: GENERIC_SEND_MESSAGE,
     });
   } catch (error: any) {
     logger.error("❌ OTP send error:", error);
@@ -99,9 +136,10 @@ router.post("/send", async (req: Request, res: Response) => {
 });
 
 // POST /api/otp/verify - Verify OTP
-router.post("/verify", async (req: Request, res: Response) => {
+router.post("/verify", verifyByIp, async (req: Request, res: Response) => {
   try {
-    const { email, otp, role } = req.body;
+    const { otp, role } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!email || !otp || !role) {
       return res.status(400).json({
@@ -110,17 +148,25 @@ router.post("/verify", async (req: Request, res: Response) => {
       });
     }
 
-    // Validate role
-    if (!["USER", "RESTAURANT", "RIDER"].includes(role)) {
+    if (!VALID_ROLES.includes(role)) {
       return res.status(400).json({
         success: false,
         message: "Invalid role",
       });
     }
 
+    const key = failureKey(role, email);
+
+    // Lock the account out once too many wrong codes are submitted in the window.
+    if (verifyFailures.peek(key) >= MAX_VERIFY_FAILURES) {
+      return res.status(429).json({
+        success: false,
+        message: "Too many invalid attempts. Please request a new OTP and try again later.",
+      });
+    }
+
     // Find user based on role
     let user: any = null;
-
     if (role === "USER") {
       user = await prisma.user.findUnique({ where: { email } });
     } else if (role === "RESTAURANT") {
@@ -129,34 +175,20 @@ router.post("/verify", async (req: Request, res: Response) => {
       user = await prisma.rider.findUnique({ where: { email } });
     }
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+    // Treat unknown account, missing OTP, and wrong OTP identically so the
+    // endpoint can't be used to enumerate accounts or probe OTP state.
+    const otpValid =
+      !!user &&
+      !!user.otp &&
+      !!user.otpExpiry &&
+      new Date() <= new Date(user.otpExpiry) &&
+      user.otp === otp;
 
-    // Check if OTP exists
-    if (!user.otp || !user.otpExpiry) {
+    if (!otpValid) {
+      verifyFailures.hit(key);
       return res.status(400).json({
         success: false,
-        message: "No OTP found. Please request a new one.",
-      });
-    }
-
-    // Check if OTP expired
-    if (new Date() > new Date(user.otpExpiry)) {
-      return res.status(400).json({
-        success: false,
-        message: "OTP has expired. Please request a new one.",
-      });
-    }
-
-    // Verify OTP
-    if (user.otp !== otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
+        message: GENERIC_VERIFY_FAILURE,
       });
     }
 
@@ -164,40 +196,26 @@ router.post("/verify", async (req: Request, res: Response) => {
     if (role === "USER") {
       await prisma.user.update({
         where: { email },
-        data: {
-          isEmailVerified: true,
-          otp: null,
-          otpExpiry: null,
-        },
+        data: { isEmailVerified: true, otp: null, otpExpiry: null },
       });
     } else if (role === "RESTAURANT") {
-      // Update both User and Restaurant tables for restaurants
       await prisma.user.update({
         where: { email },
-        data: {
-          isEmailVerified: true,
-          otp: null,
-          otpExpiry: null,
-        },
+        data: { isEmailVerified: true, otp: null, otpExpiry: null },
       });
       await prisma.restaurant.update({
         where: { ownerEmail: email },
-        data: {
-          isEmailVerified: true,
-          otp: null,
-          otpExpiry: null,
-        },
+        data: { isEmailVerified: true, otp: null, otpExpiry: null },
       });
     } else if (role === "RIDER") {
       await prisma.rider.update({
         where: { email },
-        data: {
-          isEmailVerified: true,
-          otp: null,
-          otpExpiry: null,
-        },
+        data: { isEmailVerified: true, otp: null, otpExpiry: null },
       });
     }
+
+    // Successful verification clears the failed-attempt counter.
+    verifyFailures.reset(key);
 
     logger.debug(`✅ Email verified for ${email} (${role})`);
 

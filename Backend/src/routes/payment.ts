@@ -133,8 +133,30 @@ router.post('/webhook', async (req: Request, res: Response) => {
 router.get('/payment-status/:paymentIntentId', authenticate(['USER']), async (req: AuthRequest, res: Response) => {
   try {
     const { paymentIntentId } = req.params;
+    const userId = req.user?.id;
 
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    // OWNERSHIP: a PaymentIntent id is guessable/enumerable, so confirm this one
+    // belongs to the requesting user before disclosing its status. We trust the
+    // userId we stamped into metadata on creation, and fall back to the linked
+    // order's customerId. Anything we can't tie to this user is treated as not
+    // found, so a client can't probe other customers' payments.
+    let owned = paymentIntent.metadata?.userId
+      ? String(paymentIntent.metadata.userId) === String(userId)
+      : false;
+
+    if (!owned && paymentIntent.metadata?.orderId) {
+      const order = await prisma.order.findUnique({
+        where: { id: Number(paymentIntent.metadata.orderId) },
+        select: { customerId: true },
+      });
+      owned = !!order && order.customerId === userId;
+    }
+
+    if (!owned) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
 
     res.json({
       status: paymentIntent.status,

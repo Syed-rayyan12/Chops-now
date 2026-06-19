@@ -243,6 +243,16 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Incorrect password. Please try again." });
     }
 
+    // Enforce email verification — matches restaurant/rider login. An unverified
+    // account must never receive a JWT, otherwise OTP verification is bypassable.
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in. Check your inbox for the verification code.",
+        requiresVerification: true,
+        email: user.email,
+      });
+    }
+
     // Generate JWT
     const token = generateToken({ id: user.id, role: user.role });
 
