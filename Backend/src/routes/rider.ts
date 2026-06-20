@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import multer from "multer";
 import type { Prisma } from "@prisma/client";
 import prisma from "../config/db";
-import { authenticate, requireApprovedRider } from "../middlewares/auth";
+import { authenticate, requireApprovedRider, requireOnlineRider } from "../middlewares/auth";
 import { uploadToR2, deleteFromR2 } from "../config/r2";
 import { logger } from "../utils/logger";
 import { generateToken } from "../utils/jwt";
@@ -307,6 +307,15 @@ router.post("/complete-profile", authenticate(["RIDER"]), async (req: any, res) 
 router.get("/all", authenticate(["RESTAURANT", "ADMIN"]), async (_req: any, res: any) => {
   try {
     const riders = await prisma.rider.findMany({
+      // Only riders that can actually take work: admin-approved, currently online,
+      // and with a known location. Excludes offline/unapproved/locationless riders
+      // a restaurant could otherwise try to hand an order to.
+      where: {
+        approvalStatus: "APPROVED",
+        isOnline: true,
+        latitude: { not: null },
+        longitude: { not: null },
+      },
       select: {
         id: true,
         firstName: true,
@@ -511,7 +520,7 @@ router.get("/earnings", authenticate(["RIDER"]), requireApprovedRider, async (re
 });
 
 // GET - Available orders (READY_FOR_PICKUP)
-router.get("/orders/available", authenticate(["RIDER"]), requireApprovedRider, async (_req: any, res: any) => {
+router.get("/orders/available", authenticate(["RIDER"]), requireApprovedRider, requireOnlineRider, async (_req: any, res: any) => {
   try {
     logger.debug("🔍 Fetching available orders (READY_FOR_PICKUP, riderId: null)");
     
@@ -672,7 +681,7 @@ router.get("/orders/completed", authenticate(["RIDER"]), requireApprovedRider, a
 });
 
 // PATCH - Accept delivery (READY_FOR_PICKUP → PICKED_UP)
-router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
+router.patch("/orders/:orderId/accept", authenticate(["RIDER"]), requireApprovedRider, requireOnlineRider, async (req: any, res: any) => {
   try {
     const { orderId } = req.params;
     const riderId = req.user.id;
@@ -865,19 +874,42 @@ router.patch("/toggle-online", authenticate(["RIDER"]), requireApprovedRider, as
       return res.status(400).json({ message: "isOnline must be a boolean" });
     }
 
-    const updatedRider = await prisma.rider.update({
-      where: { id: riderId },
-      data: { isOnline },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        isOnline: true,
+    // Keep the isOnline flag and the RiderOnlineSession log in lockstep, in one
+    // transaction so they can't drift apart. Going online opens a session only if
+    // none is already open (idempotent — repeated "go online" calls don't pile up
+    // sessions); going offline closes any open session so admin online-time
+    // reporting is accurate.
+    const updatedRider = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const rider = await tx.rider.update({
+        where: { id: riderId },
+        data: { isOnline },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          isOnline: true,
+        }
+      });
+
+      if (isOnline) {
+        const openSession = await tx.riderOnlineSession.findFirst({
+          where: { riderId, endedAt: null },
+        });
+        if (!openSession) {
+          await tx.riderOnlineSession.create({ data: { riderId } });
+        }
+      } else {
+        await tx.riderOnlineSession.updateMany({
+          where: { riderId, endedAt: null },
+          data: { endedAt: new Date() },
+        });
       }
+
+      return rider;
     });
 
-    res.json({ 
+    res.json({
       rider: updatedRider,
       message: isOnline ? "You are now online and available for orders" : "You are now offline"
     });
@@ -933,7 +965,7 @@ router.put("/location", authenticate(["RIDER"]), requireApprovedRider, async (re
 // ============================================
 // GET NEARBY ORDERS (within 5km of rider)
 // ============================================
-router.get("/nearby-orders", authenticate(["RIDER"]), requireApprovedRider, async (req: any, res: any) => {
+router.get("/nearby-orders", authenticate(["RIDER"]), requireApprovedRider, requireOnlineRider, async (req: any, res: any) => {
   try {
     const riderId = req.user?.id;
 

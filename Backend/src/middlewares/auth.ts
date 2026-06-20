@@ -88,3 +88,38 @@ export const requireApprovedRider = async (
     return res.status(500).json({ message: "Authorization check failed" });
   }
 };
+
+// Gate discovery/claiming of NEW work behind the rider's live online status. An
+// approved rider who is offline must not be able to see or accept available
+// orders. Apply it ONLY to the "find/accept available work" endpoints
+// (orders/available, nearby-orders, orders/:id/accept) — NOT to
+// active/completed/deliver, because a rider who goes offline must still be able
+// to finish an order they already picked up. Apply AFTER requireApprovedRider.
+export const requireOnlineRider = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const riderId = req.user?.id;
+  if (!riderId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  try {
+    const rider = await prisma.rider.findUnique({
+      where: { id: riderId },
+      select: { isOnline: true },
+    });
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found" });
+    }
+    if (!rider.isOnline) {
+      return res.status(403).json({
+        message: "You must be online to view or accept available orders.",
+        offline: true,
+      });
+    }
+    next();
+  } catch (err) {
+    return res.status(500).json({ message: "Authorization check failed" });
+  }
+};

@@ -16,6 +16,10 @@ export function OrdersSection() {
   const [activeOrders, setActiveOrders] = useState<RiderOrder[]>([])
   const [completedOrders, setCompletedOrders] = useState<RiderOrder[]>([])
   const [loading, setLoading] = useState(true)
+  // The backend gates available orders behind the rider being online and returns
+  // 403 { offline: true } otherwise. We track that so the Available tab can show a
+  // "go online" hint instead of an error, while active/completed still load.
+  const [isOffline, setIsOffline] = useState(false)
 
   useEffect(() => {
     loadOrders()
@@ -26,26 +30,51 @@ export function OrdersSection() {
   }, [])
 
   const loadOrders = async () => {
-    try {
-      const [availableData, activeData, completedData] = await Promise.all([
-        riderOrders.getAvailable(),
-        riderOrders.getActive(),
-        riderOrders.getCompleted()
-      ])
-      
-      setAvailableOrders(availableData.orders || [])
-      setActiveOrders(activeData.orders || [])
-      setCompletedOrders(completedData.orders || [])
-    } catch (error: any) {
-      logger.error("Failed to load orders:", error)
+    // Load each list independently. Available orders require the rider to be
+    // online, so an offline 403 there must NOT prevent active/completed (which a
+    // rider needs even after going offline to finish accepted deliveries) from
+    // loading. allSettled keeps one rejection from sinking the others.
+    const [availableRes, activeRes, completedRes] = await Promise.allSettled([
+      riderOrders.getAvailable(),
+      riderOrders.getActive(),
+      riderOrders.getCompleted(),
+    ])
+
+    if (availableRes.status === "fulfilled") {
+      setAvailableOrders(availableRes.value.orders || [])
+      setIsOffline(false)
+    } else {
+      const err = availableRes.reason
+      if (err?.statusCode === 403 && err?.data?.offline) {
+        // Expected when offline — not an error. Clear the list and flag offline.
+        setAvailableOrders([])
+        setIsOffline(true)
+      } else {
+        logger.error("Failed to load available orders:", err)
+      }
+    }
+
+    if (activeRes.status === "fulfilled") {
+      setActiveOrders(activeRes.value.orders || [])
+    }
+    if (completedRes.status === "fulfilled") {
+      setCompletedOrders(completedRes.value.orders || [])
+    }
+
+    // Only surface a real failure if the must-have lists failed.
+    if (activeRes.status === "rejected" || completedRes.status === "rejected") {
+      logger.error(
+        "Failed to load orders:",
+        activeRes.status === "rejected" ? activeRes.reason : (completedRes as PromiseRejectedResult).reason
+      )
       toast({
         title: "Error",
         description: "Failed to load orders",
         variant: "destructive",
       })
-    } finally {
-      setLoading(false)
     }
+
+    setLoading(false)
   }
 
   const handleAcceptOrder = async (orderId: number) => {
@@ -151,6 +180,12 @@ export function OrdersSection() {
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+                </div>
+              ) : isOffline ? (
+                <div className="text-center py-8 text-gray-400">
+                  <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>You're offline</p>
+                  <p className="text-xs mt-1">Go online from your dashboard to see available orders</p>
                 </div>
               ) : availableOrders.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">

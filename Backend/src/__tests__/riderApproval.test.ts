@@ -70,7 +70,9 @@ describe("rider approval gate (covers OAuth-created riders)", () => {
   });
 
   it("allows an APPROVED rider through to the endpoint", async () => {
-    mockPrisma.rider.findUnique.mockResolvedValue({ approvalStatus: "APPROVED" });
+    // isOnline:true so the rider also clears the online gate that /orders/available
+    // now sits behind (the approval gate runs first; this test targets approval).
+    mockPrisma.rider.findUnique.mockResolvedValue({ approvalStatus: "APPROVED", isOnline: true });
 
     const res = await authedGet("/rider/orders/available");
 

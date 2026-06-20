@@ -1227,14 +1227,16 @@ router.get(
         return res.status(403).json({ message: "Not authorized" });
       }
 
-      // Get order counts by status
+      // Get order counts by status. Apply the same PAID_OR_NON_CARD visibility
+      // filter the order lists use, so the dashboard badge counts don't include
+      // unpaid card orders the restaurant can't actually see or act on.
       const [pendingCount, preparingCount, readyCount, pickedUpCount, deliveredCount, cancelledCount] = await Promise.all([
-        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'PENDING' as any } }),
-        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'PREPARING' as any } }),
-        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'READY_FOR_PICKUP' as any } }),
-        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'PICKED_UP' as any } }),
-        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'DELIVERED' as any } }),
-        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'CANCELLED' as any } }),
+        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'PENDING' as any, ...PAID_OR_NON_CARD } }),
+        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'PREPARING' as any, ...PAID_OR_NON_CARD } }),
+        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'READY_FOR_PICKUP' as any, ...PAID_OR_NON_CARD } }),
+        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'PICKED_UP' as any, ...PAID_OR_NON_CARD } }),
+        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'DELIVERED' as any, ...PAID_OR_NON_CARD } }),
+        prisma.order.count({ where: { restaurantId: restaurant.id, status: 'CANCELLED' as any, ...PAID_OR_NON_CARD } }),
       ]);
 
       const inProgressCount = preparingCount + readyCount + pickedUpCount;
@@ -1435,9 +1437,11 @@ router.get(
         });
       }
 
-      // Get all online riders with location
+      // Get all approved, online riders with location. Approval must be enforced
+      // here too — an unapproved rider could be online with coordinates set.
       const riders = await prisma.rider.findMany({
         where: {
+          approvalStatus: "APPROVED",
           isOnline: true,
           latitude: { not: null },
           longitude: { not: null }
