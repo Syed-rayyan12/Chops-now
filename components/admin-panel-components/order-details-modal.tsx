@@ -69,6 +69,17 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
     logger.debug(`Updating order ${order.id} status to ${newStatus}`)
   }
 
+  // Reach the customer by whatever we have: phone first (tel:), then email (mailto:).
+  const customerPhone = order.customerPhone || order.phone
+  const customerEmail = order.customerEmail
+  const handleContactCustomer = () => {
+    if (customerPhone) {
+      window.location.href = `tel:${customerPhone}`
+    } else if (customerEmail) {
+      window.location.href = `mailto:${customerEmail}`
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[80%] max-lg:w-[80%] max-sm:w-[100%] mx-auto max-h-[90vh] overflow-y-auto bg-background">
@@ -231,7 +242,12 @@ export function OrderDetailsModal({ order, isOpen, onClose }: OrderDetailsModalP
           >
             Close
           </Button>
-          <Button variant="outline" className=" text-white hover:text-secondary border border-transparent hover:border-secondary rounded-lg px-7 py-3 hover:bg-transparent bg-secondary">
+          <Button
+            variant="outline"
+            onClick={handleContactCustomer}
+            disabled={!customerPhone && !customerEmail}
+            className=" text-white hover:text-secondary border border-transparent hover:border-secondary rounded-lg px-7 py-3 hover:bg-transparent bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Contact Customer
           </Button>
         </div>
