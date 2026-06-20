@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
-import { ShoppingBag, Store, Users, DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { ShoppingBag, Store, Users, DollarSign, TrendingUp, TrendingDown, Minus, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { getAdminStats, getAdminRecentOrders } from "@/lib/api/admin.api"
 import { Loader } from "@/components/ui/loader"
 import { logger } from "@/lib/logger";
@@ -55,9 +55,13 @@ const getStatusBadge = (status: string) => {
 export function DashboardOverview() {
   const [stats, setStats] = useState({
     totalOrders: 0,
+    ordersChange: "",
     activeRestaurants: 0,
+    restaurantsChange: "",
     totalUsers: 0,
+    usersChange: "",
     totalRevenue: 0,
+    revenueChange: "",
   })
   const [recentOrders, setRecentOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -102,11 +106,20 @@ export function DashboardOverview() {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
   }
 
+  // Map a "from last month" change string to an icon + colour. Handles the
+  // backend's zero-baseline labels ("New this month", "No change") as well as
+  // signed percentages.
+  const changeStyle = (change: string) => {
+    if (change.startsWith("-")) return { Icon: TrendingDown, color: "text-red-600" }
+    if (change.startsWith("+") || change === "New this month") return { Icon: TrendingUp, color: "text-green-600" }
+    return { Icon: Minus, color: "text-gray-500" } // "No change"
+  }
+
   const statsCards = [
     {
       title: "Total Orders",
       value: loading ? "..." : stats.totalOrders.toLocaleString(),
-      change: "+12.5%",
+      change: stats.ordersChange,
       icon: ShoppingBag,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -114,7 +127,7 @@ export function DashboardOverview() {
     {
       title: "Active Restaurants",
       value: loading ? "..." : stats.activeRestaurants.toLocaleString(),
-      change: "+3.2%",
+      change: stats.restaurantsChange,
       icon: Store,
       color: "text-amber-600",
       bgColor: "bg-amber-100",
@@ -122,7 +135,7 @@ export function DashboardOverview() {
     {
       title: "Total Users",
       value: loading ? "..." : stats.totalUsers.toLocaleString(),
-      change: "+8.1%",
+      change: stats.usersChange,
       icon: Users,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -130,7 +143,7 @@ export function DashboardOverview() {
     {
       title: "Revenue",
       value: loading ? "..." : `£${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: "+15.3%",
+      change: stats.revenueChange,
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100",
@@ -147,23 +160,28 @@ export function DashboardOverview() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statsCards.map((stat) => (
-          <Card key={stat.title} className=" bg-white shadow-none py-2 px-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-secondary">{stat.title}</CardTitle>
-              <div className="p-2 rounded-full border border-primary">
-                <stat.icon className="h-4 w-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <div className="flex items-center text-xs text-green-600">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                {stat.change} from last month
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {statsCards.map((stat) => {
+          const { Icon: ChangeIcon, color: changeColor } = changeStyle(stat.change)
+          return (
+            <Card key={stat.title} className=" bg-white shadow-none py-2 px-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-secondary">{stat.title}</CardTitle>
+                <div className="p-2 rounded-full border border-primary">
+                  <stat.icon className="h-4 w-4 text-primary" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                {!loading && stat.change && (
+                  <div className={`flex items-center text-xs ${changeColor}`}>
+                    <ChangeIcon className="h-3 w-3 mr-1" />
+                    {stat.change}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Recent Orders */}

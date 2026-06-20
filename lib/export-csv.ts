@@ -40,17 +40,14 @@ export function toCsv<T>(rows: T[], columns: CsvColumn<T>[]): string {
 }
 
 /**
- * Generate a CSV from the given rows and trigger a browser download. No-op on the
- * server. Filename gets a YYYY-MM-DD suffix and `.csv` extension automatically.
+ * Trigger a browser download of an already-built CSV string. No-op on the server.
+ * Filename gets a YYYY-MM-DD suffix and `.csv` extension automatically. Use this
+ * when a single file needs more than one table/section (e.g. a summary block above
+ * a time series); otherwise prefer exportToCSV which builds the CSV for you.
  */
-export function exportToCSV<T>(
-  filename: string,
-  rows: T[],
-  columns: CsvColumn<T>[]
-): void {
+export function downloadCsvText(filename: string, csv: string): void {
   if (typeof window === "undefined") return;
 
-  const csv = toCsv(rows, columns);
   // Prepend a UTF-8 BOM so Excel renders accented characters correctly.
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -63,4 +60,15 @@ export function exportToCSV<T>(
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Build a CSV from the given rows + columns and trigger a browser download.
+ */
+export function exportToCSV<T>(
+  filename: string,
+  rows: T[],
+  columns: CsvColumn<T>[]
+): void {
+  downloadCsvText(filename, toCsv(rows, columns));
 }

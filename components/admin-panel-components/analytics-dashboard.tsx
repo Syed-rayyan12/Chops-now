@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 
-import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Download } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Users, ShoppingCart, DollarSign, Download } from "lucide-react"
 import { logger } from "@/lib/logger";
 import {
   Area,
@@ -22,6 +22,7 @@ import {
 } from "recharts"
 import { RecentSales } from "./recent-sales"
 import { getAdminAnalytics, type AnalyticsResponse } from "@/lib/api/admin.api"
+import { toCsv, downloadCsvText } from "@/lib/export-csv"
 
 export function AnalyticsDashboard() {
   const [activeLabel, setActiveLabel] = useState<string | null>(null)
@@ -45,6 +46,51 @@ export function AnalyticsDashboard() {
     }
   }
 
+  // Export both parts of the analytics payload in one file: a KPI summary block
+  // (the stat cards) followed by the monthly revenue/orders/users time series. The
+  // two have different shapes, so we build each as its own CSV section and stack
+  // them with a blank line between.
+  const handleExport = () => {
+    if (!analytics) return
+    const { stats: s } = analytics
+
+    const summaryCsv = toCsv(
+      [
+        { metric: "Total Revenue", value: s.totalRevenue },
+        { metric: "Revenue Change", value: s.revenueChange },
+        { metric: "Total Orders", value: s.totalOrders },
+        { metric: "Orders Change", value: s.ordersChange },
+        { metric: "Active Users", value: s.activeUsers },
+        { metric: "Users Change", value: s.usersChange },
+        { metric: "Total Restaurant Earnings", value: s.totalRestaurantEarnings },
+        { metric: "Total Rider Earnings", value: s.totalRiderEarnings },
+      ],
+      [
+        { header: "Metric", value: (r) => r.metric },
+        { header: "Value", value: (r) => r.value },
+      ]
+    )
+
+    const monthlyCsv = toCsv(analytics.revenueData, [
+      { header: "Month", value: (d) => d.name },
+      { header: "Revenue", value: (d) => d.revenue },
+      { header: "Orders", value: (d) => d.orders },
+      { header: "Users", value: (d) => d.users },
+    ])
+
+    // Blank line separates the summary block from the monthly table.
+    downloadCsvText("analytics", `${summaryCsv}\r\n\r\n${monthlyCsv}`)
+  }
+
+  // Map a "from last month" change string to a colour + trend icon. Handles the
+  // backend's zero-baseline labels ("New this month", "No change") alongside
+  // signed percentages.
+  const changeMeta = (change: string): { changeColor: string; trend: typeof TrendingUp } => {
+    if (change.startsWith('-')) return { changeColor: "text-red-600", trend: TrendingDown }
+    if (change.startsWith('+') || change === "New this month") return { changeColor: "text-green-600", trend: TrendingUp }
+    return { changeColor: "text-gray-500", trend: Minus } // "No change"
+  }
+
   const stats = analytics ? [
     {
       title: "Total Revenue",
@@ -52,8 +98,7 @@ export function AnalyticsDashboard() {
       change: analytics.stats.revenueChange,
       icon: DollarSign,
       iconColor: "text-amber-600",
-      changeColor: analytics.stats.revenueChange.startsWith('+') ? "text-green-600" : "text-red-600",
-      trend: analytics.stats.revenueChange.startsWith('+') ? TrendingUp : TrendingDown,
+      ...changeMeta(analytics.stats.revenueChange),
     },
     {
       title: "Total Orders",
@@ -61,8 +106,7 @@ export function AnalyticsDashboard() {
       change: analytics.stats.ordersChange,
       icon: ShoppingCart,
       iconColor: "text-amber-600",
-      changeColor: analytics.stats.ordersChange.startsWith('+') ? "text-green-600" : "text-red-600",
-      trend: analytics.stats.ordersChange.startsWith('+') ? TrendingUp : TrendingDown,
+      ...changeMeta(analytics.stats.ordersChange),
     },
     {
       title: "Active Users",
@@ -70,8 +114,7 @@ export function AnalyticsDashboard() {
       change: analytics.stats.usersChange,
       icon: Users,
       iconColor: "text-amber-600",
-      changeColor: analytics.stats.usersChange.startsWith('+') ? "text-green-600" : "text-red-600",
-      trend: analytics.stats.usersChange.startsWith('+') ? TrendingUp : TrendingDown,
+      ...changeMeta(analytics.stats.usersChange),
     },
   ] : []
 
@@ -105,7 +148,7 @@ export function AnalyticsDashboard() {
             <p className="text-white text-sm mt-2 font-ubuntu">Real-time insights and performance metrics</p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="outline" className="border-white bg-transparent rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer">
+            <Button variant="outline" onClick={handleExport} disabled={!analytics} className="border-white bg-transparent rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               <Download className="w-4 h-4 mr-2" />
               Export Data
             </Button>
@@ -300,7 +343,7 @@ export function AnalyticsDashboard() {
             <Card className=" p-4 bg-white">
               <CardHeader>
                 <CardTitle className="text-foreground font-bold font-ubuntu">Order Analytics</CardTitle>
-                <CardDescription className="text-primary">Order volume and patterns</CardDescription>
+                <CardDescription className="text-primary">Monthly live order volume — cash plus paid-card orders that count toward revenue (differs from the all-records Total Orders KPI)</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="h-[400px] w-full">

@@ -4,6 +4,8 @@ import { generateToken } from "../utils/jwt";
 import prisma from "../config/db";
 import { authenticate } from "../middlewares/auth";
 import { logger } from "../utils/logger";
+import { PAID_OR_NON_CARD } from "../utils/orderVisibility";
+import { pctChangeLabel, monthWindows } from "../utils/metrics";
 
 const router = Router();
 
@@ -421,39 +423,66 @@ router.get("/restaurants", authenticate(["ADMIN"]), async (req, res) => {
 // Get dashboard overview stats
 router.get("/stats", authenticate(["ADMIN"]), async (req, res) => {
   try {
-    // Get total orders count
+    const now = new Date();
+    const { monthStart, lastMonthStart, lastMonthEnd } = monthWindows(now);
+
+    // ---- Headline lifetime totals ----
     const totalOrders = await prisma.order.count();
-
-    // Get active restaurants count (not soft deleted)
     const activeRestaurants = await prisma.restaurant.count({
-      where: {
-        deletedAt: null,
-      },
+      where: { deletedAt: null },
     });
-
-    // Get total users count
     const totalUsers = await prisma.user.count({
-      where: {
-        role: "USER",
-      },
+      where: { role: "USER" },
     });
 
-    // Calculate total revenue from all orders
-    const ordersWithAmount = await prisma.order.findMany({
-      select: {
-        amount: true,
-      },
+    // Total revenue from all LIVE orders. Same rule as /analytics: count cash/
+    // non-card orders plus Stripe-confirmed card orders (PAID_OR_NON_CARD), so
+    // unpaid/failed card attempts (created as PENDING/FAILED) aren't counted as
+    // revenue. Keeps this KPI consistent with the analytics Total Revenue.
+    const liveOrders = await prisma.order.findMany({
+      where: { ...PAID_OR_NON_CARD },
+      select: { amount: true },
     });
+    const totalRevenue = liveOrders.reduce((sum, order) => sum + Number(order.amount), 0);
 
-    const totalRevenue = ordersWithAmount.reduce((sum, order) => {
-      return sum + parseFloat(order.amount.toString());
-    }, 0);
+    // ---- Month-over-month deltas (this month vs last month) ----
+    // Headline numbers above are lifetime totals; these compare this month to last.
+    const sumAmounts = (orders: { amount: any }[]) =>
+      orders.reduce((sum, o) => sum + Number(o.amount), 0);
+
+    const [thisMonthRevenueOrders, lastMonthRevenueOrders] = await Promise.all([
+      prisma.order.findMany({ where: { createdAt: { gte: monthStart }, ...PAID_OR_NON_CARD }, select: { amount: true } }),
+      prisma.order.findMany({ where: { createdAt: { gte: lastMonthStart, lt: lastMonthEnd }, ...PAID_OR_NON_CARD }, select: { amount: true } }),
+    ]);
+    const revenueChange = pctChangeLabel(sumAmounts(thisMonthRevenueOrders), sumAmounts(lastMonthRevenueOrders));
+
+    const [thisMonthOrders, lastMonthOrders] = await Promise.all([
+      prisma.order.count({ where: { createdAt: { gte: monthStart } } }),
+      prisma.order.count({ where: { createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
+    ]);
+    const ordersChange = pctChangeLabel(thisMonthOrders, lastMonthOrders);
+
+    const [thisMonthUsers, lastMonthUsers] = await Promise.all([
+      prisma.user.count({ where: { role: "USER", createdAt: { gte: monthStart } } }),
+      prisma.user.count({ where: { role: "USER", createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
+    ]);
+    const usersChange = pctChangeLabel(thisMonthUsers, lastMonthUsers);
+
+    const [thisMonthRestaurants, lastMonthRestaurants] = await Promise.all([
+      prisma.restaurant.count({ where: { deletedAt: null, createdAt: { gte: monthStart } } }),
+      prisma.restaurant.count({ where: { deletedAt: null, createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
+    ]);
+    const restaurantsChange = pctChangeLabel(thisMonthRestaurants, lastMonthRestaurants);
 
     res.json({
       totalOrders,
+      ordersChange,
       activeRestaurants,
+      restaurantsChange,
       totalUsers,
-      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+      usersChange,
+      totalRevenue: Number(totalRevenue.toFixed(2)),
+      revenueChange,
     });
   } catch (error) {
     logger.error("Error fetching dashboard stats:", error);
@@ -911,34 +940,45 @@ router.get("/riders/:id", authenticate(["ADMIN"]), async (req, res) => {
 router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
   try {
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+    const { monthStart, lastMonthStart, lastMonthEnd } = monthWindows(now);
 
     // ==========================================
-    // TOTAL REVENUE (All delivered order amounts)
+    // TOTAL REVENUE (amount of all LIVE orders, any order status)
+    // Counts real money only: cash/non-card orders plus CARD orders that Stripe has
+    // confirmed (PAID_OR_NON_CARD). Unpaid/failed card attempts are created as
+    // PENDING/FAILED and must not be counted as revenue. We don't filter on order
+    // STATUS, so live-but-not-yet-delivered orders still count. (Restaurant/rider
+    // earnings further down stay DELIVERED-only — those are payouts, not revenue.)
     // ==========================================
-    const allDeliveredOrders = await prisma.order.findMany({
-      where: { status: 'DELIVERED' },
+    const allOrders = await prisma.order.findMany({
+      where: { ...PAID_OR_NON_CARD },
       select: { amount: true }
     });
-    const totalRevenue = allDeliveredOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+    const totalRevenue = allOrders.reduce((sum, order) => sum + Number(order.amount), 0);
 
-    // Last month's revenue for comparison
+    // Last month's revenue for comparison (live orders in the window)
     const lastMonthOrders = await prisma.order.findMany({
       where: {
-        status: 'DELIVERED',
         createdAt: {
           gte: lastMonthStart,
           lt: lastMonthEnd
-        }
+        },
+        ...PAID_OR_NON_CARD
       },
       select: { amount: true }
     });
     const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + Number(order.amount), 0);
-    const revenueChange = lastMonthRevenue > 0 
-      ? ((totalRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1)
-      : "0.0";
+
+    // This month's revenue (live orders) for a true MoM delta against last month.
+    const thisMonthRevenueOrders = await prisma.order.findMany({
+      where: {
+        createdAt: { gte: monthStart },
+        ...PAID_OR_NON_CARD
+      },
+      select: { amount: true }
+    });
+    const thisMonthRevenue = thisMonthRevenueOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+    const revenueChange = pctChangeLabel(thisMonthRevenue, lastMonthRevenue);
 
     // ==========================================
     // TOTAL ORDERS
@@ -952,9 +992,14 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
         }
       }
     });
-    const ordersChange = lastMonthOrdersCount > 0
-      ? ((totalOrders - lastMonthOrdersCount) / lastMonthOrdersCount * 100).toFixed(1)
-      : "0.0";
+    // True MoM: this month's order records vs last month's. Counts all records
+    // (no payment filter) to match the all-records Total Orders KPI value above.
+    const thisMonthOrdersCount = await prisma.order.count({
+      where: {
+        createdAt: { gte: monthStart }
+      }
+    });
+    const ordersChange = pctChangeLabel(thisMonthOrdersCount, lastMonthOrdersCount);
 
     // ==========================================
     // ACTIVE USERS (Total registered users with role USER)
@@ -963,17 +1008,15 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
       where: { role: "USER" }
     });
 
-    const lastMonthUsersCount = await prisma.user.count({
-      where: {
-        role: "USER",
-        createdAt: {
-          lt: lastMonthEnd
-        }
-      }
+    // True MoM: new users registered this month vs last month (the headline value
+    // above is the lifetime user count, not a monthly figure).
+    const thisMonthNewUsers = await prisma.user.count({
+      where: { role: "USER", createdAt: { gte: monthStart } }
     });
-    const usersChange = lastMonthUsersCount > 0
-      ? ((activeUsersCount - lastMonthUsersCount) / lastMonthUsersCount * 100).toFixed(1)
-      : "0.0";
+    const lastMonthNewUsers = await prisma.user.count({
+      where: { role: "USER", createdAt: { gte: lastMonthStart, lt: lastMonthEnd } }
+    });
+    const usersChange = pctChangeLabel(thisMonthNewUsers, lastMonthNewUsers);
 
     // ==========================================
     // RESTAURANT & RIDER EARNINGS (for internal tracking)
@@ -997,19 +1040,23 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
 
     // ==========================================
     // MONTHLY REVENUE TREND (Last 12 months)
+    // Revenue and order count below both cover LIVE orders (PAID_OR_NON_CARD, any
+    // order status), matching the Total Revenue KPI. Note this intentionally
+    // differs from the all-records Total Orders KPI: the monthly "orders" line
+    // tracks live/paid orders that contribute to the revenue line beside it.
     // ==========================================
     const monthlyRevenue = [];
     for (let i = 11; i >= 0; i--) {
       const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-      
+
       const monthOrders = await prisma.order.findMany({
         where: {
-          status: 'DELIVERED',
           createdAt: {
             gte: monthDate,
             lt: nextMonth
-          }
+          },
+          ...PAID_OR_NON_CARD
         },
         select: { amount: true }
       });
@@ -1039,11 +1086,11 @@ router.get("/analytics", authenticate(["ADMIN"]), async (req, res) => {
     res.json({
       stats: {
         totalRevenue: Number(totalRevenue.toFixed(2)),
-        revenueChange: `${Number(revenueChange) >= 0 ? '+' : ''}${revenueChange}% from last month`,
+        revenueChange,
         totalOrders,
-        ordersChange: `${Number(ordersChange) >= 0 ? '+' : ''}${ordersChange}% from last month`,
+        ordersChange,
         activeUsers: activeUsersCount,
-        usersChange: `${Number(usersChange) >= 0 ? '+' : ''}${usersChange}% from last month`,
+        usersChange,
         totalRestaurantEarnings: Number(totalRestaurantEarnings.toFixed(2)),
         totalRiderEarnings: Number(totalRiderEarnings.toFixed(2))
       },

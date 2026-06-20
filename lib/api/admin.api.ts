@@ -126,9 +126,13 @@ export const getAdminRiderDetails = (id: string) => {
 export const getAdminStats = () => {
   return apiRequest<{
     totalOrders: number;
+    ordersChange: string;
     activeRestaurants: number;
+    restaurantsChange: string;
     totalUsers: number;
+    usersChange: string;
     totalRevenue: number;
+    revenueChange: string;
   }>("/admin/stats", {
     method: "GET",
     tokenKey: STORAGE_KEYS.ADMIN_TOKEN,
