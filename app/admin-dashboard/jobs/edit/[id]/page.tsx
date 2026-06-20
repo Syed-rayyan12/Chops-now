@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { API_CONFIG, STORAGE_KEYS, authHeader } from "@/lib/api/config";
 
-export default function AddJobPage() {
+export default function EditJobPage() {
+  const params = useParams();
   const router = useRouter();
+  const jobId = params.id as string;
+
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
-  
+
   const [formData, setFormData] = useState({
     title: "",
     department: "Corporate",
@@ -22,6 +26,40 @@ export default function AddJobPage() {
     responsibilities: "",
     status: "active",
   });
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${jobId}`, {
+          headers: { ...authHeader(STORAGE_KEYS.ADMIN_TOKEN) },
+        });
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404 ? "Job not found" : "Failed to load job"
+          );
+        }
+        const data = await response.json();
+        const job = data.job;
+        setFormData({
+          title: job.title || "",
+          department: job.department || "Corporate",
+          jobType: job.jobType || "Full-time",
+          location: job.location || "Office",
+          salaryRange: job.salaryRange || "",
+          description: job.description || "",
+          requirements: job.requirements || "",
+          responsibilities: job.responsibilities || "",
+          status: job.status || "active",
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load job");
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    if (jobId) fetchJob();
+  }, [jobId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -35,8 +73,8 @@ export default function AddJobPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs`, {
-        method: "POST",
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${jobId}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           ...authHeader(STORAGE_KEYS.ADMIN_TOKEN),
@@ -46,17 +84,25 @@ export default function AddJobPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to create job");
+        throw new Error(data.error || "Failed to update job");
       }
 
-      alert("Job created successfully!");
+      alert("Job updated successfully!");
       router.push("/admin-dashboard/jobs");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create job");
+      setError(err instanceof Error ? err.message : "Failed to update job");
     } finally {
       setLoading(false);
     }
   };
+
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -69,7 +115,7 @@ export default function AddJobPage() {
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Add New Job</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Job</h1>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
@@ -231,10 +277,10 @@ export default function AddJobPage() {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Creating Job...
+                Saving Changes...
               </>
             ) : (
-              "Create Job"
+              "Save Changes"
             )}
           </button>
           <Link

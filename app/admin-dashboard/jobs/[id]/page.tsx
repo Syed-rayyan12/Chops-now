@@ -17,7 +17,7 @@ import {
   Calendar,
   Loader2,
 } from "lucide-react";
-import { API_CONFIG } from "@/lib/api/config";
+import { API_CONFIG, STORAGE_KEYS, authHeader } from "@/lib/api/config";
 
 interface Application {
   id: string;
@@ -62,9 +62,13 @@ export default function JobDetailPage() {
 
   const fetchJob = async (id: string) => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${id}`);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/jobs/${id}`, {
+        headers: { ...authHeader(STORAGE_KEYS.ADMIN_TOKEN) },
+      });
       if (!response.ok) {
-        throw new Error("Job not found");
+        throw new Error(
+          response.status === 404 ? "Job not found" : "Failed to load job details"
+        );
       }
       const data = await response.json();
       setJob(data.job);
@@ -81,7 +85,10 @@ export default function JobDetailPage() {
         `${API_CONFIG.BASE_URL}/applications/${appId}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(STORAGE_KEYS.ADMIN_TOKEN),
+          },
           body: JSON.stringify({ status: newStatus }),
         }
       );
