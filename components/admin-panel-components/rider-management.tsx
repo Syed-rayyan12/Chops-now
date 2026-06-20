@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAdminRiders, getAdminRiderDetails } from "@/lib/api/admin.api"
+import { exportToCSV } from "@/lib/export-csv"
 
 import { logger } from "@/lib/logger";
 import {
@@ -157,6 +158,20 @@ export function RiderManagement() {
     totalEarnings: riders.reduce((sum, r) => sum + r.earnings, 0),
   }
 
+  const handleExport = () => {
+    exportToCSV("riders", riders, [
+      { header: "ID", value: (r) => r.id },
+      { header: "Name", value: (r) => r.name },
+      { header: "Email", value: (r) => r.email },
+      { header: "Phone", value: (r) => r.phone },
+      { header: "Status", value: (r) => r.status },
+      { header: "Join Date", value: (r) => r.joinDate },
+      { header: "Total Deliveries", value: (r) => r.totalDeliveries },
+      { header: "Earnings", value: (r) => r.earnings },
+      { header: "Last Delivery", value: (r) => r.lastDelivery },
+    ])
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -184,7 +199,7 @@ export function RiderManagement() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <Button variant="outline" className="border-white bg-transparent rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer">
+            <Button variant="outline" onClick={handleExport} disabled={riders.length === 0} className="border-white bg-transparent rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               <Download className="w-4 h-4 mr-2" />
               Export Riders
             </Button>

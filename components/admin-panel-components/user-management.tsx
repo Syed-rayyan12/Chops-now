@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getAdminUsers } from "@/lib/api/admin.api"
+import { exportToCSV } from "@/lib/export-csv"
 
 import {
   Search,
@@ -140,6 +141,21 @@ export function UserManagement() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleExport = () => {
+    exportToCSV("users", filteredUsers, [
+      { header: "ID", value: (u) => u.id },
+      { header: "Name", value: (u) => u.name },
+      { header: "Email", value: (u) => u.email },
+      { header: "Phone", value: (u) => u.phone },
+      { header: "Status", value: (u) => u.status },
+      { header: "Join Date", value: (u) => u.joinDate },
+      { header: "Total Orders", value: (u) => u.totalOrders },
+      { header: "Total Spent", value: (u) => u.totalSpent },
+      { header: "Average Order", value: (u) => u.averageOrder },
+      { header: "Last Order", value: (u) => u.lastOrder },
+    ])
+  }
+
   const userStats = {
     total: users.length,
     active: users.filter((u) => u.status === "active").length,
@@ -176,7 +192,7 @@ export function UserManagement() {
           </div>
 
         <div className="flex items-center space-x-3">
-          <Button variant="outline" className="border-white bg-transparent  rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer">
+          <Button variant="outline" onClick={handleExport} disabled={filteredUsers.length === 0} className="border-white bg-transparent  rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             <Download className="w-4 h-4 mr-2" />
             Export Users
           </Button>

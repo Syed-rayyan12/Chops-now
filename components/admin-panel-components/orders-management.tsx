@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader } from "@/components/ui/loader"
 import { getAdminOrders } from "@/lib/api/admin.api"
+import { exportToCSV } from "@/lib/export-csv"
 
 import { logger } from "@/lib/logger";
 import {
@@ -144,6 +145,22 @@ export function OrdersManagement() {
 
   const filteredOrders = orders
 
+  const handleExport = () => {
+    exportToCSV("orders", filteredOrders, [
+      { header: "Order ID", value: (o) => o.id },
+      { header: "Customer", value: (o) => o.customer },
+      { header: "Customer Email", value: (o) => o.customerEmail },
+      { header: "Customer Phone", value: (o) => o.customerPhone },
+      { header: "Restaurant", value: (o) => o.restaurant },
+      { header: "Rider", value: (o) => o.rider },
+      { header: "Items", value: (o) => o.itemsCount },
+      { header: "Amount", value: (o) => o.amount },
+      { header: "Status", value: (o) => o.status },
+      { header: "Delivery Address", value: (o) => o.deliveryAddress },
+      { header: "Date", value: (o) => o.date },
+    ])
+  }
+
   const tabs = [
     { value: "all", label: "All" },
     { value: "pending", label: "Pending" },
@@ -164,7 +181,7 @@ export function OrdersManagement() {
           <p className="text-white text-sm mt-2 font-ubuntu">Manage and track all customer orders</p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button  className="border border-white bg-transparent text-white cursor-pointer hover:bg-secondary  rounded-lg">
+            <Button onClick={handleExport} disabled={filteredOrders.length === 0} className="border border-white bg-transparent text-white cursor-pointer hover:bg-secondary  rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
               <Download className="w-4 h-4 mr-2" />
               Export Orders
             </Button>

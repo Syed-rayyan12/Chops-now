@@ -7,11 +7,23 @@ export interface CsvColumn<T> {
   value: (row: T) => string | number | null | undefined;
 }
 
-// RFC-4180-ish escaping: wrap in quotes and double any embedded quotes. We always
-// quote so commas, newlines and leading +/-/=/@ (Excel formula injection) stay inert.
+// Turn a value into a safe, quoted CSV field.
+//
+// 1. CSV injection: spreadsheets (Excel/Sheets) evaluate a cell as a formula when
+//    its text begins with =, +, -, or @ — and they do so even for quoted CSV
+//    values, so quoting alone does NOT neutralize it. We prefix such values with a
+//    single apostrophe, which spreadsheets honor as "treat the cell as literal
+//    text". The check allows optional leading whitespace because the apps ignore
+//    it when sniffing for a formula. This is applied only to string inputs, so
+//    genuine numeric columns keep negative values like -5 intact.
+// 2. RFC-4180 quoting: every field is wrapped in double quotes with embedded
+//    quotes doubled, so commas, quotes and newlines stay within a single field.
 function escapeCell(input: string | number | null | undefined): string {
   if (input === null || input === undefined) return '""';
-  const str = String(input);
+  let str = String(input);
+  if (typeof input === "string" && /^\s*[=+\-@]/.test(str)) {
+    str = "'" + str;
+  }
   return `"${str.replace(/"/g, '""')}"`;
 }
 

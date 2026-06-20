@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Loader } from "@/components/ui/loader"
 import { getAdminRestaurants } from "@/lib/api/admin.api"
+import { exportToCSV } from "@/lib/export-csv"
 
 import { logger } from "@/lib/logger";
 import {
@@ -110,6 +111,22 @@ export function RestaurantManagement() {
 
   const filteredRestaurants = restaurants
 
+  const handleExport = () => {
+    exportToCSV("restaurants", filteredRestaurants, [
+      { header: "ID", value: (r) => r.id },
+      { header: "Name", value: (r) => r.name },
+      { header: "Cuisine", value: (r) => r.cuisine },
+      { header: "Email", value: (r) => r.email },
+      { header: "Phone", value: (r) => r.phone },
+      { header: "Address", value: (r) => r.address },
+      { header: "Status", value: (r) => r.status },
+      { header: "Rating", value: (r) => r.rating },
+      { header: "Total Orders", value: (r) => r.totalOrders },
+      { header: "Revenue", value: (r) => r.revenue },
+      { header: "Join Date", value: (r) => r.joinDate },
+    ])
+  }
+
   const restaurantStats = {
     total: restaurants.length,
     active: restaurants.filter((r) => r.status === "active").length,
@@ -129,9 +146,9 @@ export function RestaurantManagement() {
           <p className="text-white text-sm mt-2 font-ubuntu">Manage partner restaurants and their performance</p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="outline"  className="border-white bg-transparent  rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer">
+            <Button variant="outline" onClick={handleExport} disabled={filteredRestaurants.length === 0} className="border-white bg-transparent  rounded-lg text-white hover:bg-white hover:text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               <Download className="w-4 h-4 mr-2" />
-              Export Orders
+              Export Restaurants
             </Button>
           </div>
         </div>
