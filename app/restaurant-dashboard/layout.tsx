@@ -85,6 +85,7 @@ import { getRestaurantBySlug } from "@/lib/api/restaurant.api";
 import { isRestaurantSetupComplete } from "@/lib/utils"
 import { logger } from "@/lib/logger";
 import { clearRoleCookie } from "@/lib/auth-cookie";
+import { DashboardSearchProvider } from "@/lib/dashboard-search-context"
 
 type NotificationStatus = "unread" | "read"
 
@@ -240,6 +241,7 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
   }
 
   return (
+    <DashboardSearchProvider>
     <div className="min-h-screen w-full flex">
       {/* Sidebar - fixed and full height */}
       <div className="hidden lg:block fixed top-0 left-0 h-screen z-40">
@@ -268,5 +270,6 @@ export default function RestaurantDashboardLayout({ children }: { children: Reac
         </main>
       </div>
     </div>
+    </DashboardSearchProvider>
   )
 }

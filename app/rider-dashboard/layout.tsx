@@ -45,6 +45,7 @@ import { toast } from "@/components/ui/use-toast"
 import { STORAGE_KEYS } from "@/lib/api/config"
 import { clearRoleCookie } from "@/lib/auth-cookie"
 import { logger } from "@/lib/logger";
+import { DashboardSearchProvider } from "@/lib/dashboard-search-context"
 
 
 type NotificationStatus = "unread" | "read"
@@ -116,6 +117,7 @@ export default function RiderDashboardLayout({ children }: { children: React.Rea
   }
 
   return (
+    <DashboardSearchProvider>
     <div className="flex min-h-screen w-full bg-background">
       {/* Sidebar - Desktop (fixed) */}
       <aside className="hidden lg:block fixed top-0 left-0 h-screen z-40">
@@ -149,5 +151,6 @@ export default function RiderDashboardLayout({ children }: { children: React.Rea
         </div>
       )}
     </div>
+    </DashboardSearchProvider>
   )
 }

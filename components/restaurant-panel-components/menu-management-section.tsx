@@ -29,11 +29,13 @@ import { EditModal } from "./editModal"
 import { DeleteModal } from "./deleteModal"
 import { menuCategories, menuItems as menuItemsApi } from "@/lib/api/restaurant.api"
 import { useToast } from "@/hooks/use-toast"
+import { useDashboardSearch } from "@/lib/dashboard-search-context"
 import { CategoryManagement } from "./category-management"
 
 
 export function MenuManagementSection() {
   const { toast } = useToast()
+  const { query: headerQuery } = useDashboardSearch()
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [menuSearchQuery, setMenuSearchQuery] = useState("")
@@ -361,11 +363,14 @@ export function MenuManagementSection() {
     }
   }
 
-  const filteredMenuItems = menuItems.filter(
-    (item) =>
-      item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
-      item.category.toLowerCase().includes(menuSearchQuery.toLowerCase())
-  )
+  // Combine this page's own search box with the dashboard header search ("Search
+  // orders, menu items…"): an item must match both narrowing queries.
+  const filteredMenuItems = menuItems.filter((item) => {
+    const local = menuSearchQuery.trim().toLowerCase()
+    const header = headerQuery.trim().toLowerCase()
+    const haystack = `${item.name} ${item.category}`.toLowerCase()
+    return haystack.includes(local) && haystack.includes(header)
+  })
 
   return (
     <div className="space-y-6">

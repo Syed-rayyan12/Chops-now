@@ -36,11 +36,11 @@ export function OverviewSection() {
       }
     }
 
-    const loadDashboardData = async () => {
+    const loadDashboardData = async (silent = false) => {
       if (!restaurantSlug) return
-      
+
       try {
-        setLoading(true)
+        if (!silent) setLoading(true)
         const [statsData, earningsData, ordersData] = await Promise.all([
           restaurantOrders.getStats(restaurantSlug),
           restaurantOrders.getEarnings(restaurantSlug),
@@ -52,13 +52,16 @@ export function OverviewSection() {
       } catch (error) {
         logger.error("Failed to load dashboard data:", error)
       } finally {
-        setLoading(false)
+        if (!silent) setLoading(false)
       }
     }
 
-    // Load data only once on mount
+    // Initial load, then poll so new customer orders/stats appear without a manual
+    // reload. Silent refreshes avoid flashing the loading state every interval.
     loadDashboardData()
-  }, []) // Empty dependency array ensures this runs only once
+    const interval = setInterval(() => loadDashboardData(true), 15000)
+    return () => clearInterval(interval)
+  }, [])
 
   const orderStatsConfig = [
     {

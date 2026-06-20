@@ -8,10 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MapPin, Phone, Navigation, Package, CheckCircle, Timer, AlertCircle } from "lucide-react"
 import { riderOrders, type RiderOrder } from "@/lib/api/rider.api"
 import { useToast } from "@/hooks/use-toast"
+import { useDashboardSearch } from "@/lib/dashboard-search-context"
 import { logger } from "@/lib/logger";
 
 export function OrdersSection() {
   const { toast } = useToast()
+  const { query: searchQuery } = useDashboardSearch()
   const [availableOrders, setAvailableOrders] = useState<RiderOrder[]>([])
   const [activeOrders, setActiveOrders] = useState<RiderOrder[]>([])
   const [completedOrders, setCompletedOrders] = useState<RiderOrder[]>([])
@@ -149,6 +151,19 @@ export function OrdersSection() {
     return date.toLocaleDateString()
   }
 
+  // Local filter driven by the dashboard header search ("Search orders, restaurants…").
+  const matchesSearch = (order: RiderOrder) => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return true
+    return Boolean(
+      order.code?.toLowerCase().includes(q) ||
+      order.restaurant?.name?.toLowerCase().includes(q)
+    )
+  }
+  const filteredAvailable = availableOrders.filter(matchesSearch)
+  const filteredActive = activeOrders.filter(matchesSearch)
+  const filteredCompleted = completedOrders.filter(matchesSearch)
+
   return (
     <div className="">
       <div className="mb-6 bg-secondary p-4 rounded-lg">
@@ -159,13 +174,13 @@ export function OrdersSection() {
       <Tabs defaultValue="available" className="space-y-4">
         <TabsList className="gap-2 flex overflow-x-auto lg:justify-between w-full text-white">
           <TabsTrigger value="available" className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 cursor-pointer data-[state=active]:text-primary">
-            Available ({availableOrders.length})
+            Available ({filteredAvailable.length})
           </TabsTrigger>
           <TabsTrigger value="active" className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 cursor-pointer data-[state=active]:text-primary">
-            Active ({activeOrders.length})
+            Active ({filteredActive.length})
           </TabsTrigger>
           <TabsTrigger value="completed" className="text-gray-400 border bg-white border-gray-400 rounded-md data-[state=active]:rounded-lg data-[state=active]:bg-[#dcfce7] data-[state=active]:border-primary data-[state=active]:border-b-2 cursor-pointer data-[state=active]:text-primary">
-            Completed ({completedOrders.length})
+            Completed ({filteredCompleted.length})
           </TabsTrigger>
         </TabsList>
 
@@ -187,14 +202,14 @@ export function OrdersSection() {
                   <p>You're offline</p>
                   <p className="text-xs mt-1">Go online from your dashboard to see available orders</p>
                 </div>
-              ) : availableOrders.length === 0 ? (
+              ) : filteredAvailable.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No available orders</p>
                   <p className="text-xs mt-1">Check back soon for new deliveries</p>
                 </div>
               ) : (
-                availableOrders.map((order) => (
+                filteredAvailable.map((order) => (
                   <div key={order.id} className="border border-gray-400 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                       <div>
@@ -267,14 +282,14 @@ export function OrdersSection() {
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                 </div>
-              ) : activeOrders.length === 0 ? (
+              ) : filteredActive.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No active deliveries</p>
                   <p className="text-xs mt-1">Accept orders from the Available tab</p>
                 </div>
               ) : (
-                activeOrders.map((order) => (
+                filteredActive.map((order) => (
                   <div key={order.id} className="border border-primary rounded-lg p-4 bg-blue-50/30">
                     <div className="flex items-center justify-between mb-3">
                       <div>
@@ -348,14 +363,14 @@ export function OrdersSection() {
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                 </div>
-              ) : completedOrders.length === 0 ? (
+              ) : filteredCompleted.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <CheckCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No completed deliveries yet</p>
                   <p className="text-xs mt-1">Complete your first delivery to see it here</p>
                 </div>
               ) : (
-                completedOrders.map((order) => (
+                filteredCompleted.map((order) => (
                   <div key={order.id} className="border border-gray-400 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div>

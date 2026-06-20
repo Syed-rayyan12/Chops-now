@@ -11,32 +11,20 @@ import { Check, X, MoreHorizontal, MapPin, Navigation } from "lucide-react"
 import { restaurantOrders } from "@/lib/api/order.api"
 import type { Order as ApiOrder } from "@/lib/api/order.api"
 import { API_CONFIG } from "@/lib/api/config"
+import { useDashboardSearch } from "@/lib/dashboard-search-context"
 import { logger } from "@/lib/logger";
-
-// Helper function to calculate distance between rider and restaurant
-function calculateRiderDistance(restaurantLat: number, restaurantLon: number, riderLat: number, riderLon: number): string {
-  const R = 6371 // Earth's radius in km
-  const dLat = (riderLat - restaurantLat) * Math.PI / 180
-  const dLon = (riderLon - restaurantLon) * Math.PI / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(restaurantLat * Math.PI / 180) * Math.cos(riderLat * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  const distance = R * c
-  return distance.toFixed(1)
-}
 
 interface Rider {
   id: number
   firstName: string
   lastName: string
-  latitude: number | null
-  longitude: number | null
-  isOnline: boolean
+  // distanceKm is computed by the backend (/nearby-riders), already within 5km.
+  distanceKm: number
+  vehicle?: string | null
 }
 
 export function OrdersSection() {
+  const { query: searchQuery } = useDashboardSearch()
   const [activeOrderTab, setActiveOrderTab] = useState("new")
   const [orders, setOrders] = useState<ApiOrder[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,7 +46,15 @@ export function OrdersSection() {
     loadRestaurantLocation(restaurantSlug)
     loadAvailableRiders()
 
-    // Cross-tab updates via BroadcastChannel only
+    // Poll so newly placed customer orders (and nearby riders) appear without a
+    // manual reload. BroadcastChannel below only covers same-browser updates, not
+    // orders placed by customers elsewhere. loadOrders throttles to >=2s internally.
+    const interval = setInterval(() => {
+      loadOrders(restaurantSlug)
+      loadAvailableRiders()
+    }, 15000)
+
+    // Cross-tab updates via BroadcastChannel
     const channel = new BroadcastChannel("chop-restaurant-updates")
     const onMessage = (evt: MessageEvent) => {
       const msg = evt.data as any
@@ -69,6 +65,7 @@ export function OrdersSection() {
     channel.addEventListener("message", onMessage)
 
     return () => {
+      clearInterval(interval)
       channel.removeEventListener("message", onMessage)
       channel.close()
     }
@@ -156,36 +153,49 @@ export function OrdersSection() {
   const loadAvailableRiders = async () => {
     try {
       const token = localStorage.getItem("restaurantToken")
-      const response = await fetch(`${API_CONFIG.BASE_URL}/rider/all`, {
+      const slug = localStorage.getItem("restaurantSlug")
+      if (!token || !slug) return
+      // Use the scoped nearby-riders endpoint: it enforces restaurant ownership and
+      // returns only approved, online riders within 5km, pre-sorted by distanceKm.
+      const response = await fetch(`${API_CONFIG.BASE_URL}/restaurant/${slug}/nearby-riders`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.ok) {
         const data = await response.json()
-        logger.debug("🚴 Riders data received:", data)
-        logger.debug("🚴 Total riders:", data.riders?.length || 0)
-        logger.debug("🚴 Riders with location:", data.riders?.filter((r: Rider) => r.latitude && r.longitude).length || 0)
         setRiders(data.riders || [])
+      } else {
+        // e.g. 400 when the restaurant has no location set.
+        setRiders([])
       }
     } catch (error) {
-      logger.error("Failed to load riders:", error)
+      logger.error("Failed to load nearby riders:", error)
     }
   }
 
+  // Local filter driven by the dashboard header search ("Search orders, menu items…").
+  // Matches order code, customer name, or item titles.
+  const matchesSearch = (order: ApiOrder) => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return true
+    const customer = `${(order as any).customer?.firstName ?? ""} ${(order as any).customer?.lastName ?? ""} ${(order as any).customerName ?? ""}`
+    const items = (order.items ?? []).map((it: any) => it.title ?? it.name ?? "").join(" ")
+    return (
+      order.code?.toLowerCase().includes(q) ||
+      customer.toLowerCase().includes(q) ||
+      items.toLowerCase().includes(q)
+    )
+  }
+
   const getOrdersByStatus = (status: "pending" | "in-progress" | "completed" | "cancelled") => {
-    if (status === "pending") {
-      return orders.filter((order) => order.status === "PENDING")
-    } else if (status === "in-progress") {
-      return orders.filter((order) =>
-        order.status === "PREPARING" ||
-        order.status === "READY_FOR_PICKUP" ||
-        order.status === "PICKED_UP"
-      )
-    } else if (status === "completed") {
-      return orders.filter((order) => order.status === "DELIVERED")
-    } else if (status === "cancelled") {
-      return orders.filter((order) => order.status === "CANCELLED")
-    }
-    return []
+    const byStatus = orders.filter((order) => {
+      if (status === "pending") return order.status === "PENDING"
+      if (status === "in-progress")
+        return order.status === "PREPARING" || order.status === "READY_FOR_PICKUP" || order.status === "PICKED_UP"
+      if (status === "completed") return order.status === "DELIVERED"
+      if (status === "cancelled") return order.status === "CANCELLED"
+      return false
+    })
+    return byStatus.filter(matchesSearch)
   }
 
   const formatDate = (dateString: string) => {
@@ -262,48 +272,26 @@ export function OrdersSection() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {riders
-                      .filter(rider => {
-                        const hasLocation = rider.latitude && rider.longitude
-                        if (hasLocation) {
-                          logger.debug(`🎯 Rider ${rider.firstName} ${rider.lastName} has location:`, { lat: rider.latitude, lon: rider.longitude })
-                        }
-                        return hasLocation
-                      })
-                      .map(rider => {
-                        const distance = parseFloat(calculateRiderDistance(
-                          restaurantLocation.latitude,
-                          restaurantLocation.longitude,
-                          rider.latitude!,
-                          rider.longitude!
-                        ))
-                        logger.debug(`📏 Distance for ${rider.firstName} ${rider.lastName}: ${distance} km`)
-                        return {
-                          ...rider,
-                          distance
-                        }
-                      })
-                      .sort((a, b) => a.distance - b.distance)
-                      .map(rider => (
-                        <div key={rider.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h4 className="font-semibold text-foreground">{rider.firstName} {rider.lastName}</h4>
-                              <Badge className={rider.isOnline ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                                {rider.isOnline ? "Online" : "Offline"}
-                              </Badge>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-2xl font-bold text-primary">{rider.distance.toFixed(2)}</span>
-                              <span className="text-xs text-gray-500">km away</span>
-                            </div>
+                    {/* Riders are already approved, online, within 5km, and sorted
+                        by distance by the /nearby-riders endpoint. */}
+                    {riders.map(rider => (
+                      <div key={rider.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="font-semibold text-foreground">{rider.firstName} {rider.lastName}</h4>
+                            <Badge className="bg-green-100 text-green-700">Online</Badge>
                           </div>
-                          <div className="flex items-center text-sm text-gray-600 mt-2">
-                            <Navigation className="h-4 w-4 mr-1 text-secondary" />
-                            <span>Distance from your restaurant</span>
+                          <div className="flex flex-col items-end">
+                            <span className="text-2xl font-bold text-primary">{rider.distanceKm.toFixed(2)}</span>
+                            <span className="text-xs text-gray-500">km away</span>
                           </div>
                         </div>
-                      ))}
+                        <div className="flex items-center text-sm text-gray-600 mt-2">
+                          <Navigation className="h-4 w-4 mr-1 text-secondary" />
+                          <span>Distance from your restaurant</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>

@@ -487,31 +487,70 @@ router.get("/earnings", authenticate(["RIDER"]), requireApprovedRider, async (re
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    // 7-day window = today plus the previous 6 calendar days, so the daily
+    // breakdown sums exactly to the "this week" total.
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - 6);
 
-    // Today's earnings
-    const todayEarnings = await prisma.earning.aggregate({
-      where: {
-        riderId,
-        date: { gte: todayStart }
-      },
-      _sum: { amount: true }
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    const pad2 = (n: number) => String(n).padStart(2, "0");
+
+    // Pull the week's completed-delivery earnings once, then bucket in memory.
+    const weekEarnings = await prisma.earning.findMany({
+      where: { riderId, date: { gte: weekStart } },
+      select: { amount: true, date: true },
     });
 
-    // This week's earnings
-    const weeklyEarnings = await prisma.earning.aggregate({
-      where: {
-        riderId,
-        date: { gte: weekStart }
-      },
-      _sum: { amount: true }
-    });
+    const todayEarningsRecords = weekEarnings.filter((e) => e.date >= todayStart);
+    const todayTotal = todayEarningsRecords.reduce((sum, e) => sum + Number(e.amount), 0);
+    const weekTotal = weekEarnings.reduce((sum, e) => sum + Number(e.amount), 0);
+
+    // Hourly breakdown for today (only hours with activity, ascending).
+    const hourBuckets = new Map<number, { orders: number; earnings: number }>();
+    for (const e of todayEarningsRecords) {
+      const h = e.date.getHours();
+      const bucket = hourBuckets.get(h) || { orders: 0, earnings: 0 };
+      bucket.orders += 1;
+      bucket.earnings += Number(e.amount);
+      hourBuckets.set(h, bucket);
+    }
+    const todayBreakdown = [...hourBuckets.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([hour, b]) => ({
+        hour,
+        label: `${pad2(hour)}:00 - ${pad2((hour + 1) % 24)}:00`,
+        orders: b.orders,
+        earnings: round2(b.earnings),
+      }));
+
+    // Daily breakdown for the last 7 days (oldest → today).
+    const weekBreakdown = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(todayStart);
+      dayStart.setDate(dayStart.getDate() - i);
+      const nextDay = new Date(dayStart);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const dayRecords = weekEarnings.filter((e) => e.date >= dayStart && e.date < nextDay);
+      const orders = dayRecords.length;
+      const earnings = dayRecords.reduce((sum, e) => sum + Number(e.amount), 0);
+
+      weekBreakdown.push({
+        day: dayStart.toLocaleDateString("en-US", { weekday: "long" }),
+        date: dayStart.toISOString(),
+        orders,
+        earnings: round2(earnings),
+        avgPerOrder: orders > 0 ? round2(earnings / orders) : 0,
+      });
+    }
 
     res.json({
       earnings: {
-        today: Number(todayEarnings._sum.amount || 0),
-        thisWeek: Number(weeklyEarnings._sum.amount || 0)
-      }
+        today: round2(todayTotal),
+        thisWeek: round2(weekTotal),
+      },
+      todayBreakdown,
+      weekBreakdown,
     });
   } catch (error: any) {
     logger.error("Get rider earnings error:", error);

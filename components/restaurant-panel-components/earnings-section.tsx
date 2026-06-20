@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Download, DownloadIcon, PoundSterlingIcon } from "lucide-react"
 import { API_CONFIG } from "@/lib/api/config"
+import { exportToCSV } from "@/lib/export-csv"
 import { logger } from "@/lib/logger";
 
 interface Transaction {
@@ -85,6 +86,15 @@ export function EarningsSection() {
     })
   }
 
+  const handleExport = () => {
+    exportToCSV("restaurant-earnings", transactions, [
+      { header: "Order ID", value: (t) => t.orderId },
+      { header: "Date", value: (t) => formatDate(t.date) },
+      { header: "Amount", value: (t) => t.amount },
+      { header: "Status", value: (t) => t.status },
+    ])
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-secondary rounded-lg p-6 text-white">
@@ -94,9 +104,9 @@ export function EarningsSection() {
           <p className="text-white font-ubuntu text-sm">View your food revenue from completed orders (100% of food prices).</p>
           </div>
           <div>
-            <Button variant="pdf" className="bg-transparent border border-white rounded-lg">
+            <Button variant="pdf" onClick={handleExport} disabled={transactions.length === 0} className="bg-transparent border border-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
             <DownloadIcon/>
-              Export PDF
+              Export CSV
             </Button>
           </div>
         </div>

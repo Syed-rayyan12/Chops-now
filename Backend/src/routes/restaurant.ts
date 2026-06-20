@@ -1282,12 +1282,16 @@ router.get(
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
+      // Earnings windows are keyed on deliveredAt (when the restaurant is actually
+      // paid), not createdAt, so totals match the transactions list which sorts by
+      // deliveredAt. An order created last month but delivered today counts today.
+
       // Today's earnings (DELIVERED orders only) - Restaurant gets 100% of food price
       const todayOrders = await prisma.order.findMany({
         where: {
           restaurantId: restaurant.id,
           status: 'DELIVERED',
-          createdAt: { gte: todayStart }
+          deliveredAt: { gte: todayStart }
         },
         select: { restaurantPayout: true }
       });
@@ -1299,7 +1303,7 @@ router.get(
         where: {
           restaurantId: restaurant.id,
           status: 'DELIVERED',
-          createdAt: { gte: weekStart }
+          deliveredAt: { gte: weekStart }
         },
         select: { restaurantPayout: true }
       });
@@ -1311,7 +1315,7 @@ router.get(
         where: {
           restaurantId: restaurant.id,
           status: 'DELIVERED',
-          createdAt: { gte: monthStart }
+          deliveredAt: { gte: monthStart }
         },
         select: { restaurantPayout: true }
       });

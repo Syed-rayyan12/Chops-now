@@ -19,6 +19,7 @@ export function DashboardHome() {
   const [loading, setLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(false)
   const [isTogglingStatus, setIsTogglingStatus] = useState(false)
+  const [firstName, setFirstName] = useState("")
 
   useEffect(() => {
     loadDashboardData()
@@ -41,6 +42,7 @@ export function DashboardHome() {
       setActiveOrders(activeOrdersData.orders)
       setRecentActivity(activityData.activities)
       setIsOnline(profileData.rider?.isOnline || false)
+      setFirstName(profileData.rider?.firstName || "")
     } catch (error: any) {
       logger.error("Failed to load dashboard data:", error)
     } finally {
@@ -168,7 +170,7 @@ export function DashboardHome() {
       {/* Welcome Section */}
       <div className="flex bg-secondary justify-between max-sm:gap-3  p-6 max-sm:flex-col rounded-lg">
         <div>
-          <h2 className="text-2xl font-bold mb-2 text-white">GOOD MORNING, JOHN!</h2>
+          <h2 className="text-2xl font-bold mb-2 text-white">WELCOME BACK{firstName ? `, ${firstName.toUpperCase()}` : ""}!</h2>
           <p className="text-white text-sm">Ready to start earning today?</p>
         </div>
         <div className="flex items-center space-x-4">

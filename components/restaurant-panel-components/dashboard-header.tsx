@@ -212,6 +212,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useDashboardSearch } from "@/lib/dashboard-search-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { API_CONFIG } from "@/lib/api/config"
 import {
@@ -259,6 +260,7 @@ type DashboardHeaderProps = {
 
 export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notifications }: DashboardHeaderProps) {
   const pathname = usePathname()
+  const { query, setQuery } = useDashboardSearch()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [restaurant, setRestaurant] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -392,14 +394,15 @@ export function DashboardHeader({ collapsed, setCollapsed, onSignOut, notificati
           <h1 className="text-lg sm:text-2xl font-bold text-primary hidden sm:block">Dashboard</h1>
         </div>
 
-        {/* Right side with search (hidden on small screens), notifications & profile */}
+        {/* Right side with search (desktop), notifications & profile */}
         <div className="flex items-center space-x-2 sm:space-x-4 flex-1 sm:w-full justify-end">
-          {/* Search bar on desktop only */}
           <div className="hidden lg:block relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-300 h-4 w-4" />
             <Input
-              placeholder="Search orders, restaurants, users..."
-              className="pl-10 w-full bg-white border text-gray-300 border-gray-200 h-10"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search orders, menu items…"
+              className="pl-10 w-full bg-white border text-foreground border-gray-200 h-10"
             />
           </div>
           <DropdownMenu>

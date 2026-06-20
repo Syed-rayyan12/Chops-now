@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useDashboardSearch } from "@/lib/dashboard-search-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {   
   DropdownMenu,
@@ -48,6 +49,7 @@ type RiderHeaderProps = {
 
 export function RiderHeader({ collapsed, setCollapsed, notifications, onSignOut }: RiderHeaderProps) {
   const pathname = usePathname()
+  const { query, setQuery } = useDashboardSearch()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [rider, setRider] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -176,8 +178,10 @@ export function RiderHeader({ collapsed, setCollapsed, notifications, onSignOut 
             <div className="hidden lg:block relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-300 h-4 w-4" />
               <Input
-                placeholder="Search orders, restaurants, users..."
-                className="pl-10 w-full bg-white border text-gray-300 border-gray-200 h-10"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search orders, restaurants…"
+                className="pl-10 w-full bg-white border text-foreground border-gray-200 h-10"
               />
             </div>
 
